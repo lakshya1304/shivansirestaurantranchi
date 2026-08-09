@@ -88,10 +88,10 @@ function MyOrders() {
           <>
             <section className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-3">
               <Stat label="Guest" value={result.customer.name} />
-              <Stat label="Total orders" value={String(result.customer.total_orders)} />
+              <Stat label="Visits" value={String(result.customer.visits)} />
               <Stat
                 label="Loyalty points"
-                value={String(result.customer.loyalty_points)}
+                value={String(result.customer.reward_points)}
                 hint={<Gift className="size-4 text-accent" />}
               />
             </section>
