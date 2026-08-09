@@ -31,7 +31,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 const NAV = [
-  { to: "/admin", label: "Live orders", icon: ClipboardList, exact: true },
+  { to: "/admin", label: "Live orders", icon: ClipboardList },
   { to: "/admin/menu", label: "Menu", icon: UtensilsCrossed },
   { to: "/admin/inventory", label: "Inventory", icon: Boxes },
   { to: "/admin/offers", label: "Offers & loyalty", icon: Tag },
@@ -89,7 +89,7 @@ function AdminLayout() {
       <div className="mx-auto max-w-7xl space-y-6">
         <nav className="glass flex gap-1 overflow-x-auto rounded-2xl p-1.5">
           {NAV.map((item) => {
-            const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+            const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
