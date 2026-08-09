@@ -26,7 +26,7 @@ export const Route = createFileRoute("/my-orders")({
       { property: "og:description", content: "Past orders, invoices and loyalty points at Shivansi." },
     ],
   }),
-  component: MyOrders;
+  component: MyOrders,
 });
 
 function MyOrders() {
