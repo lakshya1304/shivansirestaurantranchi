@@ -37,14 +37,20 @@ function LiveOrders() {
 
   async function setStatus(order: Order, status: OrderStatus) {
     const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success(`${order.order_number} → ${STATUS_LABEL[status]}`);
     void qc.invalidateQueries({ queryKey: ["orders"] });
   }
 
   async function setPaid(order: Order) {
     const { error } = await supabase.from("orders").update({ payment_status: "paid" }).eq("id", order.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     void qc.invalidateQueries({ queryKey: ["orders"] });
   }
 
@@ -140,7 +146,7 @@ function LiveOrders() {
               </div>
               {openBill === order.id ? (
                 <div className="mt-4">
-                  <Invoice order={order} settings={settings} />
+                  <Invoice order={order} settings={settings ?? null} />
                   <Button
                     variant="glass"
                     size="sm"
