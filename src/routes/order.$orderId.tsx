@@ -9,7 +9,7 @@ import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { getPublicOrder } from "@/lib/orders.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { ORDER_FLOW, STATUS_LABEL, type OrderStatus } from "@/lib/types";
+import { ORDER_FLOW, STATUS_LABEL, type Order } from "@/lib/types";
 import { formatTime } from "@/lib/format";
 
 export const Route = createFileRoute("/order/$orderId")({
@@ -83,11 +83,8 @@ function OrderTracking() {
     );
   }
 
-  const order = payload.order as never as Parameters<typeof Invoice>[0]["order"] & {
-    status: OrderStatus;
-    updated_at: string;
-    estimated_minutes: number | null;
-  };
+  const order = payload.order as unknown as Order & { updated_at: string };
+  const takeaway = order.table_number == null;
   const status = order.status;
   const cancelled = status === "rejected";
   const activeIndex = ORDER_FLOW.indexOf(status);
@@ -99,13 +96,11 @@ function OrderTracking() {
           <Badge variant={cancelled ? "destructive" : "gold"}>{STATUS_LABEL[status]}</Badge>
           <h1 className="mt-3 font-display text-3xl font-bold">{order.order_number}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {order.is_takeaway ? "Takeaway order" : `Table ${order.table_number ?? "-"}`} • updated{" "}
+            {takeaway ? "Takeaway order" : `Table ${order.table_number}`} • updated{" "}
             {formatTime(order.updated_at)}
           </p>
-          {!cancelled && order.estimated_minutes ? (
-            <p className="mt-3 text-sm text-accent">
-              Estimated ready in about {order.estimated_minutes} minutes
-            </p>
+          {!cancelled ? (
+            <p className="mt-3 text-sm text-accent">We'll update this page automatically as your food moves along.</p>
           ) : null}
         </header>
 

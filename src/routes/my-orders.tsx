@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { getOrdersByPhone } from "@/lib/orders.functions";
-import { STATUS_LABEL, type OrderStatus } from "@/lib/types";
+import { STATUS_LABEL, type Order } from "@/lib/types";
 import { formatDateTime, money } from "@/lib/format";
 
 export const Route = createFileRoute("/my-orders")({
@@ -98,10 +98,7 @@ function MyOrders() {
 
             <section className="space-y-3">
               {result.orders.map((order) => {
-                const typed = order as never as Parameters<typeof Invoice>[0]["order"] & {
-                  id: string;
-                  status: OrderStatus;
-                };
+                const typed = order as unknown as Order;
                 return (
                   <article key={typed.id} className="glass rounded-3xl p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -109,7 +106,7 @@ function MyOrders() {
                         <p className="font-mono text-sm">{typed.order_number}</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDateTime(typed.created_at)} •{" "}
-                          {typed.is_takeaway ? "Takeaway" : `Table ${typed.table_number ?? "-"}`}
+                          {typed.table_number == null ? "Takeaway" : `Table ${typed.table_number}`}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
