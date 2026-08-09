@@ -1,46 +1,19 @@
 import { money, formatDateTime } from "@/lib/format";
+import type { Order, RestaurantSettings } from "@/lib/types";
 
-type InvoiceOrder = {
-  order_number: string;
-  created_at: string;
-  customer_name: string;
-  customer_phone: string;
-  table_number: number | null;
-  is_takeaway: boolean;
-  payment_method: string;
-  payment_status: string;
-  subtotal: number;
-  discount_amount: number;
-  loyalty_discount: number;
-  tax_amount: number;
-  packing_charge: number;
-  delivery_charge: number;
-  total: number;
-  coupon_code: string | null;
-  order_items: Array<{
-    id: string;
-    product_name: string;
-    quantity: number;
-    unit_price: number;
-    line_total: number;
-    weight_label: string | null;
-  }>;
-};
-
-type InvoiceSettings = {
-  name?: string | null;
-  address?: string | null;
-  phone?: string | null;
-  gst_number?: string | null;
-  currency?: string | null;
-  tax_percent?: number | null;
-} | null;
-
-export function Invoice({ order, settings }: { order: InvoiceOrder; settings: InvoiceSettings }) {
+export function Invoice({
+  order,
+  settings,
+}: {
+  order: Order;
+  settings: Partial<RestaurantSettings> | null;
+}) {
   const currency = settings?.currency ?? "₹";
+  const items = order.order_items ?? [];
+  const takeaway = order.table_number == null;
 
   return (
-    <div id="invoice" className="glass rounded-3xl p-6 print:bg-white print:text-black">
+    <div id="invoice" className="glass rounded-3xl p-6">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div>
           <h2 className="font-display text-xl font-bold">{settings?.name ?? "Shivansi"}</h2>
@@ -53,7 +26,7 @@ export function Invoice({ order, settings }: { order: InvoiceOrder; settings: In
         <div className="text-right text-xs text-muted-foreground">
           <p className="font-mono text-sm text-foreground">{order.order_number}</p>
           <p>{formatDateTime(order.created_at)}</p>
-          <p>{order.is_takeaway ? "Takeaway" : `Table ${order.table_number ?? "-"}`}</p>
+          <p>{takeaway ? "Takeaway" : `Table ${order.table_number}`}</p>
           <p>
             {order.payment_method} • {order.payment_status}
           </p>
@@ -74,12 +47,15 @@ export function Invoice({ order, settings }: { order: InvoiceOrder; settings: In
           </tr>
         </thead>
         <tbody>
-          {order.order_items.map((item) => (
+          {items.map((item) => (
             <tr key={item.id} className="border-t border-border/60">
               <td className="py-2">
-                {item.product_name}
+                {item.name}
                 {item.weight_label ? (
                   <span className="text-xs text-muted-foreground"> ({item.weight_label})</span>
+                ) : null}
+                {item.instructions ? (
+                  <span className="block text-[11px] text-accent">{item.instructions}</span>
                 ) : null}
               </td>
               <td className="py-2 text-center">{item.quantity}</td>
@@ -92,16 +68,13 @@ export function Invoice({ order, settings }: { order: InvoiceOrder; settings: In
 
       <dl className="mt-4 space-y-1 border-t border-border pt-3 text-sm">
         <Line label="Subtotal" value={money(order.subtotal, currency)} />
-        {order.discount_amount > 0 ? (
+        {order.discount > 0 ? (
           <Line
-            label={`Discount${order.coupon_code ? ` (${order.coupon_code})` : ""}`}
-            value={`-${money(order.discount_amount, currency)}`}
+            label={order.discount_label ? `Discount (${order.discount_label})` : "Discount"}
+            value={`-${money(order.discount, currency)}`}
           />
         ) : null}
-        {order.loyalty_discount > 0 ? (
-          <Line label="Loyalty reward" value={`-${money(order.loyalty_discount, currency)}`} />
-        ) : null}
-        <Line label={`GST (${settings?.tax_percent ?? 0}%)`} value={money(order.tax_amount, currency)} />
+        <Line label={`GST (${settings?.tax_percent ?? 0}%)`} value={money(order.tax, currency)} />
         {order.packing_charge > 0 ? (
           <Line label="Packing" value={money(order.packing_charge, currency)} />
         ) : null}
@@ -113,6 +86,10 @@ export function Invoice({ order, settings }: { order: InvoiceOrder; settings: In
           <span>{money(order.total, currency)}</span>
         </div>
       </dl>
+
+      {order.notes ? (
+        <p className="mt-3 text-xs text-muted-foreground">Note: {order.notes}</p>
+      ) : null}
 
       <p className="mt-4 text-center text-xs text-muted-foreground">
         Thank you for dining with us. Please visit again!
