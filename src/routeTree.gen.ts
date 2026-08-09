@@ -16,9 +16,11 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as MyOrdersRouteImport } from './routes/my-orders'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminMenuRouteImport } from './routes/admin.menu'
 import { Route as AdminOffersRouteImport } from './routes/admin.offers'
+import { Route as AdminTablesRouteImport } from './routes/admin.tables'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as TableTableNumberRouteImport } from './routes/table.$tableNumber'
 
@@ -57,6 +59,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCustomersRoute = AdminCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -70,6 +77,11 @@ const AdminMenuRoute = AdminMenuRouteImport.update({
 const AdminOffersRoute = AdminOffersRouteImport.update({
   id: '/offers',
   path: '/offers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTablesRoute = AdminTablesRouteImport.update({
+  id: '/tables',
+  path: '/tables',
   getParentRoute: () => AdminRoute,
 } as any)
 const OrderOrderIdRoute = OrderOrderIdRouteImport.update({
@@ -90,9 +102,11 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/offers': typeof AdminOffersRoute
+  '/admin/tables': typeof AdminTablesRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/table/$tableNumber': typeof TableTableNumberRoute
   '/admin/': typeof AdminIndexRoute
@@ -103,9 +117,11 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/offers': typeof AdminOffersRoute
+  '/admin/tables': typeof AdminTablesRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/table/$tableNumber': typeof TableTableNumberRoute
   '/admin': typeof AdminIndexRoute
@@ -118,9 +134,11 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
+  '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/offers': typeof AdminOffersRoute
+  '/admin/tables': typeof AdminTablesRoute
   '/order/$orderId': typeof OrderOrderIdRoute
   '/table/$tableNumber': typeof TableTableNumberRoute
   '/admin/': typeof AdminIndexRoute
@@ -134,9 +152,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/menu'
     | '/my-orders'
+    | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/offers'
+    | '/admin/tables'
     | '/order/$orderId'
     | '/table/$tableNumber'
     | '/admin/'
@@ -147,9 +167,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/menu'
     | '/my-orders'
+    | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/offers'
+    | '/admin/tables'
     | '/order/$orderId'
     | '/table/$tableNumber'
     | '/admin'
@@ -161,9 +183,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/menu'
     | '/my-orders'
+    | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/offers'
+    | '/admin/tables'
     | '/order/$orderId'
     | '/table/$tableNumber'
     | '/admin/'
@@ -231,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/customers': {
+      id: '/admin/customers'
+      path: '/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/inventory'
@@ -252,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOffersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tables': {
+      id: '/admin/tables'
+      path: '/tables'
+      fullPath: '/admin/tables'
+      preLoaderRoute: typeof AdminTablesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/order/$orderId': {
       id: '/order/$orderId'
       path: '/order/$orderId'
@@ -270,16 +308,20 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminCustomersRoute: typeof AdminCustomersRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminMenuRoute: typeof AdminMenuRoute
   AdminOffersRoute: typeof AdminOffersRoute
+  AdminTablesRoute: typeof AdminTablesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminCustomersRoute: AdminCustomersRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminMenuRoute: AdminMenuRoute,
   AdminOffersRoute: AdminOffersRoute,
+  AdminTablesRoute: AdminTablesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
