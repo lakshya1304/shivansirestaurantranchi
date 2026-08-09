@@ -77,7 +77,7 @@ function MyOrders() {
         {mutation.isSuccess && !result ? (
           <p className="glass rounded-3xl p-6 text-center text-sm text-muted-foreground">
             No orders found for that number yet.{" "}
-            <Link to="/menu" className="text-accent underline">
+            <Link to="/menu" search={{ category: undefined }} className="text-accent underline">
               Start an order
             </Link>
             .

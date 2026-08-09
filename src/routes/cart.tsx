@@ -101,7 +101,7 @@ function CartPage() {
           <h1 className="mt-4 font-display text-2xl font-bold">Your cart is empty</h1>
           <p className="mt-2 text-sm text-muted-foreground">Add something delicious to get started.</p>
           <Button asChild variant="hero" className="mt-6 rounded-full">
-            <Link to="/menu">Browse the menu</Link>
+            <Link to="/menu" search={{ category: undefined }}>Browse the menu</Link>
           </Button>
         </div>
       </main>

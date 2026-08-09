@@ -30,7 +30,7 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="flex flex-col gap-2 text-sm">
-          <Link to="/menu" className="text-muted-foreground transition-colors hover:text-foreground">
+          <Link to="/menu" search={{ category: undefined }} className="text-muted-foreground transition-colors hover:text-foreground">
             Full menu
           </Link>
           <Link to="/my-orders" className="text-muted-foreground transition-colors hover:text-foreground">

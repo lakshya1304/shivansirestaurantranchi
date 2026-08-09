@@ -34,7 +34,7 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-1 sm:gap-2">
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link to="/menu">
+            <Link to="/menu" search={{ category: undefined }}>
               <UtensilsCrossed className="size-4" /> Menu
             </Link>
           </Button>

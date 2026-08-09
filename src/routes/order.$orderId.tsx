@@ -76,7 +76,7 @@ function OrderTracking() {
             This tracking link is invalid or has expired.
           </p>
           <Button asChild variant="hero" className="mt-6 rounded-full">
-            <Link to="/menu">Back to the menu</Link>
+            <Link to="/menu" search={{ category: undefined }}>Back to the menu</Link>
           </Button>
         </div>
       </main>
@@ -152,7 +152,7 @@ function OrderTracking() {
             <Printer className="size-4" /> Print invoice
           </Button>
           <Button asChild variant="hero" className="rounded-full">
-            <Link to="/menu">Order more</Link>
+            <Link to="/menu" search={{ category: undefined }}>Order more</Link>
           </Button>
         </div>
       </div>

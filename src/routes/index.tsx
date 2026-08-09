@@ -67,7 +67,7 @@ function Home() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild variant="hero" size="lg" className="rounded-full">
-                <Link to="/menu">
+                <Link to="/menu" search={{ category: undefined }}>
                   Explore the menu <ArrowRight className="size-4" />
                 </Link>
               </Button>
