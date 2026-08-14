@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Shivansi Restaurant & Sweet Shop — Scan, Order, Enjoy" },
       {
         property: "og:description",
-        content: "Order from your table QR code and track your food live at Shivansi.",
+        content: "Order Indian breakfast, snacks, main course and fresh mithai straight from your table QR code. Live order tracking and festival offers.",
       },
     ],
   }),

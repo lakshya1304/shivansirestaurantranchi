@@ -81,18 +81,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Shivansi Restaurant & Sweet Shop" },
+      { title: "Shivansi Restaurant & Sweet Shop — Scan, Order, Enjoy" },
       {
         name: "description",
-        content: "Scan, order and track your food live at Shivansi Restaurant & Sweet Shop.",
+        content: "Order Indian breakfast, snacks, main course and fresh mithai straight from your table QR code. Live order tracking and festival offers.",
       },
-      { property: "og:title", content: "Shivansi Restaurant & Sweet Shop" },
+      { property: "og:title", content: "Shivansi Restaurant & Sweet Shop — Scan, Order, Enjoy" },
       {
         property: "og:description",
-        content: "Scan, order and track your food live at Shivansi Restaurant & Sweet Shop.",
+        content: "Order Indian breakfast, snacks, main course and fresh mithai straight from your table QR code. Live order tracking and festival offers.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Shivansi Restaurant & Sweet Shop — Scan, Order, Enjoy" },
+      { name: "twitter:description", content: "Order Indian breakfast, snacks, main course and fresh mithai straight from your table QR code. Live order tracking and festival offers." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a5cf4fa8e9b589e5195d7973bd36f138/id-preview-fb9c5577--dd2540c6-2f42-4228-9249-66b3e8ac2fcb.lovable.app-1786611574617.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a5cf4fa8e9b589e5195d7973bd36f138/id-preview-fb9c5577--dd2540c6-2f42-4228-9249-66b3e8ac2fcb.lovable.app-1786611574617.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
