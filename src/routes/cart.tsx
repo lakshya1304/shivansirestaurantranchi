@@ -14,7 +14,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { useCart } from "@/lib/cart";
 import { money } from "@/lib/format";
 import { productImage } from "@/lib/images";
-import { settingsQuery } from "@/lib/db";
+import { settingsQuery, tablesQuery } from "@/lib/db";
 import { placeOrder } from "@/lib/orders.functions";
 import { PAYMENT_METHODS } from "@/lib/types";
 
@@ -32,8 +32,10 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { lines, subtotal, increment, decrement, remove, tableNumber, clear } = useCart();
+  const { lines, subtotal, increment, decrement, remove, tableNumber, tableSource, setTableNumber, clear } =
+    useCart();
   const { data: settings } = useQuery(settingsQuery);
+  const { data: tables = [] } = useQuery(tablesQuery);
   const navigate = useNavigate();
   const submitOrder = useServerFn(placeOrder);
 
@@ -44,6 +46,11 @@ function CartPage() {
   const [payment, setPayment] = useState(PAYMENT_METHODS[0]!);
   const [takeaway, setTakeaway] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [tableInput, setTableInput] = useState("");
+
+  const scanned = tableSource === "qr" && tableNumber != null;
+  const activeTables = tables.filter((t) => t.is_active);
+  const effectiveTable = takeaway ? null : (tableNumber ?? (tableInput ? Number(tableInput) : null));
 
   const currency = settings?.currency ?? "₹";
   const packing = takeaway ? Number(settings?.packing_charge ?? 0) : 0;
@@ -62,12 +69,17 @@ function CartPage() {
       toast.error("Please enter a valid phone number");
       return;
     }
+    if (!takeaway && (!effectiveTable || effectiveTable < 1)) {
+      toast.error("Please select your table number so we know where to serve");
+      return;
+    }
+    if (!takeaway && effectiveTable && !scanned) setTableNumber(effectiveTable, "manual");
 
     setSubmitting(true);
     try {
       const result = await submitOrder({
         data: {
-          tableNumber: takeaway ? null : tableNumber,
+          tableNumber: takeaway ? null : effectiveTable,
           customerName: name.trim(),
           customerPhone: phone.trim(),
           paymentMethod: payment,
@@ -93,6 +105,7 @@ function CartPage() {
     }
   }
 
+
   if (lines.length === 0) {
     return (
       <main className="grid min-h-[70vh] place-items-center px-4">
@@ -114,7 +127,12 @@ function CartPage() {
         <section className="space-y-4">
           <header className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="font-display text-3xl font-bold">Your cart</h1>
-            {tableNumber && !takeaway ? <Badge variant="gold">Table {tableNumber}</Badge> : null}
+            {tableNumber && !takeaway ? (
+              <Badge variant="gold">
+                Table {tableNumber} {scanned ? "• QR scanned" : "• entered manually"}
+              </Badge>
+            ) : null}
+
           </header>
 
           {lines.map((line) => (
@@ -213,6 +231,58 @@ function CartPage() {
             </div>
             <Switch checked={takeaway} onCheckedChange={setTakeaway} />
           </div>
+
+          {!takeaway ? (
+            scanned ? (
+              <div className="rounded-2xl border border-primary/40 bg-primary/10 p-3">
+                <p className="text-sm font-medium">Table {tableNumber} detected from your QR code</p>
+                <p className="text-xs text-muted-foreground">
+                  The kitchen will be told to serve this table.{" "}
+                  <button
+                    type="button"
+                    className="text-accent underline"
+                    onClick={() => setTableNumber(null)}
+                  >
+                    Change table
+                  </button>
+                </p>
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="table">Table number (required for dine-in)</Label>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  You didn't scan a table QR code, so please tell us where you're seated.
+                </p>
+                {activeTables.length ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeTables.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTableInput(String(t.table_number))}
+                        className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                          tableInput === String(t.table_number)
+                            ? "border-primary bg-primary/20"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        Table {t.table_number}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <Input
+                    id="table"
+                    inputMode="numeric"
+                    value={tableInput}
+                    onChange={(e) => setTableInput(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
+                    placeholder="e.g. 7"
+                  />
+                )}
+              </div>
+            )
+          ) : null}
+
 
           <div>
             <Label>Payment method</Label>

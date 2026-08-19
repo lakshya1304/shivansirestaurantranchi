@@ -1,5 +1,13 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import {
+  TABLE_COOKIE,
+  TABLE_SOURCE_COOKIE,
+  deleteCookie,
+  getCookie,
+  setCookie,
+} from "@/lib/cookies";
+
 
 export interface CartLine {
   key: string;
@@ -13,9 +21,12 @@ export interface CartLine {
   instructions: string[];
 }
 
+export type TableSource = "qr" | "manual";
+
 interface CartState {
   lines: CartLine[];
   tableNumber: number | null;
+  tableSource: TableSource | null;
   count: number;
   subtotal: number;
   addLine: (line: Omit<CartLine, "key">) => void;
@@ -23,25 +34,28 @@ interface CartState {
   decrement: (key: string) => void;
   remove: (key: string) => void;
   setInstructions: (key: string, instructions: string[]) => void;
-  setTableNumber: (table: number | null) => void;
+  setTableNumber: (table: number | null, source?: TableSource) => void;
   clear: () => void;
 }
 
 const CartContext = createContext<CartState | null>(null);
 const STORAGE_KEY = "shivansi-cart-v1";
-const TABLE_KEY = "shivansi-table";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [tableNumber, setTableNumberState] = useState<number | null>(null);
+  const [tableSource, setTableSource] = useState<TableSource | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setLines(JSON.parse(raw) as CartLine[]);
-      const table = localStorage.getItem(TABLE_KEY);
-      if (table) setTableNumberState(Number(table));
+      const table = getCookie(TABLE_COOKIE);
+      if (table && Number(table) > 0) {
+        setTableNumberState(Number(table));
+        setTableSource(getCookie(TABLE_SOURCE_COOKIE) === "qr" ? "qr" : "manual");
+      }
     } catch {
       /* ignore corrupted storage */
     }
@@ -53,11 +67,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
   }, [lines, hydrated]);
 
-  const setTableNumber = useCallback((table: number | null) => {
+  const setTableNumber = useCallback((table: number | null, source: TableSource = "manual") => {
     setTableNumberState(table);
-    if (table == null) localStorage.removeItem(TABLE_KEY);
-    else localStorage.setItem(TABLE_KEY, String(table));
+    setTableSource(table == null ? null : source);
+    if (table == null) {
+      deleteCookie(TABLE_COOKIE);
+      deleteCookie(TABLE_SOURCE_COOKIE);
+    } else {
+      // Table context lives for one sitting.
+      setCookie(TABLE_COOKIE, String(table), 60 * 60 * 6);
+      setCookie(TABLE_SOURCE_COOKIE, source, 60 * 60 * 6);
+    }
   }, []);
+
 
   const addLine = useCallback((line: Omit<CartLine, "key">) => {
     const key = `${line.productId}::${line.weightLabel ?? "std"}::${line.instructions.join("|")}`;
@@ -100,6 +122,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return {
       lines,
       tableNumber,
+      tableSource,
       count,
       subtotal,
       addLine,
@@ -110,7 +133,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setTableNumber,
       clear,
     };
-  }, [lines, tableNumber, addLine, increment, decrement, remove, setInstructions, setTableNumber, clear]);
+  }, [lines, tableNumber, tableSource, addLine, increment, decrement, remove, setInstructions, setTableNumber, clear]);
+
 
   return createElement(CartContext.Provider, { value }, children);
 }

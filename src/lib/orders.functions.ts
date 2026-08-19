@@ -10,19 +10,25 @@ const lineSchema = z.object({
   instructions: z.array(z.string().max(40)).max(8),
 });
 
-const orderSchema = z.object({
-  tableNumber: z.number().int().min(1).max(999).nullable(),
-  customerName: z.string().trim().min(2).max(60),
-  customerPhone: z
-    .string()
-    .trim()
-    .regex(/^[0-9+\-\s]{8,16}$/, "Enter a valid phone number"),
-  paymentMethod: z.string().max(30),
-  couponCode: z.string().trim().max(30).nullable(),
-  notes: z.string().trim().max(300).nullable(),
-  isTakeaway: z.boolean(),
-  lines: z.array(lineSchema).min(1).max(60),
-});
+const orderSchema = z
+  .object({
+    tableNumber: z.number().int().min(1).max(999).nullable(),
+    customerName: z.string().trim().min(2).max(60),
+    customerPhone: z
+      .string()
+      .trim()
+      .regex(/^[0-9+\-\s]{8,16}$/, "Enter a valid phone number"),
+    paymentMethod: z.string().max(30),
+    couponCode: z.string().trim().max(30).nullable(),
+    notes: z.string().trim().max(300).nullable(),
+    isTakeaway: z.boolean(),
+    lines: z.array(lineSchema).min(1).max(60),
+  })
+  .refine((v) => v.isTakeaway || v.tableNumber != null, {
+    message: "Table number is required for dine-in orders",
+    path: ["tableNumber"],
+  });
+
 
 export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => orderSchema.parse(data))
@@ -192,14 +198,26 @@ export const placeOrder = createServerFn({ method: "POST" })
       });
     }
 
+    const serveAt = data.tableNumber ? `Serve at table ${data.tableNumber}` : "Takeaway / parcel";
+
     await supabaseAdmin.from("notifications").insert({
       type: "order",
       title: `New order ${orderNumber}`,
-      body: `${data.tableNumber ? `Table ${data.tableNumber}` : "Takeaway"} • ${data.customerName} • ₹${total}`,
+      body: `${serveAt} • ${data.customerName} • ₹${total}`,
     });
+
+    // WhatsApp confirmation from the verified business bot sender.
+    const { sendWhatsAppMessage } = await import("@/lib/whatsapp.server");
+    void sendWhatsAppMessage(
+      data.customerPhone,
+      `🍽 *Shivansi Restaurant & Sweet Shop*\n\nHi ${data.customerName}, your order *${orderNumber}* is confirmed.\n${serveAt}\nItems: ${items
+        .map((i) => `${i.quantity}× ${i.name}`)
+        .join(", ")}\nTotal: ₹${total}\n\nThis is an automated message from our ordering bot — replies are not monitored.`,
+    );
 
     return { id: order.id as string, token: order.session_token as string, orderNumber };
   });
+
 
 export const getPublicOrder = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
