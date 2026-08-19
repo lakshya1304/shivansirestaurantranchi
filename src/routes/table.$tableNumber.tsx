@@ -23,10 +23,11 @@ function TableEntry() {
 
   useEffect(() => {
     const parsed = Number(tableNumber);
-    if (Number.isFinite(parsed) && parsed > 0) setTableNumber(parsed);
-    const timer = setTimeout(() => navigate({ to: "/", replace: true }), 1200);
+    if (Number.isFinite(parsed) && parsed > 0) setTableNumber(parsed, "qr");
+    const timer = setTimeout(() => navigate({ to: "/menu", search: { category: undefined }, replace: true }), 1200);
     return () => clearTimeout(timer);
   }, [tableNumber, setTableNumber, navigate]);
+
 
   return (
     <main className="grid min-h-[70vh] place-items-center px-4">
