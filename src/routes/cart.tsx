@@ -127,7 +127,12 @@ function CartPage() {
         <section className="space-y-4">
           <header className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="font-display text-3xl font-bold">Your cart</h1>
-            {tableNumber && !takeaway ? <Badge variant="gold">Table {tableNumber}</Badge> : null}
+            {tableNumber && !takeaway ? (
+              <Badge variant="gold">
+                Table {tableNumber} {scanned ? "• QR scanned" : "• entered manually"}
+              </Badge>
+            ) : null}
+
           </header>
 
           {lines.map((line) => (
