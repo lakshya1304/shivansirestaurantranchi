@@ -122,6 +122,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return {
       lines,
       tableNumber,
+      tableSource,
       count,
       subtotal,
       addLine,
@@ -132,7 +133,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setTableNumber,
       clear,
     };
-  }, [lines, tableNumber, addLine, increment, decrement, remove, setInstructions, setTableNumber, clear]);
+  }, [lines, tableNumber, tableSource, addLine, increment, decrement, remove, setInstructions, setTableNumber, clear]);
+
 
   return createElement(CartContext.Provider, { value }, children);
 }
