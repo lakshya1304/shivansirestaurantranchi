@@ -198,14 +198,26 @@ export const placeOrder = createServerFn({ method: "POST" })
       });
     }
 
+    const serveAt = data.tableNumber ? `Serve at table ${data.tableNumber}` : "Takeaway / parcel";
+
     await supabaseAdmin.from("notifications").insert({
       type: "order",
       title: `New order ${orderNumber}`,
-      body: `${data.tableNumber ? `Table ${data.tableNumber}` : "Takeaway"} • ${data.customerName} • ₹${total}`,
+      body: `${serveAt} • ${data.customerName} • ₹${total}`,
     });
+
+    // WhatsApp confirmation from the verified business bot sender.
+    const { sendWhatsAppMessage } = await import("@/lib/whatsapp.server");
+    void sendWhatsAppMessage(
+      data.customerPhone,
+      `🍽 *Shivansi Restaurant & Sweet Shop*\n\nHi ${data.customerName}, your order *${orderNumber}* is confirmed.\n${serveAt}\nItems: ${items
+        .map((i) => `${i.quantity}× ${i.name}`)
+        .join(", ")}\nTotal: ₹${total}\n\nThis is an automated message from our ordering bot — replies are not monitored.`,
+    );
 
     return { id: order.id as string, token: order.session_token as string, orderNumber };
   });
+
 
 export const getPublicOrder = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
