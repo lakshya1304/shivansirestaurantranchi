@@ -232,6 +232,58 @@ function CartPage() {
             <Switch checked={takeaway} onCheckedChange={setTakeaway} />
           </div>
 
+          {!takeaway ? (
+            scanned ? (
+              <div className="rounded-2xl border border-primary/40 bg-primary/10 p-3">
+                <p className="text-sm font-medium">Table {tableNumber} detected from your QR code</p>
+                <p className="text-xs text-muted-foreground">
+                  The kitchen will be told to serve this table.{" "}
+                  <button
+                    type="button"
+                    className="text-accent underline"
+                    onClick={() => setTableNumber(null)}
+                  >
+                    Change table
+                  </button>
+                </p>
+              </div>
+            ) : (
+              <div>
+                <Label htmlFor="table">Table number (required for dine-in)</Label>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  You didn't scan a table QR code, so please tell us where you're seated.
+                </p>
+                {activeTables.length ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {activeTables.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTableInput(String(t.table_number))}
+                        className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                          tableInput === String(t.table_number)
+                            ? "border-primary bg-primary/20"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        Table {t.table_number}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <Input
+                    id="table"
+                    inputMode="numeric"
+                    value={tableInput}
+                    onChange={(e) => setTableInput(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
+                    placeholder="e.g. 7"
+                  />
+                )}
+              </div>
+            )
+          ) : null}
+
+
           <div>
             <Label>Payment method</Label>
             <div className="mt-2 flex flex-wrap gap-1.5">
