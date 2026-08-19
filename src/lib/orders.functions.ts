@@ -10,19 +10,25 @@ const lineSchema = z.object({
   instructions: z.array(z.string().max(40)).max(8),
 });
 
-const orderSchema = z.object({
-  tableNumber: z.number().int().min(1).max(999).nullable(),
-  customerName: z.string().trim().min(2).max(60),
-  customerPhone: z
-    .string()
-    .trim()
-    .regex(/^[0-9+\-\s]{8,16}$/, "Enter a valid phone number"),
-  paymentMethod: z.string().max(30),
-  couponCode: z.string().trim().max(30).nullable(),
-  notes: z.string().trim().max(300).nullable(),
-  isTakeaway: z.boolean(),
-  lines: z.array(lineSchema).min(1).max(60),
-});
+const orderSchema = z
+  .object({
+    tableNumber: z.number().int().min(1).max(999).nullable(),
+    customerName: z.string().trim().min(2).max(60),
+    customerPhone: z
+      .string()
+      .trim()
+      .regex(/^[0-9+\-\s]{8,16}$/, "Enter a valid phone number"),
+    paymentMethod: z.string().max(30),
+    couponCode: z.string().trim().max(30).nullable(),
+    notes: z.string().trim().max(300).nullable(),
+    isTakeaway: z.boolean(),
+    lines: z.array(lineSchema).min(1).max(60),
+  })
+  .refine((v) => v.isTakeaway || v.tableNumber != null, {
+    message: "Table number is required for dine-in orders",
+    path: ["tableNumber"],
+  });
+
 
 export const placeOrder = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => orderSchema.parse(data))
