@@ -14,7 +14,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { useCart } from "@/lib/cart";
 import { money } from "@/lib/format";
 import { productImage } from "@/lib/images";
-import { settingsQuery } from "@/lib/db";
+import { settingsQuery, tablesQuery } from "@/lib/db";
 import { placeOrder } from "@/lib/orders.functions";
 import { PAYMENT_METHODS } from "@/lib/types";
 
@@ -32,8 +32,10 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { lines, subtotal, increment, decrement, remove, tableNumber, clear } = useCart();
+  const { lines, subtotal, increment, decrement, remove, tableNumber, tableSource, setTableNumber, clear } =
+    useCart();
   const { data: settings } = useQuery(settingsQuery);
+  const { data: tables = [] } = useQuery(tablesQuery);
   const navigate = useNavigate();
   const submitOrder = useServerFn(placeOrder);
 
@@ -44,6 +46,11 @@ function CartPage() {
   const [payment, setPayment] = useState(PAYMENT_METHODS[0]!);
   const [takeaway, setTakeaway] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [tableInput, setTableInput] = useState("");
+
+  const scanned = tableSource === "qr" && tableNumber != null;
+  const activeTables = tables.filter((t) => t.is_active);
+  const effectiveTable = takeaway ? null : (tableNumber ?? (tableInput ? Number(tableInput) : null));
 
   const currency = settings?.currency ?? "₹";
   const packing = takeaway ? Number(settings?.packing_charge ?? 0) : 0;
@@ -62,12 +69,17 @@ function CartPage() {
       toast.error("Please enter a valid phone number");
       return;
     }
+    if (!takeaway && (!effectiveTable || effectiveTable < 1)) {
+      toast.error("Please select your table number so we know where to serve");
+      return;
+    }
+    if (!takeaway && effectiveTable && !scanned) setTableNumber(effectiveTable, "manual");
 
     setSubmitting(true);
     try {
       const result = await submitOrder({
         data: {
-          tableNumber: takeaway ? null : tableNumber,
+          tableNumber: takeaway ? null : effectiveTable,
           customerName: name.trim(),
           customerPhone: phone.trim(),
           paymentMethod: payment,
@@ -92,6 +104,7 @@ function CartPage() {
       setSubmitting(false);
     }
   }
+
 
   if (lines.length === 0) {
     return (
