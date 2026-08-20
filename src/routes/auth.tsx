@@ -54,12 +54,37 @@ function AuthPage() {
         toast.success("Account created. Check your email to confirm, then sign in.");
         setMode("signin");
       } else {
+        // Step 1 — verify the password, then drop the session so access needs the emailed code too.
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Signed in");
+        await supabase.auth.signOut();
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false },
+        });
+        if (otpError) throw otpError;
+        setOtpStage(true);
+        toast.success("Password verified. We emailed you a 6-digit code.");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Authentication failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleVerifyOtp(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email, token: otp.trim(), type: "email" });
+      if (error) throw error;
+      toast.success("Verified — welcome back");
+      setOtpStage(false);
+      setOtp("");
+      setPassword("");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Invalid or expired code");
     } finally {
       setBusy(false);
     }
