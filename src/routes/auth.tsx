@@ -158,6 +158,38 @@ function AuthPage() {
               Sign out
             </Button>
           </div>
+        ) : otpStage ? (
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <p className="text-center text-sm text-muted-foreground">
+              Enter the 6-digit code we sent to <span className="text-foreground">{email}</span>
+            </p>
+            <div>
+              <Label htmlFor="otp">Verification code</Label>
+              <Input
+                id="otp"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
+              {busy ? <Loader2 className="size-4 animate-spin" /> : null} Verify &amp; continue
+            </Button>
+            <Button
+              type="button"
+              variant="glass"
+              className="w-full rounded-full"
+              onClick={() => {
+                setOtpStage(false);
+                setOtp("");
+              }}
+            >
+              Back
+            </Button>
+          </form>
         ) : (
           <>
             <form onSubmit={handleSubmit} className="space-y-4">
