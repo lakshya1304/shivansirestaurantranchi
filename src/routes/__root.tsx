@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CartProvider } from "@/lib/cart";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
+import { CookieConsent } from "@/components/cookie-consent";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
@@ -154,6 +155,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
         </div>
+        <CookieConsent />
         <Toaster position="top-center" richColors />
       </CartProvider>
     </QueryClientProvider>
