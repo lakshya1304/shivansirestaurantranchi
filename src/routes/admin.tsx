@@ -12,6 +12,7 @@ import {
   Users,
   UtensilsCrossed,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,30 @@ const NAV = [
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ] as const;
 
+/** Short synthesized chime so the kitchen hears every incoming order. */
+function playChime() {
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    [880, 1320].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + i * 0.18 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.35);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.4);
+    });
+    setTimeout(() => void ctx.close(), 1500);
+  } catch {
+    /* audio unavailable */
+  }
+}
+
 function AdminLayout() {
   const { isAdmin, checking } = useIsAdmin();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -48,11 +73,23 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!isAdmin) return;
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      void Notification.requestPermission();
+    }
     const channel = supabase
       .channel("admin-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
         void qc.invalidateQueries({ queryKey: ["orders"] });
         void qc.invalidateQueries({ queryKey: ["notifications"] });
+        if (payload.eventType !== "INSERT") return;
+        const row = payload.new as { order_number?: string; table_number?: number | null };
+        const where = row.table_number ? `Table ${row.table_number}` : "Takeaway";
+        const text = `New order ${row.order_number ?? ""} · ${where}`;
+        toast.success(text, { duration: 8000 });
+        playChime();
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          new Notification("New order received", { body: text });
+        }
       })
       .subscribe();
     return () => {
