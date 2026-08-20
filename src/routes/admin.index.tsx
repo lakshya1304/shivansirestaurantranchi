@@ -31,6 +31,7 @@ function LiveOrders() {
   const { data: notifications = [] } = useQuery(notificationsQuery);
   const qc = useQueryClient();
   const [openBill, setOpenBill] = useState<string | null>(null);
+  const changeStatus = useServerFn(updateOrderStatus);
 
   const currency = settings?.currency ?? "₹";
   const todays = orders.filter((o) => isToday(o.created_at));
