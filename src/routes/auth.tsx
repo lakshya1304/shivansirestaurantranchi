@@ -33,6 +33,8 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [otpStage, setOtpStage] = useState(false);
+  const [otp, setOtp] = useState("");
 
   useEffect(() => {
     if (!checking && isAdmin) navigate({ to: "/admin", replace: true });
