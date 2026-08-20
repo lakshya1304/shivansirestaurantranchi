@@ -36,12 +36,13 @@ function LiveOrders() {
   const live = orders.filter((o) => !["completed", "rejected"].includes(o.status));
 
   async function setStatus(order: Order, status: OrderStatus) {
-    const { error } = await supabase.from("orders").update({ status }).eq("id", order.id);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await changeStatus({ data: { orderId: order.id, status } });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not update status");
       return;
     }
-    toast.success(`${order.order_number} → ${STATUS_LABEL[status]}`);
+    toast.success(`${order.order_number} → ${STATUS_LABEL[status]} · WhatsApp update sent`);
     void qc.invalidateQueries({ queryKey: ["orders"] });
   }
 
