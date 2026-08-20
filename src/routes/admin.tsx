@@ -48,11 +48,23 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!isAdmin) return;
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      void Notification.requestPermission();
+    }
     const channel = supabase
       .channel("admin-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
         void qc.invalidateQueries({ queryKey: ["orders"] });
         void qc.invalidateQueries({ queryKey: ["notifications"] });
+        if (payload.eventType !== "INSERT") return;
+        const row = payload.new as { order_number?: string; table_number?: number | null };
+        const where = row.table_number ? `Table ${row.table_number}` : "Takeaway";
+        const text = `New order ${row.order_number ?? ""} · ${where}`;
+        toast.success(text, { duration: 8000 });
+        playChime();
+        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+          new Notification("New order received", { body: text });
+        }
       })
       .subscribe();
     return () => {
