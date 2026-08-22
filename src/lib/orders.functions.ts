@@ -237,15 +237,70 @@ export const getPublicOrder = createServerFn({ method: "GET" })
     return { order, settings: settingsRows?.[0] ?? null };
   });
 
-export const getOrdersByPhone = createServerFn({ method: "GET" })
+const phoneSchema = z.string().trim().regex(/^[0-9+\-\s]{8,16}$/);
+
+async function hashCode(phone: string, code: string) {
+  const data = new TextEncoder().encode(`${phone}:${code}`);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** Sends a one-time code over the WhatsApp bot so a guest can prove they own the number. */
+export const requestOrderHistoryCode = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => z.object({ phone: phoneSchema }).parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const code = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 1000000).padStart(6, "0");
+    await supabaseAdmin.from("phone_verifications").insert({
+      phone: data.phone,
+      code_hash: await hashCode(data.phone, code),
+      expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    });
+    const { sendWhatsAppMessage } = await import("@/lib/whatsapp.server");
+    const sent = await sendWhatsAppMessage(
+      data.phone,
+      `🔐 *Shivansi Restaurant & Sweet Shop*\n\nYour order history verification code is *${code}*. It expires in 10 minutes.\n\nAutomated message — never share this code with anyone.`,
+    ).then(
+      () => true,
+      () => false,
+    );
+    // Always generic so the endpoint cannot be used to probe which numbers exist.
+    return { ok: true, delivered: Boolean(sent) };
+  });
+
+export const getOrdersByPhone = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
-    z.object({ phone: z.string().trim().regex(/^[0-9+\-\s]{8,16}$/) }).parse(data),
+    z.object({ phone: phoneSchema, code: z.string().trim().regex(/^[0-9]{6}$/) }).parse(data),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: challenge } = await supabaseAdmin
+      .from("phone_verifications")
+      .select("*")
+      .eq("phone", data.phone)
+      .eq("used", false)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const invalid = new Error("That code is invalid or has expired. Request a new one.");
+    if (!challenge || challenge.attempts >= 5) throw invalid;
+
+    if (challenge.code_hash !== (await hashCode(data.phone, data.code))) {
+      await supabaseAdmin
+        .from("phone_verifications")
+        .update({ attempts: challenge.attempts + 1 })
+        .eq("id", challenge.id);
+      throw invalid;
+    }
+
+    await supabaseAdmin.from("phone_verifications").update({ used: true }).eq("id", challenge.id);
+
     const { data: customer } = await supabaseAdmin
       .from("customers")
-      .select("*")
+      .select("id, name, visits, reward_points, last_visit")
       .eq("phone", data.phone)
       .maybeSingle();
     if (!customer) return null;
@@ -257,6 +312,7 @@ export const getOrdersByPhone = createServerFn({ method: "GET" })
       .limit(50);
     return { customer, orders: orders ?? [] };
   });
+
 
 /** Grants owner access to the first signed-in account when no owner exists yet. */
 export const claimOwnerAccess = createServerFn({ method: "POST" })
