@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
-import { getOrdersByPhone } from "@/lib/orders.functions";
+import { getOrdersByPhone, requestOrderHistoryCode } from "@/lib/orders.functions";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { formatDateTime, money } from "@/lib/format";
 
