@@ -35,9 +35,35 @@ function SettingsManager() {
   const save = useSaveRow("restaurant_settings", "settings", "Settings saved");
   const [form, setForm] = useState<Record<string, unknown>>({});
 
+  const fetchConfig = useServerFn(getAppConfig);
+  const persistConfig = useServerFn(saveAppConfig);
+  const qc = useQueryClient();
+  const { data: config } = useQuery({ queryKey: ["app-config"], queryFn: () => fetchConfig({}) });
+  const [cfg, setCfg] = useState({ ownerEmail: "", whatsappPhoneNumberId: "", whatsappToken: "" });
+
+  const saveConfig = useMutation({
+    mutationFn: () => persistConfig({ data: cfg }),
+    onSuccess: () => {
+      toast.success("Owner & WhatsApp settings saved");
+      setCfg((c) => ({ ...c, whatsappToken: "" }));
+      void qc.invalidateQueries({ queryKey: ["app-config"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   useEffect(() => {
     if (settings) setForm({ ...settings });
   }, [settings]);
+
+  useEffect(() => {
+    if (config)
+      setCfg({
+        ownerEmail: config.ownerEmail,
+        whatsappPhoneNumberId: config.whatsappPhoneNumberId,
+        whatsappToken: "",
+      });
+  }, [config]);
+
 
   return (
     <div className="space-y-6">
