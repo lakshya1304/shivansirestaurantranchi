@@ -21,16 +21,21 @@ async function unwrap<T>(promise: PromiseLike<{ data: unknown; error: { message:
   return (data ?? []) as T;
 }
 
+/** Public display-only settings. Payment (UPI) and tax identifiers are owner-only. */
+const PUBLIC_SETTINGS_COLUMNS =
+  "id, name, tagline, logo_url, banner_url, address, phone, opening_time, closing_time, tax_percent, packing_charge, delivery_charge, currency, theme";
+
 export const settingsQuery = queryOptions({
   queryKey: ["settings"],
   queryFn: async () => {
     const rows = await unwrap<RestaurantSettings[]>(
-      supabase.from("restaurant_settings").select("*").limit(1),
+      supabase.from("restaurant_settings").select(PUBLIC_SETTINGS_COLUMNS).limit(1),
     );
     return rows[0] ?? null;
   },
   staleTime: 30_000,
 });
+
 
 export const categoriesQuery = queryOptions({
   queryKey: ["categories"],
