@@ -46,12 +46,12 @@ export const saveAppConfig = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: existing } = await supabaseAdmin.from("app_config").select("id").limit(1).maybeSingle();
 
-    const patch: Record<string, unknown> = {
+    const patch = {
       owner_email: data.ownerEmail,
       whatsapp_phone_number_id: data.whatsappPhoneNumberId,
       updated_at: new Date().toISOString(),
+      ...(data.whatsappToken ? { whatsapp_token: data.whatsappToken } : {}),
     };
-    if (data.whatsappToken) patch["whatsapp_token"] = data.whatsappToken;
 
     const { error } = existing
       ? await supabaseAdmin.from("app_config").update(patch).eq("id", existing.id)
