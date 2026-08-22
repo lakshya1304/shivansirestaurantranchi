@@ -145,7 +145,20 @@ function OrderTracking() {
           </p>
         )}
 
+        {order.payment_status !== "paid" &&
+        order.payment_method !== "Cash" &&
+        order.payment_method !== "Card" &&
+        (payload.settings as { upi_id?: string } | null)?.upi_id ? (
+          <p className="glass rounded-3xl p-4 text-center text-sm print:hidden">
+            Pay to UPI ID{" "}
+            <span className="font-mono text-accent">
+              {(payload.settings as { upi_id?: string }).upi_id}
+            </span>
+          </p>
+        ) : null}
+
         <Invoice order={order} settings={payload.settings as never} />
+
 
         <div className="flex flex-wrap justify-center gap-3 print:hidden">
           <Button variant="glass" className="rounded-full" onClick={() => window.print()}>
