@@ -6,9 +6,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { settingsQuery } from "@/lib/db";
-import { useSaveRow } from "@/lib/admin";
-import { getAppConfig, saveAppConfig } from "@/lib/config.functions";
+import {
+  getAppConfig,
+  getOwnerSettings,
+  saveAppConfig,
+  saveOwnerSettings,
+} from "@/lib/config.functions";
 
 export const Route = createFileRoute("/admin/settings")({
   component: SettingsManager,
