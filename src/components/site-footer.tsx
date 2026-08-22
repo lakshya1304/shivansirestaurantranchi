@@ -14,9 +14,6 @@ export function SiteFooter() {
         <div>
           <h2 className="font-display text-lg font-bold">{settings?.name ?? "Shivansi"}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{settings?.tagline}</p>
-          {settings?.gst_number ? (
-            <p className="mt-3 text-xs text-muted-foreground">GSTIN {settings.gst_number}</p>
-          ) : null}
         </div>
         <div className="space-y-2 text-sm text-muted-foreground">
           <p className="flex items-start gap-2">
