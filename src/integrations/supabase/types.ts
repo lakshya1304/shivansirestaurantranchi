@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          created_at: string
+          id: string
+          owner_email: string
+          updated_at: string
+          whatsapp_phone_number_id: string
+          whatsapp_token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_email?: string
+          updated_at?: string
+          whatsapp_phone_number_id?: string
+          whatsapp_token?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_email?: string
+          updated_at?: string
+          whatsapp_phone_number_id?: string
+          whatsapp_token?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
