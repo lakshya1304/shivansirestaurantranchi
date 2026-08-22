@@ -122,7 +122,7 @@ function SettingsManager() {
         </div>
       </div>
 
-      </div>
+
 
       <div className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
