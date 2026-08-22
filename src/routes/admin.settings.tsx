@@ -97,6 +97,56 @@ function SettingsManager() {
           </Button>
         </div>
       </div>
+
+      <div className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <h3 className="font-display text-lg font-bold">Owner & WhatsApp bot</h3>
+          <p className="text-sm text-muted-foreground">
+            Add your WhatsApp Cloud API credentials here — order updates start sending automatically once saved.
+          </p>
+        </div>
+        <div>
+          <Label htmlFor="ownerEmail">Owner email</Label>
+          <Input
+            id="ownerEmail"
+            type="email"
+            value={cfg.ownerEmail}
+            onChange={(e) => setCfg({ ...cfg, ownerEmail: e.target.value })}
+          />
+        </div>
+        <div>
+          <Label htmlFor="waPhoneId">WhatsApp phone number ID</Label>
+          <Input
+            id="waPhoneId"
+            value={cfg.whatsappPhoneNumberId}
+            onChange={(e) => setCfg({ ...cfg, whatsappPhoneNumberId: e.target.value })}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Label htmlFor="waToken">
+            WhatsApp access token {config?.whatsappTokenSet ? "(saved — leave blank to keep)" : ""}
+          </Label>
+          <Input
+            id="waToken"
+            type="password"
+            autoComplete="new-password"
+            placeholder={config?.whatsappTokenSet ? "••••••••••••" : "EAAG..."}
+            value={cfg.whatsappToken}
+            onChange={(e) => setCfg({ ...cfg, whatsappToken: e.target.value })}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Button
+            variant="hero"
+            className="rounded-full"
+            disabled={saveConfig.isPending}
+            onClick={() => saveConfig.mutate()}
+          >
+            Save owner & WhatsApp
+          </Button>
+        </div>
+      </div>
     </div>
   );
+
 }
