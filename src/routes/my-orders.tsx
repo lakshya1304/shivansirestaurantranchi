@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
-import { getOrdersByPhone } from "@/lib/orders.functions";
+import { getOrdersByPhone, requestOrderHistoryCode } from "@/lib/orders.functions";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { formatDateTime, money } from "@/lib/format";
 
@@ -31,12 +31,28 @@ export const Route = createFileRoute("/my-orders")({
 
 function MyOrders() {
   const lookup = useServerFn(getOrdersByPhone);
+  const requestCode = useServerFn(requestOrderHistoryCode);
   const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"phone" | "code">("phone");
   const [openId, setOpenId] = useState<string | null>(null);
 
-  const mutation = useMutation({
-    mutationFn: (value: string) => lookup({ data: { phone: value } }),
+  const sendCode = useMutation({
+    mutationFn: (value: string) => requestCode({ data: { phone: value } }),
+    onSuccess: (res) => {
+      setStep("code");
+      toast.success(
+        res?.delivered
+          ? "We sent a 6-digit code to your WhatsApp."
+          : "If that number is reachable on WhatsApp, a 6-digit code is on its way.",
+      );
+    },
     onError: () => toast.error("Enter a valid phone number"),
+  });
+
+  const mutation = useMutation({
+    mutationFn: (value: { phone: string; code: string }) => lookup({ data: value }),
+    onError: (err: Error) => toast.error(err.message || "That code is invalid or has expired."),
   });
 
   const result = mutation.data;
@@ -47,32 +63,72 @@ function MyOrders() {
         <header className="space-y-2">
           <h1 className="font-display text-3xl font-bold sm:text-4xl">My orders</h1>
           <p className="text-sm text-muted-foreground">
-            Enter the phone number you used at checkout to see your history, invoices and rewards.
+            Enter the phone number you used at checkout. For your privacy we send a one-time code on WhatsApp
+            before showing your history, invoices and rewards.
           </p>
         </header>
 
-        <form
-          className="glass flex flex-wrap items-end gap-3 rounded-3xl p-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            mutation.mutate(phone.trim());
-          }}
-        >
-          <div className="min-w-[200px] flex-1">
-            <Label htmlFor="phone">Phone number</Label>
-            <Input
-              id="phone"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="98765 43210"
-              maxLength={16}
-            />
-          </div>
-          <Button type="submit" variant="hero" className="rounded-full" disabled={mutation.isPending}>
-            {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-            Find my orders
-          </Button>
-        </form>
+        {step === "phone" ? (
+          <form
+            className="glass flex flex-wrap items-end gap-3 rounded-3xl p-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendCode.mutate(phone.trim());
+            }}
+          >
+            <div className="min-w-[200px] flex-1">
+              <Label htmlFor="phone">Phone number</Label>
+              <Input
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="98765 43210"
+                maxLength={16}
+              />
+            </div>
+            <Button type="submit" variant="hero" className="rounded-full" disabled={sendCode.isPending}>
+              {sendCode.isPending ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+              Send verification code
+            </Button>
+          </form>
+        ) : (
+          <form
+            className="glass flex flex-wrap items-end gap-3 rounded-3xl p-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              mutation.mutate({ phone: phone.trim(), code: code.trim() });
+            }}
+          >
+            <div className="min-w-[160px] flex-1">
+              <Label htmlFor="code">6-digit code sent to {phone}</Label>
+              <Input
+                id="code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                placeholder="123456"
+                inputMode="numeric"
+                maxLength={6}
+              />
+            </div>
+            <Button type="submit" variant="hero" className="rounded-full" disabled={mutation.isPending}>
+              {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+              View my orders
+            </Button>
+            <Button
+              type="button"
+              variant="glass"
+              className="rounded-full"
+              onClick={() => {
+                setStep("phone");
+                setCode("");
+                mutation.reset();
+              }}
+            >
+              Use another number
+            </Button>
+          </form>
+        )}
+
 
         {mutation.isSuccess && !result ? (
           <p className="glass rounded-3xl p-6 text-center text-sm text-muted-foreground">
