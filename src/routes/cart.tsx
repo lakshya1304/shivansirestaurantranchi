@@ -300,11 +300,12 @@ function CartPage() {
                 </button>
               ))}
             </div>
-            {payment !== "Cash" && payment !== "Card" && settings?.upi_id ? (
+            {payment !== "Cash" && payment !== "Card" ? (
               <p className="mt-2 text-xs text-muted-foreground">
-                Pay to UPI ID <span className="font-mono text-accent">{settings.upi_id}</span>
+                UPI payment details are shown on your order page right after you place the order.
               </p>
             ) : null}
+
           </div>
 
           <dl className="space-y-1.5 border-t border-border pt-4 text-sm">

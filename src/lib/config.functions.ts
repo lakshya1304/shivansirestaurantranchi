@@ -59,3 +59,43 @@ export const saveAppConfig = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const settingsSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  tagline: z.string().trim().max(200),
+  address: z.string().trim().max(300),
+  phone: z.string().trim().max(30),
+  gst_number: z.string().trim().max(40),
+  upi_id: z.string().trim().max(120),
+  opening_time: z.string().trim().max(10),
+  closing_time: z.string().trim().max(10),
+  tax_percent: z.number().min(0).max(50),
+  packing_charge: z.number().min(0).max(10000),
+  delivery_charge: z.number().min(0).max(10000),
+  currency: z.string().trim().max(4),
+});
+
+/** Admin-only: full restaurant settings including payment/tax identifiers. */
+export const getOwnerSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context as never);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("restaurant_settings").select("*").limit(1).maybeSingle();
+    return data ?? null;
+  });
+
+/** Admin-only: update restaurant settings. */
+export const saveOwnerSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => settingsSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as never);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin.from("restaurant_settings").select("id").limit(1).maybeSingle();
+    const { error } = existing
+      ? await supabaseAdmin.from("restaurant_settings").update(data).eq("id", existing.id)
+      : await supabaseAdmin.from("restaurant_settings").insert(data);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

@@ -691,7 +691,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_restaurant_settings: {
+        Row: {
+          address: string | null
+          banner_url: string | null
+          closing_time: string | null
+          currency: string | null
+          delivery_charge: number | null
+          id: string | null
+          logo_url: string | null
+          name: string | null
+          opening_time: string | null
+          packing_charge: number | null
+          phone: string | null
+          tagline: string | null
+          tax_percent: number | null
+          theme: string | null
+        }
+        Insert: {
+          address?: string | null
+          banner_url?: string | null
+          closing_time?: string | null
+          currency?: string | null
+          delivery_charge?: number | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          opening_time?: string | null
+          packing_charge?: number | null
+          phone?: string | null
+          tagline?: string | null
+          tax_percent?: number | null
+          theme?: string | null
+        }
+        Update: {
+          address?: string | null
+          banner_url?: string | null
+          closing_time?: string | null
+          currency?: string | null
+          delivery_charge?: number | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          opening_time?: string | null
+          packing_charge?: number | null
+          phone?: string | null
+          tagline?: string | null
+          tax_percent?: number | null
+          theme?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

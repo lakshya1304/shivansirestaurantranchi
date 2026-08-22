@@ -6,9 +6,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { settingsQuery } from "@/lib/db";
-import { useSaveRow } from "@/lib/admin";
-import { getAppConfig, saveAppConfig } from "@/lib/config.functions";
+import {
+  getAppConfig,
+  getOwnerSettings,
+  saveAppConfig,
+  saveOwnerSettings,
+} from "@/lib/config.functions";
 
 export const Route = createFileRoute("/admin/settings")({
   component: SettingsManager,
@@ -31,13 +34,32 @@ const FIELDS: Array<{ key: string; label: string; type?: string }> = [
 ];
 
 function SettingsManager() {
-  const { data: settings } = useQuery(settingsQuery);
-  const save = useSaveRow("restaurant_settings", "settings", "Settings saved");
+  const fetchSettings = useServerFn(getOwnerSettings);
+  const persistSettings = useServerFn(saveOwnerSettings);
+  const qc = useQueryClient();
+  const { data: settings } = useQuery({ queryKey: ["owner-settings"], queryFn: () => fetchSettings({}) });
   const [form, setForm] = useState<Record<string, unknown>>({});
+
+  const save = useMutation({
+    mutationFn: () =>
+      persistSettings({
+        data: Object.fromEntries(
+          FIELDS.map((f) => [
+            f.key,
+            f.type === "number" ? Number(form[f.key] ?? 0) : String(form[f.key] ?? ""),
+          ]),
+        ) as never,
+      }),
+    onSuccess: () => {
+      toast.success("Settings saved");
+      void qc.invalidateQueries({ queryKey: ["owner-settings"] });
+      void qc.invalidateQueries({ queryKey: ["settings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const fetchConfig = useServerFn(getAppConfig);
   const persistConfig = useServerFn(saveAppConfig);
-  const qc = useQueryClient();
   const { data: config } = useQuery({ queryKey: ["app-config"], queryFn: () => fetchConfig({}) });
   const [cfg, setCfg] = useState({ ownerEmail: "", whatsappPhoneNumberId: "", whatsappToken: "" });
 
@@ -92,11 +114,18 @@ function SettingsManager() {
           </div>
         ))}
         <div className="sm:col-span-2">
-          <Button variant="hero" className="rounded-full" onClick={() => save.mutate(form)}>
+          <Button
+            variant="hero"
+            className="rounded-full"
+            disabled={save.isPending}
+            onClick={() => save.mutate()}
+          >
             Save settings
           </Button>
         </div>
       </div>
+
+
 
       <div className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
