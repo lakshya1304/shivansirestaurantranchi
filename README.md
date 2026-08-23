@@ -1,8 +1,4 @@
-# Shivansi Order Hub
-
-You are a Senior Full Stack Software Architect, UI/UX Designer, Backend Engineer, Database Engineer, DevOps Engineer, and Animation Expert.
-
-Build a complete MVP production-ready web application called:
+# Shivansi Order 
 
 "Shivansi Restaurant & Sweet Shop"
 
