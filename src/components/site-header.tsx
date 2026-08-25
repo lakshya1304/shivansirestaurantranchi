@@ -1,16 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChefHat, LayoutDashboard, Receipt, ShoppingBag, UtensilsCrossed } from "lucide-react";
+import { ChefHat, Receipt, ShoppingBag, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/cart";
 import { settingsQuery } from "@/lib/db";
-import { useIsAdmin } from "@/lib/auth";
 
 export function SiteHeader() {
   const { count, tableNumber } = useCart();
   const { data: settings } = useQuery(settingsQuery);
-  const { isAdmin } = useIsAdmin();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   if (pathname.startsWith("/admin")) return null;
@@ -43,14 +41,6 @@ export function SiteHeader() {
               <Receipt className="size-4" /> My orders
             </Link>
           </Button>
-          {isAdmin ? (
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/admin">
-                <LayoutDashboard className="size-4" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Link>
-            </Button>
-          ) : null}
           <Button asChild variant="hero" size="sm" className="relative">
             <Link to="/cart">
               <ShoppingBag className="size-4" />

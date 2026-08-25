@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
@@ -7,6 +7,7 @@ import {
   ClipboardList,
   LayoutGrid,
   Loader2,
+  LogOut,
   Settings,
   Tag,
   Users,
@@ -67,12 +68,20 @@ function playChime() {
 }
 
 function AdminLayout() {
-  const { isAdmin, checking } = useIsAdmin();
+  const { isAdmin, mfaSatisfied, checking, user } = useIsAdmin();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (checking) return;
+    if (!user || !isAdmin || !mfaSatisfied) {
+      navigate({ to: "/auth", replace: true });
+    }
+  }, [checking, user, isAdmin, mfaSatisfied, navigate]);
+
+  useEffect(() => {
+    if (!isAdmin || !mfaSatisfied) return;
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
       void Notification.requestPermission();
     }
@@ -95,7 +104,14 @@ function AdminLayout() {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [isAdmin, qc]);
+  }, [isAdmin, mfaSatisfied, qc]);
+
+  async function handleSignOut() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   if (checking) {
     return (
@@ -105,20 +121,8 @@ function AdminLayout() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <main className="grid min-h-[70vh] place-items-center px-4">
-        <div className="glass rounded-3xl p-10 text-center">
-          <h1 className="font-display text-2xl font-bold">Owner access required</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in with your owner account to open the dashboard.
-          </p>
-          <Button asChild variant="hero" className="mt-6 rounded-full">
-            <Link to="/auth">Go to owner login</Link>
-          </Button>
-        </div>
-      </main>
-    );
+  if (!user || !isAdmin || !mfaSatisfied) {
+    return <main className="min-h-[70vh]" aria-label="Checking owner access" />;
   }
 
   return (
@@ -142,6 +146,16 @@ function AdminLayout() {
               </Link>
             );
           })}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="ml-auto shrink-0"
+            onClick={handleSignOut}
+          >
+            <LogOut className="size-4" />
+            Sign out
+          </Button>
         </nav>
         <Outlet />
       </div>

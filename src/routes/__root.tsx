@@ -132,13 +132,20 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function AuthSync() {
   const router = useRouter();
+  const { queryClient } = Route.useRouteContext();
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      if (event === "SIGNED_OUT") {
+        void queryClient.cancelQueries();
+        queryClient.clear();
+      } else {
+        void queryClient.invalidateQueries();
+      }
       router.invalidate();
     });
     return () => data.subscription.unsubscribe();
-  }, [router]);
+  }, [queryClient, router]);
   return null;
 }
 
