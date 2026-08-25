@@ -24,31 +24,39 @@ export function useSession() {
 export function useIsAdmin() {
   const { user, loading } = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [mfaSatisfied, setMfaSatisfied] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     let active = true;
     if (!user) {
       setIsAdmin(false);
+      setMfaSatisfied(false);
       setChecking(loading);
       return;
     }
     setChecking(true);
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!active) return;
-        setIsAdmin(Boolean(data));
-        setChecking(false);
-      });
+    void (async () => {
+      const [{ data: roleRow }, { data: aal }] = await Promise.all([
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle(),
+        supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+      ]);
+      if (!active) return;
+      setIsAdmin(Boolean(roleRow));
+      // Owner dashboard requires the authenticator step to be completed this session.
+      setMfaSatisfied(aal?.currentLevel === "aal2");
+      setChecking(false);
+    })();
     return () => {
       active = false;
     };
   }, [user, loading]);
 
-  return { isAdmin, checking: checking || loading, user };
+  return { isAdmin, mfaSatisfied, checking: checking || loading, user };
 }
+
