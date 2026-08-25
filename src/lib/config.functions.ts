@@ -9,7 +9,12 @@ const saveSchema = z.object({
 });
 
 /** Throws unless the caller is a verified admin. */
-async function assertAdmin(context: { supabase: { from: (t: string) => any }; userId: string }) {
+async function assertAdmin(context: {
+  supabase: { from: (t: string) => any };
+  userId: string;
+  claims: { aal?: string };
+}) {
+  if (context.claims.aal !== "aal2") throw new Error("Two-step verification required");
   const { data: role } = await context.supabase
     .from("user_roles")
     .select("role")

@@ -21,6 +21,9 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => statusSchema.parse(data))
   .handler(async ({ data, context }) => {
+    if ((context.claims as { aal?: string }).aal !== "aal2") {
+      throw new Error("Two-step verification required");
+    }
     const { data: role } = await context.supabase
       .from("user_roles")
       .select("role")

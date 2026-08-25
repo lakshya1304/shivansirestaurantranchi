@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useIsAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
@@ -92,7 +91,6 @@ function AuthPage() {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      await startSecondStep();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Authentication failed");
     } finally {
@@ -122,13 +120,6 @@ function AuthPage() {
     } finally {
       setBusy(false);
     }
-  }
-
-  async function handleGoogle() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/auth",
-    });
-    if (result.error) toast.error("Google sign-in failed");
   }
 
   async function handleSignOut() {
@@ -250,12 +241,8 @@ function AuthPage() {
               </Button>
             </form>
 
-            <Button variant="glass" className="w-full rounded-full" onClick={handleGoogle}>
-              Continue with Google
-            </Button>
-
             <p className="text-center text-xs text-muted-foreground">
-              This dashboard is limited to one owner account. New sign-ups are disabled.
+              This dashboard is limited to the registered owner account and requires an authenticator code.
             </p>
           </>
         )}
