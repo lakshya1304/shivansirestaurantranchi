@@ -24,25 +24,30 @@ export function useSession() {
 export function useIsAdmin() {
   const { user, loading } = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [mfaSatisfied, setMfaSatisfied] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     let active = true;
     if (!user) {
       setIsAdmin(false);
+      setMfaSatisfied(false);
       setChecking(loading);
       return;
     }
     setChecking(true);
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .maybeSingle()
-      .then(({ data }) => {
+    Promise.all([
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle(),
+      supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+    ]).then(([roleResult, assuranceResult]) => {
         if (!active) return;
-        setIsAdmin(Boolean(data));
+        setIsAdmin(Boolean(roleResult.data));
+        setMfaSatisfied(assuranceResult.data?.currentLevel === "aal2");
         setChecking(false);
       });
     return () => {
@@ -50,5 +55,5 @@ export function useIsAdmin() {
     };
   }, [user, loading]);
 
-  return { isAdmin, checking: checking || loading, user };
+  return { isAdmin, mfaSatisfied, checking: checking || loading, user };
 }

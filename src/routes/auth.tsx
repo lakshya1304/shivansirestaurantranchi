@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,8 @@ type Stage = "credentials" | "enroll" | "verify";
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { isAdmin, checking, user } = useIsAdmin();
+  const queryClient = useQueryClient();
+  const { isAdmin, mfaSatisfied, checking, user } = useIsAdmin();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -67,18 +69,22 @@ function AuthPage() {
   useEffect(() => {
     if (checking || !user) return;
     let active = true;
-    void supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({ data }) => {
-      if (!active || !data) return;
-      if (data.currentLevel === "aal2") {
+    void supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({ data, error }) => {
+      if (!active || error || !data) return;
+      if (data.currentLevel === "aal2" && mfaSatisfied) {
         if (isAdmin) navigate({ to: "/admin", replace: true });
         return;
       }
-      if (stage === "credentials") void startSecondStep().catch(() => undefined);
+      if (stage === "credentials") {
+        void startSecondStep().catch((error: unknown) => {
+          toast.error(error instanceof Error ? error.message : "Could not start two-step verification");
+        });
+      }
     });
     return () => {
       active = false;
     };
-  }, [checking, user, isAdmin, navigate, stage, startSecondStep]);
+  }, [checking, user, isAdmin, mfaSatisfied, navigate, stage, startSecondStep]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -126,9 +132,13 @@ function AuthPage() {
   }
 
   async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await supabase.auth.signOut();
     setStage("credentials");
     setOtp("");
+    setPassword("");
+    navigate({ to: "/auth", replace: true });
     toast.success("Signed out");
   }
 
