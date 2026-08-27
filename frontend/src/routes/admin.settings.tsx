@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,11 +34,9 @@ const FIELDS: Array<{ key: string; label: string; type?: string }> = [
 ];
 
 function SettingsManager() {
-  const fetchSettings = useServerFn(getOwnerSettings);
-  const persistSettings = useServerFn(saveOwnerSettings);
   const qc = useQueryClient();
   const { isSuperAdmin } = useIsAdmin();
-  const { data: settings } = useQuery({ queryKey: ["owner-settings"], queryFn: () => fetchSettings({}) });
+  const { data: settings } = useQuery({ queryKey: ["owner-settings"], queryFn: () => getOwnerSettings() });
   const [form, setForm] = useState<Record<string, unknown>>({});
 
   const save = useMutation({
@@ -51,7 +48,7 @@ function SettingsManager() {
         ]),
       ) as any;
       data.is_suspended = Boolean(form.is_suspended);
-      return persistSettings({ data: data as never });
+      return saveOwnerSettings(data);
     },
     onSuccess: () => {
       toast.success("Settings saved");
@@ -61,13 +58,11 @@ function SettingsManager() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const fetchConfig = useServerFn(getAppConfig);
-  const persistConfig = useServerFn(saveAppConfig);
-  const { data: config } = useQuery({ queryKey: ["app-config"], queryFn: () => fetchConfig({}) });
+  const { data: config } = useQuery({ queryKey: ["app-config"], queryFn: () => getAppConfig() });
   const [cfg, setCfg] = useState({ ownerEmail: "", whatsappPhoneNumberId: "", whatsappToken: "" });
 
   const saveConfig = useMutation({
-    mutationFn: () => persistConfig({ data: cfg }),
+    mutationFn: () => saveAppConfig(cfg),
     onSuccess: () => {
       toast.success("Owner & WhatsApp settings saved");
       setCfg((c) => ({ ...c, whatsappToken: "" }));

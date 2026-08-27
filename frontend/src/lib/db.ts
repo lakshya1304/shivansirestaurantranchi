@@ -16,27 +16,14 @@ import type {
   StaffUser,
 } from "./types";
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+export const API_BASE_URL = import.meta.env["VITE_API_BASE_URL"] || "/api/v1";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true, // Crucial for Fastify httpOnly cookies
 });
 
-// For TanStack Start SSR: forward the incoming request's cookies to the
-// backend. The import is dynamic so Vite never includes the server-only
-// module in the client bundle (static analysis only follows static imports).
-apiClient.interceptors.request.use(async (config) => {
-  if (typeof window === "undefined") {
-    const pkg = "@tanstack/react-start/server";
-    const { getHeader } = await import(/* @vite-ignore */ pkg);
-    const cookie = getHeader("cookie");
-    if (cookie) {
-      config.headers.Cookie = cookie;
-    }
-  }
-  return config;
-});
+
 
 export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
   const isPost = options?.method && options.method !== "GET";

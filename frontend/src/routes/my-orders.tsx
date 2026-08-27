@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { Gift, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -30,15 +29,14 @@ export const Route = createFileRoute("/my-orders")({
 });
 
 function MyOrders() {
-  const lookup = useServerFn(getOrdersByPhone);
-  const requestCode = useServerFn(requestOrderHistoryCode);
+
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [openId, setOpenId] = useState<string | null>(null);
 
   const sendCode = useMutation({
-    mutationFn: (value: string) => requestCode({ data: { phone: value } }),
+    mutationFn: (value: string) => requestOrderHistoryCode({ phone: value }),
     onSuccess: (res) => {
       setStep("code");
       toast.success(
@@ -51,7 +49,7 @@ function MyOrders() {
   });
 
   const mutation = useMutation({
-    mutationFn: (value: { phone: string; code: string }) => lookup({ data: value }),
+    mutationFn: (value: { phone: string; code: string }) => getOrdersByPhone(value),
     onError: (err: Error) => toast.error(err.message || "That code is invalid or has expired."),
   });
 

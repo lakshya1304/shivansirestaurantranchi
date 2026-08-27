@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,7 @@ function CartPage() {
   const { data: settings } = useQuery(settingsQuery);
   const { data: tables = [] } = useQuery(tablesQuery);
   const navigate = useNavigate();
-  const submitOrder = useServerFn(placeOrder);
+  const submitOrder = placeOrder;
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -78,22 +77,20 @@ function CartPage() {
     setSubmitting(true);
     try {
       const result = await submitOrder({
-        data: {
-          tableNumber: takeaway ? null : effectiveTable,
-          customerName: name.trim(),
-          customerPhone: phone.trim(),
-          paymentMethod: payment,
-          couponCode: coupon.trim() ? coupon.trim() : null,
-          notes: notes.trim() ? notes.trim() : null,
-          isTakeaway: takeaway,
-          lines: lines.map((l) => ({
-            productId: l.productId,
-            quantity: l.quantity,
-            weightLabel: l.weightLabel,
-            weightGrams: l.weightGrams,
-            instructions: l.instructions,
-          })),
-        },
+        tableNumber: takeaway ? null : effectiveTable,
+        customerName: name.trim(),
+        customerPhone: phone.trim(),
+        paymentMethod: payment,
+        couponCode: coupon.trim() ? coupon.trim() : null,
+        notes: notes.trim() ? notes.trim() : null,
+        isTakeaway: takeaway,
+        lines: lines.map((l) => ({
+          productId: l.productId,
+          quantity: l.quantity,
+          weightLabel: l.weightLabel,
+          weightGrams: l.weightGrams,
+          instructions: l.instructions,
+        })),
       });
       clear();
       toast.success(`Order ${result.orderNumber} sent to the kitchen`);

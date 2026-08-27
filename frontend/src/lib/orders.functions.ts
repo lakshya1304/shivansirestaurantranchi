@@ -1,4 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { fetchAPI } from "@/lib/db";
 
@@ -29,44 +28,36 @@ const orderSchema = z
     path: ["tableNumber"],
   });
 
-export const placeOrder = createServerFn({ method: "POST" })
-  .validator((data: unknown) => orderSchema.parse(data))
-  .handler(async ({ data }) => {
-    return fetchAPI<{ id: string; token: string; orderNumber: string }>("/orders/place", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+export const placeOrder = async (input: unknown) => {
+  const data = orderSchema.parse(input);
+  return fetchAPI<{ id: string; token: string; orderNumber: string }>("/orders/place", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
   });
+};
 
-export const getPublicOrder = createServerFn({ method: "GET" })
-  .validator((data: unknown) =>
-    z.object({ id: z.string().uuid(), token: z.string().uuid() }).parse(data),
-  )
-  .handler(async ({ data }) => {
-    return fetchAPI<any>(`/orders/public?id=${data.id}&token=${data.token}`);
-  });
+export const getPublicOrder = async (input: unknown) => {
+  const data = z.object({ id: z.string().uuid(), token: z.string().uuid() }).parse(input);
+  return fetchAPI<any>(`/orders/public?id=${data.id}&token=${data.token}`);
+};
 
 const phoneSchema = z.string().trim().regex(/^[0-9+\-\s]{8,16}$/);
 
-export const requestOrderHistoryCode = createServerFn({ method: "POST" })
-  .validator((data: unknown) => z.object({ phone: phoneSchema }).parse(data))
-  .handler(async ({ data }) => {
-    return fetchAPI<{ ok: boolean; delivered: boolean }>("/orders/history/request-code", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+export const requestOrderHistoryCode = async (input: unknown) => {
+  const data = z.object({ phone: phoneSchema }).parse(input);
+  return fetchAPI<{ ok: boolean; delivered: boolean }>("/orders/history/request-code", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
   });
+};
 
-export const getOrdersByPhone = createServerFn({ method: "POST" })
-  .validator((data: unknown) =>
-    z.object({ phone: phoneSchema, code: z.string().trim().regex(/^[0-9]{6}$/) }).parse(data),
-  )
-  .handler(async ({ data }) => {
-    return fetchAPI<any>("/orders/history/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+export const getOrdersByPhone = async (input: unknown) => {
+  const data = z.object({ phone: phoneSchema, code: z.string().trim().regex(/^[0-9]{6}$/) }).parse(input);
+  return fetchAPI<any>("/orders/history/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
   });
+};

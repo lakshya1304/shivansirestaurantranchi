@@ -4,8 +4,6 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState, Suspense, type ReactNode } from "react";
 import { Home, ArrowLeft, RefreshCw, ChefHat, AlertTriangle } from "lucide-react";
@@ -21,26 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import { settingsQuery } from "@/lib/db";
 import { useIsAdmin } from "@/lib/auth";
 
-const SITE_URL = "https://shivansi.in";
-const OG_IMAGE = `${SITE_URL}/og-image.jpg`;
-const SITE_NAME = import.meta.env.VITE_BUSINESS_NAME ?? "Maa Tara Sweets";
-const SITE_TAGLINE = `${SITE_NAME} — Scan, Order, Enjoy`;
-const SITE_DESCRIPTION =
-  "Order Indian breakfast, snacks, main course and fresh mithai straight from your table QR code. Live order tracking and festival offers.";
 
-const restaurantJsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "Restaurant",
-  name: SITE_NAME,
-  description: SITE_DESCRIPTION,
-  url: SITE_URL,
-  servesCuisine: ["Indian", "North Indian", "Sweet Shop"],
-  hasMenu: `${SITE_URL}/menu`,
-  potentialAction: {
-    "@type": "OrderAction",
-    target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/menu` },
-  },
-});
 
 /** 🍬 Not Found — sweet-themed, auto-redirects after 10 s */
 function NotFoundComponent() {
@@ -205,70 +184,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: SITE_TAGLINE },
-      { name: "description", content: SITE_DESCRIPTION },
-      { name: "theme-color", content: "#1c0b2e" },
-      { name: "color-scheme", content: "dark" },
-      { name: "robots", content: "index, follow" },
-      { name: "author", content: SITE_NAME },
-      // Open Graph
-      { property: "og:title", content: SITE_TAGLINE },
-      { property: "og:description", content: SITE_DESCRIPTION },
-      { property: "og:type", content: "restaurant.restaurant" },
-      { property: "og:url", content: SITE_URL },
-      { property: "og:image", content: OG_IMAGE },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: SITE_NAME },
-      { property: "og:site_name", content: SITE_NAME },
-      { property: "og:locale", content: "en_IN" },
-      // Twitter / X
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: SITE_TAGLINE },
-      { name: "twitter:description", content: SITE_DESCRIPTION },
-      { name: "twitter:image", content: OG_IMAGE },
-      // JSON-LD structured data
-      {
-        "script:ld+json": restaurantJsonLd,
-      } as Record<string, string>,
-    ],
-    links: [
-      { rel: "canonical", href: SITE_URL },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Playfair+Display+SC:ital,wght@0,400;0,700;1,400&family=Karla:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap",
-      },
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
-    ],
-  }),
-  shellComponent: RootShell,
   component: RootComponent,
   pendingComponent: PageLoader,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-function RootShell({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en-IN">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 /** JWT-based auth sync — invalidates on visibility change (tab focus) */
 function AuthSync() {

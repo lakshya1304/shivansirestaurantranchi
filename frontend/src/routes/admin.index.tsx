@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+
 import { updateOrderStatus } from "@/lib/notify.functions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, IndianRupee, ReceiptText, TrendingUp } from "lucide-react";
@@ -31,7 +31,7 @@ function LiveOrders() {
   const { data: notifications = [] } = useQuery(notificationsQuery);
   const qc = useQueryClient();
   const [openBill, setOpenBill] = useState<string | null>(null);
-  const changeStatus = useServerFn(updateOrderStatus);
+  const changeStatus = updateOrderStatus;
 
   const currency = settings?.currency ?? "₹";
   const todays = orders.filter((o) => isToday(o.created_at));
@@ -40,7 +40,7 @@ function LiveOrders() {
 
   async function setStatus(order: Order, status: OrderStatus) {
     try {
-      await changeStatus({ data: { orderId: order.id, status } });
+      await changeStatus({ orderId: order.id, status });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not update status");
       return;

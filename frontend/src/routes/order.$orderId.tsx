@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { Check, ChefHat, Loader2, Printer, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,11 +28,9 @@ export const Route = createFileRoute("/order/$orderId")({
 function OrderTracking() {
   const { orderId } = Route.useParams();
   const { t } = Route.useSearch();
-  const fetchOrder = useServerFn(getPublicOrder);
-
   const query = useQuery({
     queryKey: ["public-order", orderId, t],
-    queryFn: () => fetchOrder({ data: { id: orderId, token: t } }),
+    queryFn: () => getPublicOrder({ id: orderId, token: t }),
     enabled: Boolean(orderId && t),
     refetchInterval: 15000,
   });
