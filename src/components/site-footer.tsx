@@ -48,34 +48,26 @@ export function SiteFooter() {
             >
               <ChefHat className="size-5 text-primary-foreground" />
             </span>
-            <h2 className="font-display text-xl font-bold gradient-text">{name}</h2>
+            <h2 className="font-display text-xl font-bold gradient-text">{s.name}</h2>
           </div>
-          {settings?.tagline && (
-            <p className="text-sm text-muted-foreground leading-relaxed">{settings.tagline}</p>
-          )}
+          <p className="text-sm text-muted-foreground leading-relaxed">{s.tagline}</p>
         </div>
 
         {/* Contact column */}
         <div className="space-y-3 text-sm text-muted-foreground">
           <h3 className="font-display text-base font-bold text-foreground">Contact & Location</h3>
-          {settings?.address && (
-            <p className="flex items-start gap-2 hover:text-foreground transition-colors">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
-              {settings.address}
-            </p>
-          )}
-          {settings?.phone && (
-            <p className="flex items-center gap-2 hover:text-foreground transition-colors">
-              <Phone className="size-4 shrink-0 text-accent" aria-hidden="true" />
-              {settings.phone}
-            </p>
-          )}
-          {settings?.opening_time && settings?.closing_time && (
-            <p className="flex items-center gap-2 hover:text-foreground transition-colors">
-              <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
-              {settings.opening_time} – {settings.closing_time}
-            </p>
-          )}
+          <p className="flex items-start gap-2 hover:text-foreground transition-colors">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+            {s.address}
+          </p>
+          <p className="flex items-center gap-2 hover:text-foreground transition-colors">
+            <Phone className="size-4 shrink-0 text-accent" aria-hidden="true" />
+            {s.phone}
+          </p>
+          <p className="flex items-center gap-2 hover:text-foreground transition-colors">
+            <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
+            {s.opening_time} – {s.closing_time}
+          </p>
         </div>
 
         {/* Quick links column */}
@@ -98,7 +90,7 @@ export function SiteFooter() {
 
       {/* Bottom bar */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 text-center text-xs text-muted-foreground">
-        <p>© {new Date().getFullYear()} {name}. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} {s.name}. All rights reserved.</p>
       </div>
     </footer>
   );
