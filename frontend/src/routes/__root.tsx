@@ -17,7 +17,6 @@ import { Provider, useSelector } from "react-redux";
 import { store, RootState } from "@/store";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
-import { CookieConsent } from "@/components/cookie-consent";
 import { supabase } from "@/integrations/supabase/client";
 
 const SITE_URL = "https://shivansi.in";
@@ -336,8 +335,7 @@ function RootComponent() {
               <Outlet />
             </Suspense>
           </div>
-          <CookieConsent />
-          <Toaster position="top-center" richColors />
+            <Toaster position="top-center" richColors />
         </CartProvider>
       </QueryClientProvider>
     </Provider>

@@ -191,6 +191,7 @@ function AuthPage() {
             <ShieldCheck className="size-6 text-primary-foreground" />
           </span>
           <h1 className="mt-4 font-display text-2xl font-bold">Owner access</h1>
+          <p className="mt-1 font-medium text-primary">Owner: Alka Thakur</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Manage menu, orders, inventory, offers and reports.
           </p>

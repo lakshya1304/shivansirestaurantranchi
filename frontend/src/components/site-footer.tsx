@@ -10,12 +10,12 @@ const BUSINESS_PHONE = import.meta.env.VITE_BUSINESS_PHONE ?? "+91 9999012031";
 /** Pre-filled placeholder shown immediately on first render.
  *  Replaced transparently once the real Supabase data arrives. */
 const PLACEHOLDER_SETTINGS = {
-  name: BUSINESS_NAME,
+  name: "Maa Tara Sweets",
   tagline: "Freshly made sweets & Indian classics, ordered from your seat.",
-  address: "Ranchi, Jharkhand, India",
+  address: "Maa tara sweets opposite to icfai university road near dhoni farmhouse daladali chowk ranchi 835222",
   phone: BUSINESS_PHONE,
-  opening_time: "08:00 AM",
-  closing_time: "10:00 PM",
+  opening_time: "07:00 AM",
+  closing_time: "09:30 PM",
 } as const;
 
 export function SiteFooter() {

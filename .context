@@ -3,13 +3,12 @@
 ## Quick Overview
 A full-stack QR-code restaurant ordering system built with:
 - **Framework**: TanStack Start (React + Vite SSR), TypeScript
-- **Database / Auth**: Supabase (Postgres + Realtime + Auth)
+- **Database**: PostgreSQL (via Prisma)
+- **Backend API**: Fastify (Node.js) + TypeScript
 - **State Management**: Redux Toolkit (Cart & Theme state)
 - **Styling**: Vanilla CSS (custom design system in `src/styles.css` with ui-ux-pro-max bases)
-- **Package manager**: Bun (also has `package-lock.json` for Node fallback)
-- **Deployment target**: Vercel / any Node SSR host
-
-Live Lovable build: https://shivansirestaurantranchi.lovable.app
+- **Package manager**: npm/bun
+- **Deployment target**: Vercel (Frontend) / Render/VPS (Backend)
 
 ---
 
@@ -87,7 +86,7 @@ public/
 
 ---
 
-## Supabase Schema (inferred from code)
+## Prisma Schema (PostgreSQL)
 
 ### Tables
 | Table | Key columns |
@@ -149,6 +148,12 @@ public/
 - **Global Smooth Scroll** — automatic `scrollToTop` on route transitions in `__root.tsx`.
 - **Intended Route Redirects** — `?redir=` support in `/auth` for seamless UX.
 
+### ✅ IMPLEMENTED (Recent Backend Fixes)
+- **Fastify JWT Auth**: Fixed `authMiddleware.ts` to properly check both `Authorization` header and `accessToken` cookie.
+- **RBAC**: Validated `userController.ts` role update logic and fixed `prisma` imports.
+- **Redis Mocking**: Fixed memory leaks in `redisConfig.ts` by properly clearing existing timers on `set()`.
+- **Data Migration**: Enhanced `migrateFromSupabase.ts` script to migrate `Customers`, `Orders`, and `OrderItems` directly to PostgreSQL/Prisma.
+
 ---
 
 ## ❌ MISSING / NOT IMPLEMENTED
@@ -209,20 +214,18 @@ public/
 ---
 
 ## Environment Variables Required
+
+### Backend (`backend/.env`)
 ```
-# .env (present)
-SUPABASE_URL=https://ufwmfboxsosfqveiijil.supabase.co
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_PUBLISHABLE_KEY=...
-SUPABASE_PROJECT_ID=ufwmfboxsosfqveiijil
+DATABASE_URL=postgres://...
+JWT_ACCESS_SECRET=...
+JWT_REFRESH_SECRET=...
+PORT=4000
+```
 
-# .env (MISSING — must be set in deployment secrets)
-SUPABASE_SERVICE_ROLE_KEY=...   # Required for all server functions
-
-# .env (optional — can be set via Admin > Settings > WhatsApp)
-WHATSAPP_TOKEN=...
-WHATSAPP_PHONE_NUMBER_ID=...
+### Frontend (`frontend/.env`)
+```
+VITE_API_BASE_URL=http://localhost:4000/api/v1
 ```
 
 ---
@@ -232,7 +235,7 @@ WHATSAPP_PHONE_NUMBER_ID=...
 ### Immediate / Blockers
 1. Add `SUPABASE_SERVICE_ROLE_KEY` to deployment env — all server fns are broken without it
 2. Create `/public/og-image.jpg` (1200×630) for social sharing
-3. Write Supabase migration SQL and a seed script so the app is usable on a fresh deploy
+3. Run the Supabase migration script (`scripts/migrateFromSupabase.ts`) on a fresh deploy to seed all production data (Products, Categories, Customers, Orders, etc.) into the new PostgreSQL DB.
 4. Add `logo_url` and `banner_url` fields to the settings form
 
 ### Short-term features
