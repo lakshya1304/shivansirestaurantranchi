@@ -4,15 +4,15 @@ import { Clock, MapPin, Phone, ChefHat } from "lucide-react";
 import { settingsQuery } from "@/lib/db";
 
 // Instant fallback — never blocks paint
-const BUSINESS_NAME = import.meta.env.VITE_BUSINESS_NAME ?? "Shivansi";
-const BUSINESS_PHONE = import.meta.env.VITE_BUSINESS_PHONE ?? "+91 9999012031";
+const BUSINESS_NAME = import.meta.env.VITE_BUSINESS_NAME ?? "Maa Tara Sweets";
+const BUSINESS_PHONE = import.meta.env.VITE_BUSINESS_PHONE ?? "+91 99990 12031";
 
 /** Pre-filled placeholder shown immediately on first render.
- *  Replaced transparently once the real Supabase data arrives. */
+ *  Replaced transparently once the real API data arrives. */
 const PLACEHOLDER_SETTINGS = {
   name: "Maa Tara Sweets",
-  tagline: "Freshly made sweets & Indian classics, ordered from your seat.",
-  address: "Maa tara sweets opposite to icfai university road near dhoni farmhouse daladali chowk ranchi 835222",
+  tagline: "Freshly made sweets & Indian classics, served right at your seat.",
+  address: "Opposite ICFAI University, Near Dhoni Farmhouse, Daladali Chowk, Ranchi – 835 222, Jharkhand",
   phone: BUSINESS_PHONE,
   opening_time: "07:00 AM",
   closing_time: "09:30 PM",

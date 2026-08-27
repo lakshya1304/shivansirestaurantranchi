@@ -4,31 +4,52 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <!-- Core customer-facing pages -->
+  <!-- Homepage -->
   <url>
-    <loc>https://shivansi.in/</loc>
+    <loc>https://shivansirestaurantranchi.vercel.app/</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!-- Menu — highest-traffic customer page -->
   <url>
-    <loc>https://shivansi.in/menu</loc>
+    <loc>https://shivansirestaurantranchi.vercel.app/menu</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- Cart -->
   <url>
-    <loc>https://shivansi.in/cart</loc>
+    <loc>https://shivansirestaurantranchi.vercel.app/cart</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
+
+  <!-- Order history / loyalty -->
   <url>
-    <loc>https://shivansi.in/my-orders</loc>
+    <loc>https://shivansirestaurantranchi.vercel.app/my-orders</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
+
+  <!-- Display settings (theme / appearance) -->
   <url>
-    <loc>https://shivansi.in/auth</loc>
+    <loc>https://shivansirestaurantranchi.vercel.app/settings</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
+  </url>
+
+  <!-- Owner login — low priority, not for customers -->
+  <url>
+    <loc>https://shivansirestaurantranchi.vercel.app/auth</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 
 </urlset>
