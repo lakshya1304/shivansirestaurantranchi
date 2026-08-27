@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { getPublicOrder } from "@/lib/orders.functions";
-import { supabase } from "@/integrations/supabase/client";
 import { ORDER_FLOW, STATUS_LABEL, type Order } from "@/lib/types";
 import { formatTime } from "@/lib/format";
 
@@ -40,23 +38,8 @@ function OrderTracking() {
     refetchInterval: 15000,
   });
 
-  const { refetch } = query;
-  useEffect(() => {
-    if (!orderId) return;
-    const channel = supabase
-      .channel(`order-${orderId}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${orderId}` },
-        () => {
-          void refetch();
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [orderId, refetch]);
+  // 15 s polling via refetchInterval above handles live updates.
+  // Supabase realtime has been removed.
 
   if (query.isLoading) {
     return (

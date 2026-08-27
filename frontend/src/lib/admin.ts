@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchAPI } from "@/lib/db";
 
 type TableName =
   | "products"
@@ -16,16 +16,15 @@ type TableName =
   | "notifications"
   | "customers";
 
-/** Insert or update a row and refresh the matching query cache. */
 export function useSaveRow(table: TableName, queryKey: string, successMessage = "Saved") {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (row: Record<string, unknown>) => {
-      const client = supabase.from(table as never);
-      const { error } = row["id"]
-        ? await client.update(row as never).eq("id", row["id"] as string)
-        : await client.insert(row as never);
-      if (error) throw new Error(error.message);
+      await fetchAPI(`/crud/${table}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(row),
+      });
     },
     onSuccess: () => {
       toast.success(successMessage);
@@ -35,16 +34,13 @@ export function useSaveRow(table: TableName, queryKey: string, successMessage = 
   });
 }
 
-/** Delete a row by id and refresh the matching query cache. */
 export function useDeleteRow(table: TableName, queryKey: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from(table as never)
-        .delete()
-        .eq("id", id);
-      if (error) throw new Error(error.message);
+      await fetchAPI(`/crud/${table}/${id}`, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       toast.success("Deleted");

@@ -11,7 +11,7 @@ import { Invoice } from "@/components/invoice";
 import { notificationsQuery, ordersQuery, settingsQuery } from "@/lib/db";
 import { formatTime, isToday, money } from "@/lib/format";
 import { STATUS_LABEL, type Order, type OrderStatus } from "@/lib/types";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchAPI } from "@/lib/db";
 
 export const Route = createFileRoute("/admin/")({
   component: LiveOrders,
@@ -50,12 +50,12 @@ function LiveOrders() {
   }
 
   async function setPaid(order: Order) {
-    const { error } = await supabase.from("orders").update({ payment_status: "paid" }).eq("id", order.id);
-    if (error) {
+    try {
+      await fetchAPI(`/orders/${order.id}/payment`, { method: "PATCH" });
+      void qc.invalidateQueries({ queryKey: ["orders"] });
+    } catch (error: any) {
       toast.error(error.message);
-      return;
     }
-    void qc.invalidateQueries({ queryKey: ["orders"] });
   }
 
   return (

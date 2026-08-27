@@ -12,6 +12,7 @@ import {
   saveAppConfig,
   saveOwnerSettings,
 } from "@/lib/config.functions";
+import { useIsAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin/settings")({
   component: SettingsManager,
@@ -37,19 +38,21 @@ function SettingsManager() {
   const fetchSettings = useServerFn(getOwnerSettings);
   const persistSettings = useServerFn(saveOwnerSettings);
   const qc = useQueryClient();
+  const { isSuperAdmin } = useIsAdmin();
   const { data: settings } = useQuery({ queryKey: ["owner-settings"], queryFn: () => fetchSettings({}) });
   const [form, setForm] = useState<Record<string, unknown>>({});
 
   const save = useMutation({
-    mutationFn: () =>
-      persistSettings({
-        data: Object.fromEntries(
-          FIELDS.map((f) => [
-            f.key,
-            f.type === "number" ? Number(form[f.key] ?? 0) : String(form[f.key] ?? ""),
-          ]),
-        ) as never,
-      }),
+    mutationFn: () => {
+      const data = Object.fromEntries(
+        FIELDS.map((f) => [
+          f.key,
+          f.type === "number" ? Number(form[f.key] ?? 0) : String(form[f.key] ?? ""),
+        ]),
+      ) as any;
+      data.is_suspended = Boolean(form.is_suspended);
+      return persistSettings({ data: data as never });
+    },
     onSuccess: () => {
       toast.success("Settings saved");
       void qc.invalidateQueries({ queryKey: ["owner-settings"] });
@@ -87,6 +90,15 @@ function SettingsManager() {
   }, [config]);
 
 
+  if (!isSuperAdmin) {
+    return (
+      <div className="glass mt-12 rounded-3xl p-12 text-center">
+        <h2 className="font-display text-xl font-bold">Access Denied</h2>
+        <p className="mt-2 text-muted-foreground">Only Superadmins can access restaurant settings.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <header>
@@ -113,7 +125,25 @@ function SettingsManager() {
             />
           </div>
         ))}
-        <div className="sm:col-span-2">
+        <div className="sm:col-span-2 mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display font-bold text-destructive">Emergency Shutdown</h3>
+              <p className="text-sm text-muted-foreground text-destructive/80">Turn this on to shut down the app for all customers (e.g., maintenance or payment required).</p>
+            </div>
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                className="peer sr-only"
+                checked={Boolean(form.is_suspended)}
+                onChange={(e) => setForm({ ...form, is_suspended: e.target.checked })}
+              />
+              <div className="peer h-6 w-11 rounded-full bg-border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-destructive peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-destructive/30 dark:border-gray-600 dark:bg-gray-700"></div>
+            </label>
+          </div>
+        </div>
+
+        <div className="sm:col-span-2 mt-2">
           <Button
             variant="hero"
             className="rounded-full"

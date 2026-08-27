@@ -1,71 +1,49 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/auth-middleware";
+import { fetchAPI } from "@/lib/db";
 
 const saveSchema = z.object({
   ownerEmail: z.string().trim().email().max(120),
-  whatsappToken: z.string().trim().max(600),
+  whatsappToken: z.string().trim().max(600).optional(),
   whatsappPhoneNumberId: z.string().trim().max(60),
 });
 
-/** Throws unless the caller is a verified admin. */
 async function assertAdmin(context: {
-  supabase: { from: (t: string) => any };
-  userId: string;
-  claims: { aal?: string };
+  isAdmin: boolean;
+  mfaSatisfied: boolean;
 }) {
-  if (context.claims.aal !== "aal2") throw new Error("Two-step verification required");
-  const { data: role } = await context.supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", context.userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (!role) throw new Error("Forbidden");
+  if (!context.mfaSatisfied) throw new Error("Two-step verification required");
+  if (!context.isAdmin) throw new Error("Forbidden");
 }
 
-/** Admin-only: read owner/WhatsApp config. The token is never returned, only whether it is set. */
 export const getAppConfig = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context as never);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
-      .from("app_config")
-      .select("owner_email, whatsapp_phone_number_id, whatsapp_token")
-      .limit(1)
-      .maybeSingle();
+    const data = await fetchAPI<{ ownerEmail: string, whatsappPhoneNumberId: string, whatsappToken: string }>("/settings/owner");
     return {
-      ownerEmail: data?.owner_email ?? "",
-      whatsappPhoneNumberId: data?.whatsapp_phone_number_id ?? "",
-      whatsappTokenSet: Boolean(data?.whatsapp_token),
+      ownerEmail: data.ownerEmail,
+      whatsappPhoneNumberId: data.whatsappPhoneNumberId,
+      whatsappTokenSet: Boolean(data.whatsappToken),
     };
   });
 
-/** Admin-only: update owner email and WhatsApp bot credentials. Empty token keeps the stored one. */
 export const saveAppConfig = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => saveSchema.parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as never);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: existing } = await supabaseAdmin.from("app_config").select("id").limit(1).maybeSingle();
-
-    const patch = {
-      owner_email: data.ownerEmail,
-      whatsapp_phone_number_id: data.whatsappPhoneNumberId,
-      updated_at: new Date().toISOString(),
-      ...(data.whatsappToken ? { whatsapp_token: data.whatsappToken } : {}),
-    };
-
-    const { error } = existing
-      ? await supabaseAdmin.from("app_config").update(patch).eq("id", existing.id)
-      : await supabaseAdmin.from("app_config").insert({ whatsapp_token: "", ...patch });
-    if (error) throw new Error(error.message);
+    await fetchAPI("/settings/owner", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
     return { ok: true };
   });
 
 const settingsSchema = z.object({
+  id: z.string().optional(),
   name: z.string().trim().min(1).max(120),
   tagline: z.string().trim().max(200),
   address: z.string().trim().max(300),
@@ -80,27 +58,23 @@ const settingsSchema = z.object({
   currency: z.string().trim().max(4),
 });
 
-/** Admin-only: full restaurant settings including payment/tax identifiers. */
 export const getOwnerSettings = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context as never);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin.from("restaurant_settings").select("*").limit(1).maybeSingle();
-    return data ?? null;
+    const settings = await fetchAPI<any>("/settings");
+    return settings;
   });
 
-/** Admin-only: update restaurant settings. */
 export const saveOwnerSettings = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((data: unknown) => settingsSchema.parse(data))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as never);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: existing } = await supabaseAdmin.from("restaurant_settings").select("id").limit(1).maybeSingle();
-    const { error } = existing
-      ? await supabaseAdmin.from("restaurant_settings").update(data).eq("id", existing.id)
-      : await supabaseAdmin.from("restaurant_settings").insert(data);
-    if (error) throw new Error(error.message);
+    await fetchAPI("/crud/restaurant_settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
     return { ok: true };
   });

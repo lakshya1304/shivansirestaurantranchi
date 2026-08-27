@@ -154,6 +154,58 @@ public/
 - **Redis Mocking**: Fixed memory leaks in `redisConfig.ts` by properly clearing existing timers on `set()`.
 - **Data Migration**: Enhanced `migrateFromSupabase.ts` script to migrate `Customers`, `Orders`, and `OrderItems` directly to PostgreSQL/Prisma.
 
+### ✅ FIXED (Auth / Staff bugs — 2026-08-28 session 2)
+- **Logout broken**: `admin.tsx` `handleSignOut` now clears React Query cache (`qc.clear()`) AFTER the backend logout call, then invalidates `auth_me` before navigating so the auth guard doesn't see a stale `isAdmin:true` and redirect back to `/admin`.
+- **Cookies not cleared on logout**: `authController.ts` `logout` now passes matching `{ httpOnly, secure, sameSite, path }` options to `res.clearCookie()` so all browsers reliably delete the cookies.
+- **Auth page input flickering / text disappearing**: Root cause was a `useEffect` in `auth.tsx` with `startSecondStep` + `stage` in its deps array — every `setStage` inside the async call re-triggered the effect, causing mid-typing re-renders. Fixed with a `useRef(false)` guard (`mfaStartedRef`) so `startSecondStep` is only called once per login. Also added `staleTime: 30_000` to the `auth_me` React Query in `auth.ts` so `refetchOnWindowFocus` doesn't fire on every focus/blur while typing.
+- **Staff query fragile unwrapping**: `staffQuery` in `db.ts` now defensively handles both `{users:[]}` and `{data:{users:[]}}` response shapes, so even if the backend changes to `sendSuccess` the frontend won't break.
+
+### ✅ IMPLEMENTED (Staff/User CRUD — 2026-08-28)
+- **Route prefix fix**: `userRoutes` moved from `/users` to `/data/users` in `v1Routes.ts` so `fetchAPI("/users")` (which prepends `/data`) resolves to the correct backend path.
+- **Full User CRUD** (`userController.ts`):
+  - `getAllUsers` — returns all users ordered by role then join date.
+  - `createUser` — Admin can create USER/ADMIN; SuperAdmin can create any role. Password hashed with bcrypt.
+  - `updateUser` — update name/email/isActive with RBAC checks.
+  - `updateRole` — promote/demote with role constraints; root SUPERADMIN is immutable.
+  - `deleteUser` — Admin can only delete USERs; SuperAdmin can delete ADMIN/USER; root SUPERADMIN is undeletable.
+- **User routes** (`userRoutes.ts`): GET/POST/PATCH/:id/PATCH/:id/role/DELETE/:id — all require `authenticate + requireAdmin` middleware; controller enforces finer-grained RBAC.
+- **`auth.ts` updated**: `useIsAdmin` now exposes `role` (`USER | ADMIN | SUPERADMIN`) and `isSuperAdmin` boolean so the frontend can gate UI actions without extra fetches.
+- **`admin/staff.tsx` rebuilt**: Full CRUD management UI:
+  - Users grouped into Superadmin / Admin / User sections.
+  - Per-row actions: Edit (name/email/isActive), Change Role, Toggle Active, Delete — all conditionally rendered based on caller's role.
+  - "Add user" modal dialog with create/edit/role-change modes.
+  - Admin sees action buttons only on USER rows; SuperAdmin sees actions on all non-root rows.
+  - Promote-to-Admin quick-action button for Admin callers.
+
+### ✅ IMPLEMENTED (Frontend Supabase Removal — 2026-08-28)
+- **Complete Supabase removal from frontend** — zero `@/integrations/supabase/*` imports remain.
+- **`src/start.ts`**: Removed `attachSupabaseAuth` middleware (was the primary crash point). `functionMiddleware` is now `[]`.
+- **`src/routes/__root.tsx`**: Replaced Supabase `onAuthStateChange` listener in `AuthSync` with a lightweight window `focus` event that invalidates the `auth_me` React Query key. JWT cookie drives all auth state.
+- **`src/routes/admin.tsx`**: Removed Supabase realtime channel for live orders → replaced with 30s `setInterval` polling. Replaced `supabase.auth.signOut()` → `POST /api/v1/auth/logout` (clears httpOnly JWT cookie on the backend).
+- **`src/routes/admin.index.tsx`**: Removed dead Supabase import.
+- **`src/routes/order.$orderId.tsx`**: Removed Supabase realtime channel subscription; 15s `refetchInterval` polling is sole refresh mechanism. Removed unused `useEffect` import.
+- **`src/lib/whatsapp.server.ts`**: Replaced Supabase admin client DB query with a `fetch` to backend `/data/settings/owner` endpoint to read WhatsApp credentials. Env var fallback retained.
+- **`src/lib/images.ts`**: Replaced missing `@/assets/*.jpg` local file imports with royalty-free Unsplash URLs. No `assets/` folder needed.
+
+### Auth architecture (post-Supabase)
+- **Auth is 100% JWT + httpOnly cookie** from the Fastify backend.
+- Frontend checks auth by calling `GET /api/v1/auth/me` (React Query key `auth_me`).
+- Login → `POST /api/v1/auth/login` → backend sets `accessToken` + `refreshToken` cookies.
+- Logout → `POST /api/v1/auth/logout` → backend clears cookies.
+
+
+- **`bun run build` → Exit 0**: Backend TypeScript compilation now fully clean with zero errors.
+- **WebAuthn Passkey Fixes** (`authService.ts`):
+  - `verifyWebAuthnRegistration`: Fixed `credentialID` type — `credential.id` is `Uint8Array` in @simplewebauthn v13; now stored as `Buffer.from(credential.id)` matching Prisma `Bytes` type.
+  - `verifyWebAuthnAuthentication`: Fixed `publicKey` type — Prisma `Bytes` (Buffer) is converted to `new Uint8Array(Buffer.from(...).buffer.slice(0))` as `Uint8Array<ArrayBuffer>` to satisfy @simplewebauthn strict generic, avoiding `SharedArrayBuffer` mismatch.
+  - `verifyWebAuthnAuthentication`: Fixed `credentialID` lookup — Prisma Bytes are now converted to base64url string via `.toString('base64url')` before passing to `verifyAuthenticationResponse`.
+  - `generateWebAuthnRegistration` / `generateWebAuthnAuthentication`: Fixed `excludeCredentials`/`allowCredentials` `id` fields — Prisma Bytes (Buffer) now correctly converted to base64url strings as required by @simplewebauthn v13.
+- **ESM anti-pattern fixed** (`authController.ts`):
+  - Removed `require("../config/databaseConfig")` dynamic call inside `getMe()` handler.
+  - Replaced with proper top-level ESM `import prisma from "../config/databaseConfig"`.
+- **Route Files** (`health.ts`, `ping.ts`, `version.ts`): Already correctly typed as `FastifyInstance` plugins with `req: any, res: any` handlers — no Express bleed-through remaining.
+- **Provider imports** (`gmailProvider.ts`, `nodemailerProvider.ts`): Already importing from `../config/envConfig` (without `.js` extension) — resolves correctly under Bun's bundler.
+
 ---
 
 ## ❌ MISSING / NOT IMPLEMENTED

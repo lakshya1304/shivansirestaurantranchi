@@ -48,6 +48,7 @@ export interface RestaurantSettings {
   delivery_charge: number;
   currency: string;
   theme: string;
+  is_suspended: boolean;
 }
 
 export interface Offer {
@@ -221,3 +222,12 @@ export const COOKING_INSTRUCTIONS = [
 ];
 
 export const PAYMENT_METHODS = ["Cash", "UPI", "Google Pay", "PhonePe", "Paytm", "Card"];
+
+export interface StaffUser {
+  id: string;
+  name: string | null;
+  email: string;
+  role: "USER" | "ADMIN" | "SUPERADMIN";
+  createdAt: string;
+  isActive: boolean;
+}

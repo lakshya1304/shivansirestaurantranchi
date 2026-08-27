@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/lib/auth";
+import { fetchAPI } from "@/lib/db";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: z.object({
@@ -32,72 +32,66 @@ function AuthPage() {
   const { redir } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { isAdmin, mfaSatisfied, checking, user } = useIsAdmin();
+  const { isAdmin, mfaSatisfied, hasMfaEnrolled, checking, user } = useIsAdmin();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState<Stage>("credentials");
   const [otp, setOtp] = useState("");
-  const [factorId, setFactorId] = useState("");
   const [qr, setQr] = useState("");
   const [secret, setSecret] = useState("");
+  // Guard so startSecondStep only fires once per login — prevents a re-render
+  // loop that would cause inputs to flicker/reset while typing.
+  const mfaStartedRef = useRef(false);
 
-  /** Decides whether this session still owes a 6-digit authenticator code. */
   const startSecondStep = useCallback(async () => {
-    const { data: factors, error } = await supabase.auth.mfa.listFactors();
-    if (error) throw error;
-    const verified = factors.totp.find((f) => f.status === "verified");
-    if (verified) {
-      setFactorId(verified.id);
-      setQr("");
-      setSecret("");
+    if (hasMfaEnrolled) {
       setStage("verify");
       return;
     }
-    // Clean up half-finished enrolments so a retry never hits "factor already exists".
-    for (const stale of factors.totp.filter((f) => f.status !== "verified")) {
-      await supabase.auth.mfa.unenroll({ factorId: stale.id });
+    try {
+      const { data } = await fetchAPI<any>("/auth/totp/enable", { method: "POST" });
+      setQr(data.qrCode);
+      setSecret(data.secret);
+      setStage("enroll");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to start enrollment");
     }
-    const { data: enrolled, error: enrollError } = await supabase.auth.mfa.enroll({
-      factorType: "totp",
-      friendlyName: `Owner ${Date.now()}`,
-    });
-    if (enrollError) throw enrollError;
-    setFactorId(enrolled.id);
-    setQr(enrolled.totp.qr_code);
-    setSecret(enrolled.totp.secret);
-    setStage("enroll");
-  }, []);
+  }, [hasMfaEnrolled]);
 
   useEffect(() => {
     if (checking || !user) return;
-    let active = true;
-    void supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({ data, error }) => {
-      if (!active || error || !data) return;
-      if (data.currentLevel === "aal2" && mfaSatisfied) {
-        if (isAdmin) navigate({ to: redir || "/admin", replace: true });
-        return;
-      }
-      if (stage === "credentials") {
-        void startSecondStep().catch((error: unknown) => {
-          toast.error(error instanceof Error ? error.message : "Could not start two-step verification");
-        });
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [checking, user, isAdmin, mfaSatisfied, navigate, stage, startSecondStep]);
+    if (isAdmin && mfaSatisfied) {
+      navigate({ to: redir || "/admin", replace: true });
+      return;
+    }
+    // Only trigger MFA step once — without the ref guard this effect fires on
+    // every re-render (e.g. when the user types) because stage/startSecondStep
+    // are in deps, causing flicker and input resets.
+    if (user && !mfaSatisfied && stage === "credentials" && !mfaStartedRef.current) {
+      mfaStartedRef.current = true;
+      void startSecondStep();
+    }
+  }, [checking, user, isAdmin, mfaSatisfied, navigate, stage, startSecondStep, redir]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Authentication failed");
+      const { data } = await fetchAPI<any>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (data?.requireTotp) {
+        setStage("verify");
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Authentication failed");
     } finally {
       setBusy(false);
     }
@@ -107,21 +101,29 @@ function AuthPage() {
     event.preventDefault();
     setBusy(true);
     try {
-      const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId });
-      if (challengeError) throw challengeError;
-      const { error } = await supabase.auth.mfa.verify({
-        factorId,
-        challengeId: challenge.id,
-        code: otp.trim(),
-      });
-      if (error) throw error;
-      toast.success("Verified — welcome back");
+      if (stage === "enroll") {
+        await fetchAPI("/auth/totp/verify", {
+          method: "POST",
+          body: JSON.stringify({ token: otp.trim() }),
+          headers: { "Content-Type": "application/json" }
+        });
+        toast.success("MFA Setup complete — welcome");
+      } else {
+        await fetchAPI("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ email, password, totpToken: otp.trim() }),
+          headers: { "Content-Type": "application/json" }
+        });
+        toast.success("Verified — welcome back");
+      }
+
       setOtp("");
       setPassword("");
       setStage("credentials");
+      await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
       navigate({ to: redir || "/admin", replace: true });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Invalid or expired code");
+    } catch (error: any) {
+      toast.error(error.message || "Invalid or expired code");
     } finally {
       setBusy(false);
     }
@@ -130,10 +132,15 @@ function AuthPage() {
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    try {
+      await fetchAPI("/auth/logout", { method: "POST" });
+    } catch (e) {
+      // ignore
+    }
     setStage("credentials");
     setOtp("");
     setPassword("");
+    await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
     navigate({ to: "/auth", replace: true });
     toast.success("Signed out");
   }
@@ -232,15 +239,27 @@ function AuthPage() {
               </div>
               <div>
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  minLength={6}
-                  required
-                  autoComplete="current-password"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    minLength={6}
+                    required
+                    autoComplete="current-password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 flex h-full items-center justify-center px-3 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
               </div>
               <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
                 {busy ? <Loader2 className="size-4 animate-spin" /> : null} Sign in

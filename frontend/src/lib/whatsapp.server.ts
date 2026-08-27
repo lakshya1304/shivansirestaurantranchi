@@ -1,26 +1,30 @@
 /**
  * Sends WhatsApp updates through the official WhatsApp Cloud API business
  * sender (a verified bot sender, not a personal number).
- * Credentials come from Admin → Settings (app_config) and fall back to
- * WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID env vars.
+ * Credentials come from Admin → Settings (app_config via backend API) and fall
+ * back to WHATSAPP_TOKEN / WHATSAPP_PHONE_NUMBER_ID env vars.
  * Silently no-ops until credentials are configured.
  */
+const API_BASE = process.env["VITE_API_BASE_URL"] ?? "http://localhost:3000/api/v1";
+
 async function loadCredentials(): Promise<{ token: string; phoneNumberId: string } | null> {
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
-      .from("app_config")
-      .select("whatsapp_token, whatsapp_phone_number_id")
-      .limit(1)
-      .maybeSingle();
-    if (data?.whatsapp_token && data.whatsapp_phone_number_id) {
-      return { token: data.whatsapp_token, phoneNumberId: data.whatsapp_phone_number_id };
+    const res = await fetch(`${API_BASE}/data/settings/owner`);
+    if (res.ok) {
+      const json = (await res.json()) as {
+        whatsappToken?: string;
+        whatsappPhoneNumberId?: string;
+      };
+      if (json.whatsappToken && json.whatsappToken !== "***" && json.whatsappPhoneNumberId) {
+        return { token: json.whatsappToken, phoneNumberId: json.whatsappPhoneNumberId };
+      }
     }
   } catch (error) {
     console.error("[whatsapp] config read failed", error);
   }
-  const token = process.env['WHATSAPP_TOKEN'];
-  const phoneNumberId = process.env['WHATSAPP_PHONE_NUMBER_ID'];
+  // Fallback to env vars
+  const token = process.env["WHATSAPP_TOKEN"];
+  const phoneNumberId = process.env["WHATSAPP_PHONE_NUMBER_ID"];
   return token && phoneNumberId ? { token, phoneNumberId } : null;
 }
 

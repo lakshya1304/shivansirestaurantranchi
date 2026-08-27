@@ -334,7 +334,7 @@
 }
 
 @utility card-3d-hover {
-  transform: translateY(-10px) rotateX(3deg) rotateY(-3deg) scale(1.018);
+  transform: translateY(-4px) rotateX(2deg) rotateY(-2deg) scale(1.01);
   box-shadow: var(--shadow-card-hover);
 }
 

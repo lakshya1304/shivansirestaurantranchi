@@ -1,59 +1,56 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Session } from "@supabase/supabase-js";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAPI } from "./db";
+
+export type UserRole = "USER" | "ADMIN" | "SUPERADMIN";
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: UserRole;
+  isActive: boolean;
+  [key: string]: any;
+};
+
+type SessionDetails = {
+  user: SessionUser;
+  isAdmin: boolean;
+  mfaSatisfied: boolean;
+  hasMfaEnrolled: boolean;
+};
 
 export function useSession() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ["auth_me"],
+    queryFn: () => fetchAPI<SessionDetails>("/auth/me"),
+    retry: false,
+    // Only refetch on window focus if the data is older than 30 s — avoids
+    // mid-typing re-renders that cause input flicker on the auth page.
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
 
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
-      setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+  const actualData = (data as any)?.data || data;
 
-  return { session, user: session?.user ?? null, loading };
+  return {
+    session: actualData as SessionDetails | undefined,
+    user: (actualData?.user ?? null) as SessionUser | null,
+    loading: isLoading,
+  };
 }
 
 export function useIsAdmin() {
-  const { user, loading } = useSession();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [mfaSatisfied, setMfaSatisfied] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const { session, user, loading } = useSession();
 
-  useEffect(() => {
-    let active = true;
-    if (!user) {
-      setIsAdmin(false);
-      setMfaSatisfied(false);
-      setChecking(loading);
-      return;
-    }
-    setChecking(true);
-    Promise.all([
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle(),
-      supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
-    ]).then(([roleResult, assuranceResult]) => {
-        if (!active) return;
-        setIsAdmin(Boolean(roleResult.data));
-        setMfaSatisfied(assuranceResult.data?.currentLevel === "aal2");
-        setChecking(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [user, loading]);
+  const role = (user?.role ?? null) as UserRole | null;
 
-  return { isAdmin, mfaSatisfied, checking: checking || loading, user };
+  return {
+    isAdmin: session?.isAdmin ?? false,
+    isSuperAdmin: role === "SUPERADMIN",
+    role,
+    mfaSatisfied: session?.mfaSatisfied ?? false,
+    hasMfaEnrolled: session?.hasMfaEnrolled ?? false,
+    checking: loading,
+    user,
+  };
 }

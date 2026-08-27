@@ -11,12 +11,13 @@ import {
   Settings,
   Tag,
   Users,
+  ShieldCheck,
   UtensilsCrossed,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchAPI } from "@/lib/db";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -39,6 +40,7 @@ const NAV = [
   { to: "/admin/offers", label: "Offers & loyalty", icon: Tag },
   { to: "/admin/tables", label: "Tables & QR", icon: LayoutGrid },
   { to: "/admin/customers", label: "Customers", icon: Users },
+  { to: "/admin/staff", label: "Staff", icon: ShieldCheck },
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -85,31 +87,23 @@ function AdminLayout() {
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
       void Notification.requestPermission();
     }
-    const channel = supabase
-      .channel("admin-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
-        void qc.invalidateQueries({ queryKey: ["orders"] });
-        void qc.invalidateQueries({ queryKey: ["notifications"] });
-        if (payload.eventType !== "INSERT") return;
-        const row = payload.new as { order_number?: string; table_number?: number | null };
-        const where = row.table_number ? `Table ${row.table_number}` : "Takeaway";
-        const text = `New order ${row.order_number ?? ""} · ${where}`;
-        toast.success(text, { duration: 8000 });
-        playChime();
-        if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-          new Notification("New order received", { body: text });
-        }
-      })
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    // Poll for new orders every 30 s (Supabase realtime removed; backend is Fastify/Postgres)
+    const interval = setInterval(() => {
+      void qc.invalidateQueries({ queryKey: ["orders"] });
+      void qc.invalidateQueries({ queryKey: ["notifications"] });
+    }, 30_000);
+    return () => clearInterval(interval);
   }, [isAdmin, mfaSatisfied, qc]);
 
   async function handleSignOut() {
     await qc.cancelQueries();
+    try {
+      await fetchAPI("/auth/logout", { method: "POST" });
+    } catch { /* ignore network errors */ }
+    // Wipe all cached data — especially the auth_me session — before navigating
+    // so the admin guard doesn't see a stale "isAdmin:true" and redirect back.
     qc.clear();
-    await supabase.auth.signOut();
+    await qc.invalidateQueries({ queryKey: ["auth_me"] });
     navigate({ to: "/auth", replace: true });
   }
 
@@ -128,7 +122,7 @@ function AdminLayout() {
   return (
     <main className="px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-7xl space-y-6">
-        <nav className="glass flex gap-1 overflow-x-auto rounded-2xl p-1.5">
+        <nav className="glass flex flex-nowrap gap-1 overflow-x-auto rounded-2xl p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {NAV.map((item) => {
             const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
             return (

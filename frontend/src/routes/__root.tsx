@@ -17,7 +17,9 @@ import { Provider, useSelector } from "react-redux";
 import { store, RootState } from "@/store";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { settingsQuery } from "@/lib/db";
+import { useIsAdmin } from "@/lib/auth";
 
 const SITE_URL = "https://shivansi.in";
 const OG_IMAGE = `${SITE_URL}/og-image.jpg`;
@@ -268,22 +270,14 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** JWT-based auth sync — invalidates on visibility change (tab focus) */
 function AuthSync() {
-  const router = useRouter();
   const { queryClient } = Route.useRouteContext();
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      if (event === "SIGNED_OUT") {
-        void queryClient.cancelQueries();
-        queryClient.clear();
-      } else {
-        void queryClient.invalidateQueries();
-      }
-      router.invalidate();
-    });
-    return () => data.subscription.unsubscribe();
-  }, [queryClient, router]);
+    const onFocus = () => void queryClient.invalidateQueries({ queryKey: ["auth_me"] });
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [queryClient]);
   return null;
 }
 
@@ -317,6 +311,34 @@ function ScrollToTop() {
   return null;
 }
 
+function SuspensionGuard({ children }: { children: ReactNode }) {
+  const { data: settings } = useQuery(settingsQuery);
+  const { isAdmin, isSuperAdmin } = useIsAdmin();
+
+  if (settings?.is_suspended && !isAdmin && !isSuperAdmin) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
+        <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+          <div className="absolute -top-32 left-1/2 size-[40rem] -translate-x-1/2 rounded-full bg-destructive/10 blur-[120px]" />
+        </div>
+        <div className="animate-rise max-w-md space-y-6">
+          <div className="mx-auto flex size-20 items-center justify-center rounded-3xl border border-destructive/30 bg-destructive/10">
+            <AlertTriangle className="size-10 text-destructive" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-bold text-foreground">Temporarily Unavailable</h1>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Our website is currently down for maintenance. Please check back later.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -332,7 +354,9 @@ function RootComponent() {
             <SiteHeader />
             {/* Suspense boundary: shows PageLoader while lazy route chunks load */}
             <Suspense fallback={<PageLoader />}>
-              <Outlet />
+              <SuspensionGuard>
+                <Outlet />
+              </SuspensionGuard>
             </Suspense>
           </div>
             <Toaster position="top-center" richColors />

@@ -1,4 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
+import axios from "axios";
 import type {
   AppNotification,
   Category,
@@ -12,16 +13,56 @@ import type {
   RestaurantSettings,
   RestaurantTable,
   Review,
+  StaffUser,
 } from "./types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api/v1";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
-async function fetchAPI<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}/data${endpoint}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${endpoint}: ${response.statusText}`);
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true, // Crucial for Fastify httpOnly cookies
+});
+
+// For TanStack Start SSR: forward the incoming request's cookies to the
+// backend. The import is dynamic so Vite never includes the server-only
+// module in the client bundle (static analysis only follows static imports).
+apiClient.interceptors.request.use(async (config) => {
+  if (typeof window === "undefined") {
+    const pkg = "@tanstack/react-start/server";
+    const { getHeader } = await import(/* @vite-ignore */ pkg);
+    const cookie = getHeader("cookie");
+    if (cookie) {
+      config.headers.Cookie = cookie;
+    }
   }
-  return response.json();
+  return config;
+});
+
+export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
+  const isPost = options?.method && options.method !== "GET";
+  // Auth endpoints live at /api/v1/auth/*, not under /data.
+  // All other endpoints (categories, products, etc.) live under /api/v1/data/*.
+  const url = endpoint.startsWith("/auth") || endpoint.startsWith("/data")
+    ? endpoint
+    : `/data${endpoint}`;
+  try {
+    const response = await apiClient({
+      url,
+      method: options?.method || "GET",
+      headers: options?.headers,
+      data: isPost && options?.body ? JSON.parse(options.body) : undefined,
+    });
+    return response.data;
+  } catch (error: any) {
+    const msg = error.response?.data?.error || error.response?.data?.message;
+    if (msg) {
+      throw new Error(msg);
+    }
+    if (error.code === 'ERR_NETWORK') {
+      throw new Error("Unable to connect to the server. Please check your internet connection.");
+    }
+    throw new Error("Something went wrong. Please try again later.");
+  }
 }
 
 export const settingsQuery = queryOptions({
@@ -94,3 +135,14 @@ export function activeOffers(offers: Offer[]) {
     (o) => o.is_active && (!o.starts_at || o.starts_at <= today) && (!o.ends_at || o.ends_at >= today),
   );
 }
+
+export const staffQuery = queryOptions({
+  queryKey: ["staff"],
+  queryFn: async () => {
+    // getAllUsers uses reply.send({success, users}) — no sendSuccess wrapper
+    // so response.data is {success: true, users: []}. Access .users directly.
+    const data = await fetchAPI<any>("/users");
+    // Defensively handle both flat {users:[]} and wrapped {data:{users:[]}} shapes.
+    return (data?.users ?? data?.data?.users ?? []) as StaffUser[];
+  },
+});
