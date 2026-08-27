@@ -23,17 +23,27 @@ export function ProductCard({
   const { addLine } = useCart();
   const [weight, setWeight] = useState(WEIGHT_OPTIONS[1]!);
   const [instructions, setInstructions] = useState<string[]>([]);
+  const [isAdding, setIsAdding] = useState(false);
 
   const unitPrice = product.sold_by_weight
     ? weightPrice(product.price_per_kg ?? 0, weight.grams)
     : effectivePrice(product);
-  const hasOffer = !product.sold_by_weight && product.offer_price != null && product.offer_price > 0;
+  const hasOffer =
+    !product.sold_by_weight && product.offer_price != null && product.offer_price > 0;
+  const savingsPercent =
+    hasOffer && product.price > 0
+      ? Math.round((1 - (product.offer_price! / product.price)) * 100)
+      : 0;
 
   function toggleInstruction(value: string) {
-    setInstructions((prev) => (prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value]));
+    setInstructions((prev) =>
+      prev.includes(value) ? prev.filter((i) => i !== value) : [...prev, value],
+    );
   }
 
   function add() {
+    if (isAdding) return;
+    setIsAdding(true);
     addLine({
       productId: product.id,
       name: product.name,
@@ -48,66 +58,111 @@ export function ProductCard({
       description: product.sold_by_weight ? weight.label : instructions.join(", ") || undefined,
     });
     setInstructions([]);
+    setTimeout(() => setIsAdding(false), 600);
   }
 
   return (
-    <article className="group card-3d hover:card-3d-hover glass flex flex-col overflow-hidden rounded-3xl">
+    <article
+      className="group card-3d hover:card-3d-hover glass flex flex-col overflow-hidden rounded-3xl animate-fade-up"
+      style={{ position: "relative" }}
+    >
+      {/* Card top shine — glassmorphism layer */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px"
+        style={{ background: "linear-gradient(90deg, transparent, oklch(1 0 0 / 20%), transparent)" }}
+      />
+
+      {/* ── Image block ── */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={productImage(product.image_url, categorySlug)}
           alt={product.name}
           loading="lazy"
-          className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
+          width={400}
+          height={300}
+          className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+          style={{ willChange: "transform" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-          <Badge variant={product.is_veg ? "veg" : "nonveg"} className="glass">
-            <Leaf className="mr-1 size-3" />
+        {/* Gradient overlay — from bottom */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.12_0.012_285)] via-[oklch(0.12_0.012_285/30%)] to-transparent" />
+
+        {/* Badges — veg/spicy/special */}
+        <div className="touch-compact absolute left-3 top-3 flex flex-wrap gap-1.5">
+          <Badge variant={product.is_veg ? "veg" : "nonveg"} className="glass animate-scale-in">
+            <Leaf className="mr-1 size-3" aria-hidden="true" />
             {product.is_veg ? "Veg" : "Non-veg"}
           </Badge>
           {product.is_spicy ? (
-            <Badge variant="warning">
-              <Flame className="mr-1 size-3" /> Spicy
+            <Badge variant="warning" className="animate-scale-in" style={{ animationDelay: "0.05s" }}>
+              <Flame className="mr-1 size-3" aria-hidden="true" />
+              Spicy
             </Badge>
           ) : null}
-          {product.is_special ? <Badge variant="gold">Today's special</Badge> : null}
+          {product.is_special ? (
+            <Badge variant="gold" className="animate-scale-in" style={{ animationDelay: "0.1s" }}>
+              Today's special
+            </Badge>
+          ) : null}
+          {savingsPercent >= 5 ? (
+            <Badge variant="gold" className="animate-scale-in" style={{ animationDelay: "0.15s" }}>
+              {savingsPercent}% off
+            </Badge>
+          ) : null}
         </div>
+
+        {/* Sold-out overlay */}
         {!product.is_available ? (
-          <div className="absolute inset-0 grid place-items-center bg-background/70">
-            <Badge variant="destructive">Sold out today</Badge>
+          <div className="absolute inset-0 grid place-items-center bg-background/80 backdrop-blur-sm">
+            <Badge variant="destructive" className="text-sm">Sold out today</Badge>
           </div>
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
+      {/* ── Content block ── */}
+      <div className="flex flex-1 flex-col gap-2.5 p-4">
+        {/* Name + Rating */}
         <div className="flex items-start justify-between gap-3">
-          <h3 className="min-w-0 font-display text-base font-bold leading-tight">{product.name}</h3>
-          <span className="flex shrink-0 items-center gap-1 text-xs text-accent">
-            <Star className="size-3 fill-current" />
+          <h3 className="min-w-0 font-display text-base font-bold leading-snug">
+            {product.name}
+          </h3>
+          <span
+            className="flex shrink-0 items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-semibold text-accent"
+            aria-label={`Rating: ${Number(product.rating).toFixed(1)} stars`}
+          >
+            <Star className="size-3 fill-current" aria-hidden="true" />
             {Number(product.rating).toFixed(1)}
           </span>
         </div>
-        <p className="line-clamp-2 text-xs text-muted-foreground">{product.description}</p>
 
+        {/* Description */}
+        <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          {product.description}
+        </p>
+
+        {/* Meta — prep time, calories, reviews */}
         <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
-            <Clock className="size-3" /> {product.prep_time_mins} min
+            <Clock className="size-3" aria-hidden="true" />
+            <span>{product.prep_time_mins} min</span>
           </span>
           <span>{product.calories} kcal</span>
           <span>{product.review_count} reviews</span>
         </div>
 
+        {/* Weight selector (sweet shop items) */}
         {product.sold_by_weight ? (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Select weight">
             {WEIGHT_OPTIONS.map((w) => (
               <button
                 key={w.label}
                 type="button"
                 onClick={() => setWeight(w)}
-                className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                aria-pressed={weight.label === w.label}
+                className={`min-h-[36px] rounded-full border px-3 py-1 text-[11px] font-medium transition-all duration-200 cursor-pointer ${
                   weight.label === w.label
-                    ? "border-primary bg-primary/20 text-foreground"
-                    : "border-border text-muted-foreground hover:border-primary/60"
+                    ? "border-primary bg-primary/20 text-foreground shadow-[0_0_0_1px_var(--color-primary)]"
+                    : "border-border text-muted-foreground hover:border-primary/60 hover:text-foreground"
                 }`}
               >
                 {w.label}
@@ -116,11 +171,17 @@ export function ProductCard({
           </div>
         ) : null}
 
+        {/* Price + Actions */}
         <div className="mt-auto flex items-end justify-between gap-3 pt-1">
+          {/* Price block */}
           <div className="min-w-0">
-            <div className="font-display text-lg font-bold">{money(unitPrice, currency)}</div>
+            <div className="font-display text-xl font-bold gradient-text-gold">
+              {money(unitPrice, currency)}
+            </div>
             {hasOffer ? (
-              <div className="text-xs text-muted-foreground line-through">{money(product.price, currency)}</div>
+              <div className="text-xs text-muted-foreground line-through">
+                {money(product.price, currency)}
+              </div>
             ) : product.sold_by_weight ? (
               <div className="text-[11px] text-muted-foreground">
                 {money(product.price_per_kg ?? 0, currency)}/kg
@@ -128,31 +189,51 @@ export function ProductCard({
             ) : null}
           </div>
 
+          {/* Action buttons — min 44px touch targets */}
           <div className="flex shrink-0 items-center gap-1.5">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="glass" size="sm" disabled={!product.is_available}>
+                <Button
+                  variant="glass"
+                  size="sm"
+                  disabled={!product.is_available}
+                  className="rounded-xl text-xs transition-all duration-200 hover:bg-primary/15"
+                  aria-label="Add cooking instructions"
+                >
                   Notes{instructions.length ? ` (${instructions.length})` : ""}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-56 space-y-2">
-                <p className="text-xs font-semibold">Cooking instructions</p>
+              <PopoverContent className="glass-strong w-56 space-y-2.5 rounded-2xl border-border/50 p-4">
+                <p className="text-xs font-semibold text-foreground">Cooking instructions</p>
                 {COOKING_INSTRUCTIONS.map((option) => (
-                  <div key={option} className="flex items-center gap-2">
+                  <div key={option} className="flex items-center gap-2.5">
                     <Checkbox
                       id={`${product.id}-${option}`}
                       checked={instructions.includes(option)}
                       onCheckedChange={() => toggleInstruction(option)}
+                      className="border-border/60"
                     />
-                    <Label htmlFor={`${product.id}-${option}`} className="text-xs font-normal">
+                    <Label
+                      htmlFor={`${product.id}-${option}`}
+                      className="cursor-pointer text-xs font-normal leading-none"
+                    >
                       {option}
                     </Label>
                   </div>
                 ))}
               </PopoverContent>
             </Popover>
-            <Button variant="hero" size="sm" onClick={add} disabled={!product.is_available}>
-              <Plus className="size-4" /> Add
+
+            <Button
+              variant="hero"
+              size="sm"
+              onClick={add}
+              disabled={!product.is_available || isAdding}
+              className="rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+              aria-label={`Add ${product.name} to cart`}
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              <span>Add</span>
             </Button>
           </div>
         </div>

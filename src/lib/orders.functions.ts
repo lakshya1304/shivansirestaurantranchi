@@ -30,7 +30,7 @@ const orderSchema = z
 
 
 export const placeOrder = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => orderSchema.parse(data))
+  .validator((data: unknown) => orderSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -219,7 +219,7 @@ export const placeOrder = createServerFn({ method: "POST" })
 
 
 export const getPublicOrder = createServerFn({ method: "GET" })
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ id: z.string().uuid(), token: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data }) => {
@@ -246,7 +246,7 @@ async function hashCode(phone: string, code: string) {
 
 /** Sends a one-time code over the WhatsApp bot so a guest can prove they own the number. */
 export const requestOrderHistoryCode = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ phone: phoneSchema }).parse(data))
+  .validator((data: unknown) => z.object({ phone: phoneSchema }).parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const code = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 1000000).padStart(6, "0");
@@ -268,7 +268,7 @@ export const requestOrderHistoryCode = createServerFn({ method: "POST" })
   });
 
 export const getOrdersByPhone = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ phone: phoneSchema, code: z.string().trim().regex(/^[0-9]{6}$/) }).parse(data),
   )
   .handler(async ({ data }) => {

@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: z.object({
+    redir: z.string().optional().catch(""),
+  }),
   head: () => ({
     meta: [
       { title: "Owner login — Shivansi Restaurant & Sweet Shop" },
@@ -25,6 +29,7 @@ export const Route = createFileRoute("/auth")({
 type Stage = "credentials" | "enroll" | "verify";
 
 function AuthPage() {
+  const { redir } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin, mfaSatisfied, checking, user } = useIsAdmin();
@@ -71,7 +76,7 @@ function AuthPage() {
     void supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({ data, error }) => {
       if (!active || error || !data) return;
       if (data.currentLevel === "aal2" && mfaSatisfied) {
-        if (isAdmin) navigate({ to: "/admin", replace: true });
+        if (isAdmin) navigate({ to: redir || "/admin", replace: true });
         return;
       }
       if (stage === "credentials") {
@@ -114,7 +119,7 @@ function AuthPage() {
       setOtp("");
       setPassword("");
       setStage("credentials");
-      navigate({ to: "/admin", replace: true });
+      navigate({ to: redir || "/admin", replace: true });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Invalid or expired code");
     } finally {

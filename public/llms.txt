@@ -1,0 +1,66 @@
+# Shivansi Restaurant & Sweet Shop — LLM Context
+
+> This file provides structured context for AI language models and crawlers
+> about the Shivansi web application. Last updated: 2026-08-25.
+
+## What Is This?
+
+**Shivansi Restaurant & Sweet Shop** is a full-stack restaurant management web application
+built for a physical restaurant in Ranchi, India. Customers scan a QR code at their table
+and order food directly from their phone — no app download required.
+
+- **Production URL**: https://shivansi.in
+- **Tech Stack**: React 19 · TanStack Start (SSR) · TanStack Router · Supabase (Auth + DB) · Tailwind CSS v4
+- **Runtime**: Cloudflare Workers (via Nitro)
+- **Design System**: Dark glassmorphism / aurora gradient aesthetic with oklch color tokens
+
+## Primary User Flows
+
+1. **Customer Order Flow**: `/` → `/table/:tableNumber` → `/menu` → `/cart` → `/my-orders`
+2. **Admin Dashboard**: `/admin` (email + password auth required)
+3. **Authentication**: `/auth` (phone OTP for customers, email/password for admin)
+
+## Key Pages & Routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Homepage — hero, today's special, popular items, festival offers |
+| `/menu` | Full menu with category filters, veg/non-veg filter, search |
+| `/table/:tableNumber` | QR landing — sets table context in session |
+| `/cart` | Cart review, cooking instructions, UPI/Cash payment selection |
+| `/my-orders` | Live order tracking with real-time status updates |
+| `/order/:orderId` | Single order detail with status timeline |
+| `/auth` | Phone OTP login for customers |
+| `/admin` | Owner dashboard (revenue, orders, analytics) |
+| `/admin/menu` | CRUD for categories and dishes |
+| `/admin/tables` | Table management + QR code generation |
+| `/admin/offers` | Festival offers & discount campaigns |
+| `/admin/customers` | Customer list with loyalty & reward points |
+| `/admin/inventory` | Ingredient stock management |
+| `/admin/reports` | Revenue / profit analytics |
+| `/admin/settings` | Restaurant profile, GST, UPI, hours |
+
+## Data Model Summary
+
+- **products** — menu items with price, images, category, veg flag, availability
+- **categories** — ordered list of menu sections
+- **orders** — customer orders linked to table + session
+- **order_items** — line items per order
+- **profiles** — customer accounts (phone OTP-based)
+- **tables** — restaurant tables with QR mapping
+- **offers** — festival discount campaigns with coupon codes
+- **inventory** — ingredient stock levels
+
+## Architecture Notes
+
+- SSR via TanStack Start + Nitro (Cloudflare target)
+- Auth managed by Supabase; session tokens stored in secure HTTP-only cookies
+- Real-time order status via Supabase Realtime subscriptions
+- All public-facing UI routes are fully accessible without login (guest ordering supported)
+- Admin routes are protected by Supabase RLS + server-side session checks
+
+## Contact / Business
+
+- **Cuisine**: North Indian, Sweets, Snacks, Breakfast
+- **Location**: Ranchi, Jharkhand, India
+- **Primary Language**: English (UI), Hindi (menu items)

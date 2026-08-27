@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as MyOrdersRouteImport } from './routes/my-orders'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
@@ -54,6 +55,11 @@ const MenuRoute = MenuRouteImport.update({
 const MyOrdersRoute = MyOrdersRouteImport.update({
   id: '/my-orders',
   path: '/my-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
+  '/settings': typeof SettingsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
+  '/settings': typeof SettingsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
+  '/settings': typeof SettingsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/menu'
     | '/my-orders'
+    | '/settings'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/menu'
     | '/my-orders'
+    | '/settings'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/menu'
     | '/my-orders'
+    | '/settings'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   MenuRoute: typeof MenuRoute
   MyOrdersRoute: typeof MyOrdersRoute
+  SettingsRoute: typeof SettingsRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
   TableTableNumberRoute: typeof TableTableNumberRoute
 }
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       path: '/my-orders'
       fullPath: '/my-orders'
       preLoaderRoute: typeof MyOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   MenuRoute: MenuRoute,
   MyOrdersRoute: MyOrdersRoute,
+  SettingsRoute: SettingsRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
   TableTableNumberRoute: TableTableNumberRoute,
 }

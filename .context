@@ -1,0 +1,260 @@
+# Shivansi Restaurant & Sweet Shop — Project Context
+
+## Quick Overview
+A full-stack QR-code restaurant ordering system built with:
+- **Framework**: TanStack Start (React + Vite SSR), TypeScript
+- **Database / Auth**: Supabase (Postgres + Realtime + Auth)
+- **State Management**: Redux Toolkit (Cart & Theme state)
+- **Styling**: Vanilla CSS (custom design system in `src/styles.css` with ui-ux-pro-max bases)
+- **Package manager**: Bun (also has `package-lock.json` for Node fallback)
+- **Deployment target**: Vercel / any Node SSR host
+
+Live Lovable build: https://shivansirestaurantranchi.lovable.app
+
+---
+
+## Architecture
+
+### Directory layout
+```
+src/
+  routes/               # TanStack file-based router (SSR-aware)
+    __root.tsx          # Root layout: SEO head, CartProvider, AuthSync, aurora-bg
+    index.tsx           # Customer home page (hero, offers, specials, popular, menu)
+    menu.tsx            # Full menu route (delegates to MenuExplorer)
+    cart.tsx            # Cart + checkout page → calls placeOrder server fn
+    order.$orderId.tsx  # Live order tracking (Realtime sub + 15 s poll)
+    my-orders.tsx       # Customer order history (phone OTP verification)
+    settings.tsx        # UI Theme (Light/Dark) and Base selection (Pro Max)
+    table.$tableNumber.tsx  # QR landing: sets table cookie and redirects to /
+    auth.tsx            # Owner login: email+password + TOTP MFA (with ?redir= support)
+    admin.tsx           # Admin layout: auth guard, nav, real-time order sound/notification
+    admin/index.tsx     # Live kitchen board (KPI cards + order status management)
+    admin/menu.tsx      # Category + product CRUD (dialogs, availability toggle)
+    admin/inventory.tsx # Inventory CRUD (stock quantities, low-stock alert)
+    admin/offers.tsx    # Offers & loyalty rules management
+    admin/tables.tsx    # Table management + printable QR codes
+    admin/customers.tsx # Read-only customer list with visit/spend data
+    admin/reports.tsx   # Revenue KPIs (today / 7d / 30d) + top-sellers table
+    admin/settings.tsx  # Restaurant settings + owner email + WhatsApp bot config
+
+  components/
+    site-header.tsx     # Sticky glassmorphism nav with cart badge
+    site-footer.tsx     # Footer with contact, hours, links
+    product-card.tsx    # 3D glass card: image, badges, weight selector, add-to-cart
+    menu-explorer.tsx   # Search + category filter + product grid
+    invoice.tsx         # Printable invoice component
+    cookie-consent.tsx  # GDPR cookie banner
+
+  lib/
+    cart.tsx            # Redux Cart Hook (dispatches to cartSlice)
+    db.ts               # All public TanStack Query queryOptions (Supabase client)
+    types.ts            # TypeScript interfaces + ORDER_FLOW, PAYMENT_METHODS constants
+    auth.ts             # useSession, useIsAdmin (MFA AAL2 check)
+    orders.functions.ts # Server fns: placeOrder, getPublicOrder, getOrdersByPhone,
+                        #              requestOrderHistoryCode
+    notify.functions.ts # Server fn: updateOrderStatus (with WhatsApp bot update)
+    config.functions.ts # Server fns: getOwnerSettings, saveOwnerSettings,
+                        #              getAppConfig, saveAppConfig
+    whatsapp.server.ts  # WhatsApp Cloud API sender (reads creds from app_config or env)
+    images.ts           # HERO_IMAGE, productImage, fallbackImage helpers
+    format.ts           # money, effectivePrice, weightPrice, formatTime, isToday
+    cookies.ts          # Lightweight cookie read/write/delete helpers
+    error-capture.ts    # Centralised error capture utility
+    error-page.ts       # Shared error page helper
+    utils.ts            # cn() (clsx + twMerge)
+    admin.ts            # useSaveRow / useDeleteRow mutation hooks (Supabase CRUD)
+
+  integrations/supabase/
+    client.ts           # Public Supabase client (browser-safe keys)
+    client.server.ts    # supabaseAdmin with service-role key (server only)
+    auth-middleware.ts  # TanStack Start middleware: requireSupabaseAuth
+
+  store/
+    index.ts            # Redux configureStore
+    slices/
+      cartSlice.ts      # Cart state + table number tracking
+      themeSlice.ts     # Theme mode (light/dark/auto) and UI base style
+
+  server.ts / start.ts  # Nitro/Vinxi SSR entry points
+
+public/
+  robots.txt
+  sitemap.xml
+  llms.txt
+  favicon.ico           # No og-image.jpg yet (referenced in meta but missing)
+```
+
+---
+
+## Supabase Schema (inferred from code)
+
+### Tables
+| Table | Key columns |
+|---|---|
+| `restaurant_settings` | name, tagline, logo_url, banner_url, address, phone, gst_number, opening_time, closing_time, upi_id, tax_percent, packing_charge, delivery_charge, currency, theme |
+| `categories` | name, slug, description, image_url, sort_order, is_active |
+| `products` | category_id, name, description, image_url, price, offer_price, rating, review_count, prep_time_mins, is_available, is_veg, is_spicy, calories, is_special, is_popular, is_recommended, sold_by_weight, price_per_kg, sort_order |
+| `orders` | order_number, table_number, customer_id, customer_name, customer_phone, status, payment_method, payment_status, subtotal, discount, discount_label, tax, packing_charge, delivery_charge, total, notes, session_token |
+| `order_items` | order_id, product_id, name, unit_price, quantity, weight_label, instructions, line_total |
+| `customers` | user_id, name, phone, birthday, visits, reward_points, total_spend, favourite_item, saved_address, last_visit |
+| `offers` | title, description, banner_url, discount_percent, coupon_code, category_ids, product_ids, starts_at, ends_at, is_active |
+| `discounts` | name, type(flat/percent), value, coupon_code, min_order_amount, max_discount, starts_at, ends_at, start_hour, end_hour, category_ids, product_ids, is_active, usage_count |
+| `loyalty_rules` | visits_required, discount_percent, reward_points, expiry_days, is_active |
+| `inventory_items` | name, unit, quantity, low_stock_threshold, cost_per_unit, expiry_date |
+| `restaurant_tables` | table_number, seats, is_active |
+| `reviews` | product_id, customer_name, rating, comment, is_published |
+| `notifications` | type, title, body, is_read |
+| `user_roles` | user_id, role (enum: admin) |
+| `app_config` | owner_email, whatsapp_token, whatsapp_phone_number_id |
+| `phone_verifications` | phone, code_hash, expires_at, used, attempts |
+
+### Auth
+- Owner login: Supabase Auth (email + password) + mandatory TOTP MFA (AAL2)
+- Admin guard: `user_roles` table row-level check + `aal` claim check
+- Customer: guest by default; phone identified via order; OTP verification for order history
+- Realtime: `admin-orders` channel for live kitchen board; `order-{id}` channel for customer tracking
+
+---
+
+## Feature Status
+
+### ✅ IMPLEMENTED
+- **QR table system** (`/table/$tableNumber`) — sets cookie, redirects to home with badge
+- **Home page** — hero, active offers banner, today's specials, most loved, recommended, categories, full menu, reviews
+- **Menu explorer** — search, category filter, veg/non-veg filter, product grid
+- **Product card** — 3D glass, weight selector (sweets), cooking instructions, add to cart
+- **Cart** — localStorage persistence, quantity inc/dec, remove, table number management
+- **Checkout / place order** — customer details, table selection, coupon, notes, payment method, takeaway toggle, server-side validation + discount engine + loyalty engine + customer upsert
+- **Order tracking page** — Realtime subscription + 15 s poll, step progress, UPI display, invoice, print
+- **My Orders** (`/my-orders`) — phone OTP verification flow via WhatsApp bot, order history
+- **Admin dashboard** (`/admin`) — live kitchen board with chime, KPI cards, status progression buttons, mark paid, bill print
+- **Admin menu** (`/admin/menu`) — category CRUD, product CRUD, availability toggle
+- **Admin inventory** (`/admin/inventory`) — CRUD with low-stock alerts
+- **Admin offers** (`/admin/offers`) — offer creation/edit/delete + loyalty rule management
+- **Admin tables** (`/admin/tables`) — table CRUD + printable QR code links
+- **Admin customers** (`/admin/customers`) — read-only customer table
+- **Admin reports** (`/admin/reports`) — today / 7d / 30d revenue + top sellers
+- **Admin settings** (`/admin/settings`) — restaurant config + WhatsApp Cloud API credentials
+- **WhatsApp notifications** — order confirmation on place, status updates on each step change
+- **TOTP MFA** for owner login (enroll + verify flow)
+- **Discount engine** — flat, percent, coupon, happy hour, date range, min order
+- **Loyalty discount** — visit-based tiers applied automatically at checkout
+- **Invoice component** — rendered on order page and in admin kitchen board
+- **Cookie consent** banner
+- **Cookie consent** banner
+- **SEO** — JSON-LD restaurant schema, Open Graph, Twitter cards, canonical, robots.txt, sitemap.xml, llms.txt
+- **Redux State Management** — cart and themes are managed globally via Redux Toolkit.
+- **Dynamic UI Theming** — `ui-ux-pro-max` bases (Minimalist, Liquid Glass, Claymorphism) accessible via `/settings`.
+- **Global Smooth Scroll** — automatic `scrollToTop` on route transitions in `__root.tsx`.
+- **Intended Route Redirects** — `?redir=` support in `/auth` for seamless UX.
+
+---
+
+## ❌ MISSING / NOT IMPLEMENTED
+
+### Critical gaps
+1. **`/public/og-image.jpg`** — referenced in `__root.tsx` meta but the file does not exist. Social sharing previews show a broken image.
+2. **`supabase/migrations/`** — there are no migration SQL files in the `supabase/` directory. The schema exists only in the remote Supabase project; there is nothing local to recreate it.
+3. **No database seeding** — no seed data for `restaurant_settings`, categories, products. A fresh deploy starts with an empty app and the customer-facing pages render nothing.
+4. **`SUPABASE_SERVICE_ROLE_KEY`** missing from `.env` — `client.server.ts` presumably reads this from env but it is not in the `.env` file. Server functions (`placeOrder`, `updateOrderStatus`, etc.) will fail unless this is set in the deployment environment.
+5. **`WHATSAPP_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID`** env vars** — WhatsApp silently no-ops without these or the `app_config` row.
+
+### Frontend gaps vs. README requirements
+6. **Customer profile page** — README specifies a customer dashboard (name, phone, visits, reward points, favourite food, order history, saved addresses, birthday). Only order history exists via `/my-orders` (OTP-gated). No editable profile UI.
+7. **PDF bill download** — `window.print()` is used for printing but there is no client-side PDF generation (no jsPDF or similar). README requires a downloadable PDF bill.
+8. **Image upload for products/categories** — Admin menu form only has an "Image URL" text input. No `<input type="file">` / Cloudinary / Supabase Storage upload. Owner cannot upload a photo without an external URL.
+9. **Logo and banner upload** in settings — `logo_url` and `banner_url` fields exist in `RestaurantSettings` but the settings form only exposes text inputs for the listed `FIELDS` array; `logo_url` and `banner_url` are NOT in the `FIELDS` array, so they cannot be changed from the UI at all.
+10. **Theme switcher** — `theme` field exists in `restaurant_settings` and in the type but there is no UI to change it and no logic to apply different themes. Only dark mode exists.
+11. **Reviews management in admin** — Reviews are read from Supabase and shown on the homepage, but there is no admin panel to approve/publish/delete reviews or for customers to submit reviews.
+12. **BOGO / Combo discount types** — README lists "Buy One Get One" and "Combo Discount" types; the discount engine only handles `flat` and `percent` types (line 96 in `orders.functions.ts`). No BOGO logic.
+13. **Happy Hour / Lunch / Weekend offer logic on products** — time/date filtering exists in the discount engine but the category/product targeting (`category_ids`, `product_ids` arrays in `Discount`) is never filtered server-side. Any active discount applies to the full order regardless of which products are in the cart.
+14. **Discount usage counter** — `usage_count` column exists in `discounts` but is never incremented when a coupon/discount is applied.
+15. **Inventory deduction on order** — Orders don't decrement inventory quantities. Inventory is managed manually.
+16. **Notification bell / read-all in admin** — Notifications are queried but the admin dashboard only shows an unread count KPI. There is no panel to actually view and mark notifications as read.
+17. **Customer birthday capture** — `birthday` is in the `Customer` type and DB schema but nowhere in the UI does the customer enter their birthday.
+18. **Saved addresses** — `saved_address` exists in the schema but is never used in any UI.
+19. **Peak hour analytics** — README requires "Peak Ordering Hours" chart; Reports page only shows revenue KPIs and top sellers table. No time-of-day histogram.
+20. **Sales graph / chart** — No charting library is installed (no Recharts, Chart.js, etc.). Reports has only text/table data.
+21. **`/menu` route is a stub** — `src/routes/menu.tsx` is only 37 lines and just re-renders `<MenuExplorer />` with no `<SiteFooter />`. Contrast with the home page which wraps sections properly.
+
+### Auth / Security gaps
+22. **No RLS (Row Level Security) configuration** in code — There are no RLS policies defined in the codebase. If RLS is not configured on the Supabase project, the public Supabase client could read/write all tables.
+23. **`session_token` exposure** — The order `session_token` (UUID) is passed as a URL search param `?t=`. If someone shares the URL it grants order access. Acceptable for MVP but should be noted.
+24. **Admin role bootstrapping** — There is no seeding script or UI flow to insert the first `user_roles` row. The owner must manually insert their admin role into Supabase.
+25. **Coupon code validation UX** — Coupon is accepted at the text input level but there is no "Apply" button with real-time feedback. Invalid coupons are silently ignored (no server-side error message for bad coupon codes in the current flow — the discount just applies as ₹0).
+
+### Build / Runtime issues
+26. **Tech conflict in README** — `README.md` says "DO NOT USE React" and "Use Vanilla JavaScript", but the project is built entirely in React + TypeScript. The README is the original Lovable prompt, not a specification for the current codebase.
+27. **`og-image.jpg` missing** — Will result in broken OG preview on social media.
+28. **No `AGENTS.md` instructions followed** — `AGENTS.md` exists (1694 bytes) but may contain stale or Lovable-specific guidance that no longer applies.
+29. **`bun.lock` and `package-lock.json` both present** — Dual lockfiles indicate the project was started with Bun but may also need Node/npm compatibility. Can cause resolution conflicts if both are updated independently.
+
+---
+
+## Known Bugs / Issues
+
+### Frontend bugs
+- **`admin.reports.tsx`**: `ordersQuery` fetches only 300 records (hardcoded in `db.ts`). Reports for high-volume restaurants will be inaccurate.
+- **Cart key collision**: The cart key format is `productId::weightLabel::instructions`. If a user adds the same product with different quantities of the same weight/instructions through rapid taps, the dedup works correctly — but changing instructions after adding an item replaces the entire line (expected, but not communicated to the user).
+- **Table number reset bug**: In `cart.tsx`, `setTableNumber(null)` is exposed as a "Change table" link when a QR-detected table is active. This clears the cookie and removes the table number from state, but the badge in the hero still shows the old table number until the page re-renders (state is correct; badge re-renders immediately — actually fine).
+- **`my-orders.tsx`**: Phone OTP delivery depends on WhatsApp bot credentials being configured. If not configured, `sendWhatsAppMessage` silently returns `false` but `requestOrderHistoryCode` returns `{ ok: true, delivered: false }`. There is no UI indication that WhatsApp failed — customer gets no code and no explanation.
+- **Menu explorer not SSR-friendly**: `menu-explorer.tsx` uses `useState` for filter state; it renders blank on SSR and hydrates client-side. Not a bug per se but the menu items won't be in the initial HTML for SEO.
+
+### Admin bugs
+- **Reject flow**: The "Reject" button only appears for `pending` orders. If the owner needs to cancel an already-accepted order (e.g., ingredient shortage), there is no cancel button.
+- **Order status immutability**: Once an order is `completed`, there is no way to revert it or issue a refund from the UI.
+- **`saveProduct` with `is_available` toggle**: The availability toggle in the product table calls `saveProduct.mutate({ id: p.id, is_available: v })`, which does a partial update. If `useSaveRow` uses Supabase `upsert` this is fine; if it requires all fields, it may overwrite other fields with defaults.
+
+---
+
+## Environment Variables Required
+```
+# .env (present)
+SUPABASE_URL=https://ufwmfboxsosfqveiijil.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+SUPABASE_PROJECT_ID=ufwmfboxsosfqveiijil
+
+# .env (MISSING — must be set in deployment secrets)
+SUPABASE_SERVICE_ROLE_KEY=...   # Required for all server functions
+
+# .env (optional — can be set via Admin > Settings > WhatsApp)
+WHATSAPP_TOKEN=...
+WHATSAPP_PHONE_NUMBER_ID=...
+```
+
+---
+
+## Next Priorities (Suggested)
+
+### Immediate / Blockers
+1. Add `SUPABASE_SERVICE_ROLE_KEY` to deployment env — all server fns are broken without it
+2. Create `/public/og-image.jpg` (1200×630) for social sharing
+3. Write Supabase migration SQL and a seed script so the app is usable on a fresh deploy
+4. Add `logo_url` and `banner_url` fields to the settings form
+
+### Short-term features
+5. Image upload for products/categories (Supabase Storage or Cloudinary)
+6. Reviews submission (customer-facing) and moderation (admin panel)
+7. Notification panel in admin (mark read, list all)
+8. Increment `usage_count` when a discount is applied
+9. Filter discount by `product_ids` / `category_ids` at order time
+10. PDF bill download (jsPDF or Puppeteer on a server fn)
+
+### Medium-term
+11. Sales graph (Recharts or similar)
+12. Peak hour chart
+13. Customer profile edit page (birthday, saved address)
+14. BOGO / combo discount engine
+15. Inventory auto-decrement on order placement
+
+---
+
+## Design System Notes
+- **Palette**: Deep purple dark `oklch(0.12 0.012 285)` base with gold/amber accent
+- **Fonts**: Playfair Display SC (display headings) + Karla (body)
+- **Utility classes**: `glass`, `glass-strong`, `card-3d`, `hover-lift`, `animate-rise`, `animate-float`, `aurora-bg`, `gradient-text`, `gradient-text-gold`, `pulse-ring`, `scroll-reveal`, `stagger-children` — all defined in `src/styles.css`
+- **Variants**: Badge variants: `glass`, `gold`, `veg`, `nonveg`, `warning`, `destructive`
+- **Button variants**: `hero` (gradient primary), `glass`, `ghost`, `destructive`

@@ -46,73 +46,73 @@ function Home() {
 
   return (
     <main>
-      <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pt-16">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
-          <div className="animate-rise space-y-6">
+      <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pt-20">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
+          <div className="animate-rise space-y-7">
             {tableNumber ? (
-              <Badge variant="gold" className="gap-1.5">
-                <QrCode className="size-3.5" /> You're seated at table {tableNumber}
+              <Badge variant="gold" className="gap-1.5 px-3 py-1 text-xs">
+                <QrCode className="size-3.5" aria-hidden="true" /> You're seated at table {tableNumber}
               </Badge>
             ) : (
-              <Badge variant="glass" className="gap-1.5">
-                <Sparkles className="size-3.5 text-accent" /> Scan the QR on your table to start
+              <Badge variant="glass" className="gap-1.5 px-3 py-1 text-xs backdrop-blur-md">
+                <Sparkles className="size-3.5 text-accent" aria-hidden="true" /> Scan the QR on your table to start
               </Badge>
             )}
-            <h1 className="font-display text-4xl font-bold leading-[1.05] sm:text-6xl">
+            <h1 className="font-display text-5xl font-bold leading-[1.1] sm:text-7xl gradient-text">
               {settings?.name ?? "Shivansi Restaurant & Sweet Shop"}
             </h1>
-            <p className="max-w-xl text-base text-muted-foreground sm:text-lg">
+            <p className="max-w-xl text-base text-muted-foreground sm:text-lg leading-relaxed">
               {settings?.tagline ?? "Sweets, spice and everything nice"} — freshly cooked Indian classics and
               hand-made mithai, ordered from your seat and tracked live until it reaches your table.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild variant="hero" size="lg" className="rounded-full">
+            <div className="flex flex-wrap gap-4 pt-2">
+              <Button asChild variant="hero" size="lg" className="rounded-full shadow-glow pulse-ring transition-transform hover:scale-105">
                 <Link to="/menu" search={{ category: undefined }}>
-                  Explore the menu <ArrowRight className="size-4" />
+                  Explore the menu <ArrowRight className="size-4 ml-1" aria-hidden="true" />
                 </Link>
               </Button>
-              <Button asChild variant="glass" size="lg" className="rounded-full">
+              <Button asChild variant="glass" size="lg" className="rounded-full transition-transform hover:scale-105">
                 <Link to="/my-orders">Track my order</Link>
               </Button>
             </div>
-            <div className="flex flex-wrap gap-6 pt-2 text-sm text-muted-foreground">
+            <div className="flex flex-wrap gap-6 pt-4 text-sm font-medium text-muted-foreground">
               <span className="flex items-center gap-2">
-                <Star className="size-4 text-accent" /> 4.8 average rating
+                <Star className="size-4 text-accent" aria-hidden="true" /> 4.8 average rating
               </span>
               <span className="flex items-center gap-2">
-                <Timer className="size-4 text-accent" /> Live kitchen tracking
+                <Timer className="size-4 text-accent" aria-hidden="true" /> Live kitchen tracking
               </span>
             </div>
           </div>
 
-          <div className="relative animate-float">
-            <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-[image:var(--gradient-primary)] opacity-30 blur-3xl" />
+          <div className="relative animate-float mt-8 lg:mt-0">
+            <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-[image:var(--gradient-primary)] opacity-30 blur-[60px]" aria-hidden="true" />
             <img
               src={HERO_IMAGE}
               alt="Signature Indian thali served with fresh kaju katli sweets"
               width={1600}
               height={1104}
-              className="w-full rounded-[2.5rem] border border-border object-cover shadow-[var(--shadow-glow)]"
+              className="w-full rounded-[2.5rem] border border-border/50 object-cover shadow-[var(--shadow-glow)]"
             />
           </div>
         </div>
       </section>
 
       {live.length > 0 ? (
-        <section className="px-4 sm:px-6">
-          <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-2">
+        <section className="px-4 sm:px-6 py-8">
+          <div className="mx-auto grid max-w-7xl gap-5 md:grid-cols-2 stagger-children scroll-reveal">
             {live.map((offer) => (
               <div
                 key={offer.id}
-                className="glass card-3d hover:card-3d-hover relative overflow-hidden rounded-3xl p-6"
+                className="glass-strong card-3d hover:card-3d-hover relative overflow-hidden rounded-3xl p-7"
               >
-                <div className="absolute inset-0 -z-10 bg-[image:var(--gradient-gold)] opacity-15" />
-                <Badge variant="gold">{offer.discount_percent}% OFF</Badge>
-                <h2 className="mt-3 font-display text-2xl font-bold">{offer.title}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{offer.description}</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <div className="absolute inset-0 -z-10 bg-[image:var(--gradient-gold)] opacity-15" aria-hidden="true" />
+                <Badge variant="gold" className="text-xs px-2.5 py-0.5">{offer.discount_percent}% OFF</Badge>
+                <h2 className="mt-4 font-display text-3xl font-bold">{offer.title}</h2>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{offer.description}</p>
+                <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">
                   {offer.coupon_code ? (
-                    <span className="rounded-full border border-dashed border-accent px-3 py-1 font-mono text-accent">
+                    <span className="rounded-full border border-dashed border-accent/60 bg-accent/10 px-3 py-1 font-mono text-accent">
                       {offer.coupon_code}
                     </span>
                   ) : null}
@@ -131,7 +131,7 @@ function Home() {
 
       {specials.length > 0 ? (
         <Section title="Today's special" subtitle="Chef's picks, made fresh this morning">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
             {specials.map((p) => (
               <ProductCard key={p.id} product={p} currency={currency} categorySlug={slugOf(p.category_id)} />
             ))}
@@ -141,7 +141,7 @@ function Home() {
 
       {popular.length > 0 ? (
         <Section title="Most loved" subtitle="What our guests order again and again">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
             {popular.map((p) => (
               <ProductCard key={p.id} product={p} currency={currency} categorySlug={slugOf(p.category_id)} />
             ))}
@@ -151,7 +151,7 @@ function Home() {
 
       {recommended.length > 0 ? (
         <Section title="Recommended for you" subtitle="Balanced pairings from our kitchen">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
             {recommended.map((p) => (
               <ProductCard key={p.id} product={p} currency={currency} categorySlug={slugOf(p.category_id)} />
             ))}
@@ -160,7 +160,7 @@ function Home() {
       ) : null}
 
       <Section title="Browse by category" subtitle="From morning poha to midnight mithai">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
           {categories
             .filter((c) => c.is_active)
             .map((c) => (
@@ -168,18 +168,20 @@ function Home() {
                 key={c.id}
                 to="/menu"
                 search={{ category: c.slug }}
-                className="group card-3d hover:card-3d-hover relative overflow-hidden rounded-3xl border border-border"
+                className="group hover-lift relative overflow-hidden rounded-3xl border border-border/50 bg-card"
               >
-                <img
-                  src={c.image_url || fallbackImage(c.slug)}
-                  alt={c.name}
-                  loading="lazy"
-                  className="h-40 w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <p className="font-display text-lg font-bold">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.description}</p>
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={c.image_url || fallbackImage(c.slug)}
+                    alt={c.name}
+                    loading="lazy"
+                    className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+                </div>
+                <div className="absolute bottom-5 left-5 right-5">
+                  <p className="font-display text-xl font-bold text-foreground">{c.name}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{c.description}</p>
                 </div>
               </Link>
             ))}
@@ -192,16 +194,17 @@ function Home() {
 
       {reviews.length > 0 ? (
         <Section title="Guest reviews" subtitle="Straight from our tables">
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-3 stagger-children">
             {reviews.slice(0, 6).map((r) => (
-              <blockquote key={r.id} className="glass rounded-3xl p-6">
-                <div className="flex gap-0.5 text-accent">
+              <blockquote key={r.id} className="glass-strong rounded-3xl p-7 relative">
+                <div className="absolute top-0 right-8 -translate-y-1/2 text-[80px] leading-none text-accent/10 font-serif font-bold">"</div>
+                <div className="flex gap-1 text-accent">
                   {Array.from({ length: r.rating }).map((_, i) => (
-                    <Star key={i} className="size-4 fill-current" />
+                    <Star key={i} className="size-4 fill-current" aria-hidden="true" />
                   ))}
                 </div>
-                <p className="mt-3 text-sm text-muted-foreground">"{r.comment}"</p>
-                <footer className="mt-4 text-sm font-semibold">{r.customer_name}</footer>
+                <p className="mt-4 text-sm text-foreground leading-relaxed relative z-10">"{r.comment}"</p>
+                <footer className="mt-5 text-sm font-bold text-accent">{r.customer_name}</footer>
               </blockquote>
             ))}
           </div>
@@ -223,12 +226,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="px-4 py-12 sm:px-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div>
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">{title}</h2>
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        </div>
+    <section className="px-4 py-14 sm:px-6 scroll-reveal">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <header className="space-y-1.5 text-center sm:text-left">
+          <h2 className="font-display text-3xl font-bold sm:text-4xl gradient-text">{title}</h2>
+          <p className="text-sm text-muted-foreground sm:text-base">{subtitle}</p>
+        </header>
         {children}
       </div>
     </section>

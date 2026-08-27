@@ -1,42 +1,104 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, MapPin, Phone } from "lucide-react";
+import { Clock, MapPin, Phone, ChefHat } from "lucide-react";
 import { settingsQuery } from "@/lib/db";
 
+// Instant fallback — never blocks paint
+const BUSINESS_NAME = import.meta.env.VITE_BUSINESS_NAME ?? "Shivansi";
+const BUSINESS_PHONE = import.meta.env.VITE_BUSINESS_PHONE ?? "+91 9999012031";
+
+/** Pre-filled placeholder shown immediately on first render.
+ *  Replaced transparently once the real Supabase data arrives. */
+const PLACEHOLDER_SETTINGS = {
+  name: BUSINESS_NAME,
+  tagline: "Freshly made sweets & Indian classics, ordered from your seat.",
+  address: "Ranchi, Jharkhand, India",
+  phone: BUSINESS_PHONE,
+  opening_time: "08:00 AM",
+  closing_time: "10:00 PM",
+} as const;
+
 export function SiteFooter() {
-  const { data: settings } = useQuery(settingsQuery);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname.startsWith("/admin")) return null;
+  const { data: settings } = useQuery({
+    ...settingsQuery,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (prev) => prev,
+  });
+
+  // Merge: real data wins, placeholder fills any missing field instantly
+  const s = { ...PLACEHOLDER_SETTINGS, ...settings };
 
   return (
-    <footer className="mt-20 border-t border-border/60 py-10">
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-3">
-        <div>
-          <h2 className="font-display text-lg font-bold">{settings?.name ?? "Shivansi"}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">{settings?.tagline}</p>
+    <footer className="mt-20 border-t border-border/40 bg-background/50 relative overflow-hidden">
+      {/* Top gradient glow — decorative, doesn't affect render */}
+      <div
+        className="absolute top-0 left-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 h-64 w-[800px] rounded-full blur-3xl pointer-events-none"
+        style={{ background: "var(--gradient-aurora)", opacity: 0.15 }}
+        aria-hidden="true"
+      />
+
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 pt-12 pb-6 sm:px-6 md:grid-cols-3 relative z-10">
+        {/* Brand column */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span
+              className="grid size-10 shrink-0 place-items-center rounded-2xl"
+              style={{ background: "var(--gradient-primary)" }}
+              aria-hidden="true"
+            >
+              <ChefHat className="size-5 text-primary-foreground" />
+            </span>
+            <h2 className="font-display text-xl font-bold gradient-text">{name}</h2>
+          </div>
+          {settings?.tagline && (
+            <p className="text-sm text-muted-foreground leading-relaxed">{settings.tagline}</p>
+          )}
         </div>
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <p className="flex items-start gap-2">
-            <MapPin className="mt-0.5 size-4 shrink-0" /> {settings?.address}
-          </p>
-          <p className="flex items-center gap-2">
-            <Phone className="size-4 shrink-0" /> {settings?.phone}
-          </p>
-          <p className="flex items-center gap-2">
-            <Clock className="size-4 shrink-0" /> {settings?.opening_time} – {settings?.closing_time}
-          </p>
+
+        {/* Contact column */}
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <h3 className="font-display text-base font-bold text-foreground">Contact & Location</h3>
+          {settings?.address && (
+            <p className="flex items-start gap-2 hover:text-foreground transition-colors">
+              <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+              {settings.address}
+            </p>
+          )}
+          {settings?.phone && (
+            <p className="flex items-center gap-2 hover:text-foreground transition-colors">
+              <Phone className="size-4 shrink-0 text-accent" aria-hidden="true" />
+              {settings.phone}
+            </p>
+          )}
+          {settings?.opening_time && settings?.closing_time && (
+            <p className="flex items-center gap-2 hover:text-foreground transition-colors">
+              <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
+              {settings.opening_time} – {settings.closing_time}
+            </p>
+          )}
         </div>
-        <div className="flex flex-col gap-2 text-sm">
-          <Link to="/menu" search={{ category: undefined }} className="text-muted-foreground transition-colors hover:text-foreground">
+
+        {/* Quick links column */}
+        <div className="flex flex-col gap-3 text-sm">
+          <h3 className="font-display text-base font-bold text-foreground">Quick Links</h3>
+          <Link to="/menu" search={{ category: undefined }} className="w-fit text-muted-foreground hover:text-primary transition-colors">
             Full menu
           </Link>
-          <Link to="/my-orders" className="text-muted-foreground transition-colors hover:text-foreground">
+          <Link to="/my-orders" className="w-fit text-muted-foreground hover:text-primary transition-colors">
             My orders & invoices
           </Link>
-          <Link to="/auth" className="text-muted-foreground transition-colors hover:text-foreground">
+          <Link to="/settings" className="w-fit text-muted-foreground hover:text-primary transition-colors">
+            Display settings
+          </Link>
+          <Link to="/auth" className="w-fit text-muted-foreground hover:text-primary transition-colors">
             Owner login
           </Link>
         </div>
+      </div>
+
+      {/* Bottom bar */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 text-center text-xs text-muted-foreground">
+        <p>© {new Date().getFullYear()} {name}. All rights reserved.</p>
       </div>
     </footer>
   );

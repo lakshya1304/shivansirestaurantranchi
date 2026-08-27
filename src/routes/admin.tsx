@@ -76,7 +76,7 @@ function AdminLayout() {
   useEffect(() => {
     if (checking) return;
     if (!user || !isAdmin || !mfaSatisfied) {
-      navigate({ to: "/auth", replace: true });
+      navigate({ to: "/auth", search: { redir: pathname }, replace: true });
     }
   }, [checking, user, isAdmin, mfaSatisfied, navigate]);
 
