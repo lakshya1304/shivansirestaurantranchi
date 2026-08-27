@@ -1,0 +1,360 @@
+import { FastifyRequest, FastifyReply } from "fastify";
+import prisma from "../config/databaseConfig";
+import logger from "../config/loggerConfig";
+import crypto from "crypto";
+import { sendWhatsAppMessage } from "../utils/whatsapp";
+
+// Helper for phone OTP hashing
+async function hashCode(phone: string, code: string) {
+  const data = new TextEncoder().encode(`${phone}:${code}`);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const data = req.body as any; // We will assume it's validated by a middleware or schema later
+
+    // 1. Fetch related data
+    const productIds = [...new Set(data.lines.map((l: any) => l.productId))];
+    const products = await prisma.product.findMany({ where: { id: { in: productIds as string[] } } });
+    const settings = await prisma.restaurantSettings.findFirst();
+    const discounts = await prisma.discount.findMany({ where: { is_active: true } });
+    const loyaltyRules = await prisma.loyaltyRule.findMany({ where: { is_active: true } });
+
+    if (!settings) return res.status(400).send({ error: "Restaurant is not configured yet" });
+
+    // 2. Build items and subtotal
+    const items = data.lines.map((line: any) => {
+      const product = products.find((p) => p.id === line.productId);
+      if (!product) throw new Error("An item in your cart is no longer available");
+      if (!product.is_available) throw new Error(`${product.name} is currently unavailable`);
+      
+      const unitPrice = product.sold_by_weight
+        ? Math.round(((Number(product.price_per_kg) || 0) * (line.weightGrams || 250)) / 1000)
+        : Number(product.offer_price) > 0
+          ? Number(product.offer_price)
+          : Number(product.price);
+
+      return {
+        product_id: product.id,
+        name: product.name,
+        unit_price: unitPrice,
+        quantity: line.quantity,
+        weight_label: line.weightLabel,
+        instructions: line.instructions?.length ? line.instructions.join(", ") : null,
+        line_total: unitPrice * line.quantity,
+      };
+    });
+
+    const subtotal = items.reduce((s: number, i: any) => s + i.line_total, 0);
+
+    // 3. Customer lookup
+    const existingCustomer = await prisma.customer.findUnique({
+      where: { phone: data.customerPhone }
+    });
+
+    const today = new Date().toISOString().slice(0, 10);
+    const hour = new Date().getHours();
+
+    let discount = 0;
+    let discountLabel: string | null = null;
+
+    // 4. Coupon/Campaign discounts
+    const eligible = discounts.filter((d) => {
+      if (d.starts_at && d.starts_at > new Date(today)) return false;
+      if (d.ends_at && d.ends_at < new Date(today)) return false;
+      if (subtotal < Number(d.min_order_amount)) return false;
+      if (d.start_hour != null && d.end_hour != null && (hour < d.start_hour || hour >= d.end_hour)) return false;
+      if (d.coupon_code) return data.couponCode?.toUpperCase() === d.coupon_code.toUpperCase();
+      return true;
+    });
+
+    for (const d of eligible) {
+      const raw = d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
+      const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+      if (capped > discount) {
+        discount = capped;
+        discountLabel = d.name;
+      }
+    }
+
+    // 5. Loyalty discounts
+    const visits = existingCustomer?.visits ?? 0;
+    const loyaltyTier = loyaltyRules
+      .filter((r) => visits >= r.visits_required)
+      .sort((a, b) => b.visits_required - a.visits_required)[0];
+    
+    if (loyaltyTier) {
+      const loyaltyValue = (subtotal * Number(loyaltyTier.discount_percent)) / 100;
+      if (loyaltyValue > discount) {
+        discount = loyaltyValue;
+        discountLabel = `Loyalty reward (${loyaltyTier.discount_percent}% • ${visits} visits)`;
+      }
+    }
+
+    discount = Math.round(Math.min(discount, subtotal) * 100) / 100;
+    const taxable = subtotal - discount;
+    const tax = Math.round(((taxable * Number(settings.tax_percent)) / 100) * 100) / 100;
+    const packing = data.isTakeaway ? Number(settings.packing_charge) : 0;
+    const delivery = data.isTakeaway ? Number(settings.delivery_charge) : 0;
+    const total = Math.round((taxable + tax + packing + delivery) * 100) / 100;
+
+    const earnedPoints = Math.floor(total / 100) * 10;
+    let customerId = existingCustomer?.id;
+
+    // 6. DB Transaction for order creation
+    const orderNumber = `SHV-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const order = await prisma.$transaction(async (tx) => {
+      // Upsert customer
+      let customer;
+      if (existingCustomer) {
+        customer = await tx.customer.update({
+          where: { id: existingCustomer.id },
+          data: {
+            name: data.customerName,
+            visits: { increment: 1 },
+            reward_points: { increment: earnedPoints },
+            total_spend: { increment: total },
+            last_visit: new Date(),
+            favourite_item: items[0]?.name ?? existingCustomer.favourite_item,
+          }
+        });
+      } else {
+        customer = await tx.customer.create({
+          data: {
+            name: data.customerName,
+            phone: data.customerPhone,
+            visits: 1,
+            reward_points: earnedPoints,
+            total_spend: total,
+            last_visit: new Date(),
+            favourite_item: items[0]?.name ?? null,
+          }
+        });
+        await tx.appNotification.create({
+          data: {
+            type: "customer",
+            title: "New customer registered",
+            body: `${data.customerName} (${data.customerPhone}) placed their first order.`,
+          }
+        });
+      }
+
+      customerId = customer.id;
+
+      // Create Order
+      const newOrder = await tx.order.create({
+        data: {
+          order_number: orderNumber,
+          table_number: data.tableNumber,
+          customer_id: customer.id,
+          customer_name: data.customerName,
+          customer_phone: data.customerPhone,
+          payment_method: data.paymentMethod,
+          status: "pending",
+          payment_status: "pending",
+          session_token: "backend-token",
+          subtotal,
+          discount,
+          discount_label: discountLabel,
+          tax,
+          packing_charge: packing,
+          delivery_charge: delivery,
+          total,
+          notes: data.notes,
+          order_items: {
+            create: items.map((i: any) => ({
+              product_id: i.product_id,
+              name: i.name,
+              unit_price: i.unit_price,
+              quantity: i.quantity,
+              weight_label: i.weight_label,
+              instructions: i.instructions,
+              line_total: i.line_total,
+            }))
+          }
+        }
+      });
+
+      if (discountLabel) {
+        await tx.appNotification.create({
+          data: {
+            type: "offer",
+            title: "Offer used",
+            body: `${discountLabel} applied on ${orderNumber}.`,
+          }
+        });
+      }
+
+      const serveAt = data.tableNumber ? `Serve at table ${data.tableNumber}` : "Takeaway / parcel";
+      await tx.appNotification.create({
+        data: {
+          type: "order",
+          title: `New order ${orderNumber}`,
+          body: `${serveAt} • ${data.customerName} • ₹${total}`,
+        }
+      });
+
+      return newOrder;
+    });
+
+    const serveAt = data.tableNumber ? `Serve at table ${data.tableNumber}` : "Takeaway / parcel";
+    void sendWhatsAppMessage(
+      data.customerPhone,
+      `🍽 *Shivansi Restaurant & Sweet Shop*\n\nHi ${data.customerName}, your order *${order.order_number}* is confirmed.\n${serveAt}\nItems: ${items
+        .map((i: any) => `${i.quantity}× ${i.name}`)
+        .join(", ")}\nTotal: ₹${total}\n\nThis is an automated message from our ordering bot — replies are not monitored.`
+    );
+    
+    return res.send({ id: order.id, token: order.session_token, orderNumber: order.order_number });
+  } catch (error: any) {
+    logger.error(`Error in placeOrder: ${error.message}`);
+    return res.status(400).send({ error: error.message });
+  }
+};
+
+export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { id } = req.params as any;
+    const { status } = req.body as any;
+
+    const order = await prisma.order.update({
+      where: { id },
+      data: { status }
+    });
+
+    const STATUS_MESSAGE: Record<string, string> = {
+      accepted: "has been accepted by the kitchen 👨‍🍳",
+      preparing: "is being prepared right now 🔥",
+      ready: "is ready to be served ✅",
+      served: "has been served — enjoy your meal! 😋",
+      completed: "is complete. Thank you for dining with us 🙏",
+      rejected: "could not be accepted. Please talk to our staff.",
+    };
+
+    const line = STATUS_MESSAGE[status];
+    if (line && order.customer_phone) {
+      void sendWhatsAppMessage(
+        order.customer_phone,
+        `🍽 *Shivansi Restaurant & Sweet Shop*\n\nHi ${order.customer_name}, your order *${order.order_number}* ${line}\n${
+          order.table_number ? `Table ${order.table_number}` : "Takeaway"
+        }\n\nAutomated bot update — replies are not monitored.`
+      );
+    }
+
+    return res.send({ ok: true, order });
+  } catch (error: any) {
+    logger.error(`Error in updateOrderStatus: ${error.message}`);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
+export const updatePaymentStatus = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { id } = req.params as any;
+    const order = await prisma.order.update({
+      where: { id },
+      data: { payment_status: "paid" }
+    });
+    return res.send({ ok: true, order });
+  } catch (error: any) {
+    logger.error(`Error in updatePaymentStatus: ${error.message}`);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
+export const getPublicOrder = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { id, token } = req.query as any;
+    const order = await prisma.order.findFirst({
+      where: { id, session_token: token },
+      include: { order_items: true }
+    });
+    if (!order) return res.send(null);
+    const settings = await prisma.restaurantSettings.findFirst();
+    return res.send({ order, settings });
+  } catch (error: any) {
+    logger.error(`Error in getPublicOrder: ${error.message}`);
+    return res.status(400).send({ error: error.message });
+  }
+};
+
+export const requestOrderHistoryCode = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { phone } = req.body as any;
+    const code = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 1000000).padStart(6, "0");
+    const hash = await hashCode(phone, code);
+    
+    await prisma.phoneVerification.create({
+      data: {
+        phone,
+        code_hash: hash,
+        expires_at: new Date(Date.now() + 10 * 60 * 1000),
+      }
+    });
+
+    void sendWhatsAppMessage(
+      phone,
+      `🔐 *Shivansi Restaurant & Sweet Shop*\n\nYour order history verification code is *${code}*. It expires in 10 minutes.\n\nAutomated message — never share this code with anyone.`
+    );
+
+    return res.send({ ok: true, delivered: true });
+  } catch (error: any) {
+    logger.error(`Error in requestOrderHistoryCode: ${error.message}`);
+    return res.status(400).send({ error: error.message });
+  }
+};
+
+export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { phone, code } = req.body as any;
+    
+    const challenge = await prisma.phoneVerification.findFirst({
+      where: {
+        phone,
+        used: false,
+        expires_at: { gt: new Date() }
+      },
+      orderBy: { created_at: "desc" }
+    });
+
+    const invalid = new Error("That code is invalid or has expired. Request a new one.");
+    if (!challenge || challenge.attempts >= 5) throw invalid;
+
+    const hash = await hashCode(phone, code);
+    if (challenge.code_hash !== hash) {
+      await prisma.phoneVerification.update({
+        where: { id: challenge.id },
+        data: { attempts: { increment: 1 } }
+      });
+      throw invalid;
+    }
+
+    await prisma.phoneVerification.update({
+      where: { id: challenge.id },
+      data: { used: true }
+    });
+
+    const customer = await prisma.customer.findUnique({
+      where: { phone },
+      select: { id: true, name: true, visits: true, reward_points: true, last_visit: true }
+    });
+
+    if (!customer) return res.send(null);
+
+    const orders = await prisma.order.findMany({
+      where: { customer_id: customer.id },
+      include: { order_items: true },
+      orderBy: { created_at: "desc" },
+      take: 50
+    });
+
+    return res.send({ customer, orders });
+  } catch (error: any) {
+    logger.error(`Error in getOrdersByPhone: ${error.message}`);
+    return res.status(400).send({ error: error.message });
+  }
+};
+
