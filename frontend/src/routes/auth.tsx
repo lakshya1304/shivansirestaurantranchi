@@ -16,10 +16,10 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Owner login — Maa Tara Sweets" },
-      { name: "description", content: "Sign in to manage menu, orders, inventory and reports at Maa Tara Sweets." },
-      { property: "og:title", content: "Owner login — Maa Tara Sweets" },
-      { property: "og:description", content: "Sign in to the Maa Tara Sweets owner dashboard." },
+      { title: "Admin login — Maa Tara Sweets" },
+      { name: "description", content: "Restricted sign-in for admin and superadmin accounts at Maa Tara Sweets." },
+      { property: "og:title", content: "Admin login — Maa Tara Sweets" },
+      { property: "og:description", content: "Restricted access — admin and superadmin only." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -197,10 +197,9 @@ function AuthPage() {
           <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-[image:var(--gradient-primary)]">
             <ShieldCheck className="size-6 text-primary-foreground" />
           </span>
-          <h1 className="mt-4 font-display text-2xl font-bold">Owner access</h1>
-          <p className="mt-1 font-medium text-primary">Owner: Alka Thakur</p>
+          <h1 className="mt-4 font-display text-2xl font-bold">Restricted access</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage menu, orders, inventory, offers and reports.
+            For admin and superadmin accounts only.
           </p>
         </header>
 
@@ -213,8 +212,7 @@ function AuthPage() {
             </p>
             {!isAdmin && !checking ? (
               <p className="text-sm text-muted-foreground">
-                This account does not have owner access. Only the single registered owner account can open the
-                dashboard.
+                This account does not have admin access. Only admin and superadmin accounts can open the dashboard.
               </p>
             ) : (
               <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" />
@@ -267,7 +265,7 @@ function AuthPage() {
             </form>
 
             <p className="text-center text-xs text-muted-foreground">
-              This dashboard is limited to the registered owner account and requires an authenticator code.
+              Access is restricted to admin and superadmin roles. Two-factor authentication (TOTP) is optional.
             </p>
           </>
         )}

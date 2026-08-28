@@ -78,10 +78,13 @@ function MyOrders() {
               <Label htmlFor="phone">Phone number</Label>
               <Input
                 id="phone"
+                type="tel"
+                inputMode="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="98765 43210"
                 maxLength={16}
+                autoComplete="tel"
               />
             </div>
             <Button type="submit" variant="hero" className="rounded-full" disabled={sendCode.isPending}>

@@ -87,11 +87,17 @@ export function SiteFooter() {
           <Link to="/settings" className="w-fit text-muted-foreground hover:text-primary transition-colors">
             Display settings
           </Link>
-          <Link to="/auth" search={{ redir: "/admin" }} className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            Login / Sign up
+          <Link to="/login" className="w-fit text-muted-foreground hover:text-primary transition-colors">
+            User login
+          </Link>
+          <Link to="/owner" className="w-fit text-muted-foreground hover:text-primary transition-colors">
+            About the owner
+          </Link>
+          <Link to="/scanner" className="w-fit text-muted-foreground hover:text-primary transition-colors">
+            QR scanner
           </Link>
           <Link to="/admin" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            Dashboard
+            Administration
           </Link>
         </div>
       </div>
