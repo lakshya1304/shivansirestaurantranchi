@@ -13,6 +13,7 @@ import {
   Users,
   ShieldCheck,
   UtensilsCrossed,
+  UserCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -140,16 +141,26 @@ function AdminLayout() {
               </Link>
             );
           })}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="ml-auto shrink-0"
-            onClick={handleSignOut}
-          >
-            <LogOut className="size-4" />
-            Sign out
-          </Button>
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            <Link
+              to="/profile"
+              aria-label="My profile"
+              title="My profile"
+              className="flex size-8 items-center justify-center rounded-xl text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <UserCircle2 className="size-5" />
+            </Link>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="shrink-0"
+              onClick={handleSignOut}
+            >
+              <LogOut className="size-4" />
+              Sign out
+            </Button>
+          </div>
         </nav>
         <Outlet />
       </div>

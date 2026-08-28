@@ -25,6 +25,10 @@ export default async function dataRoutes(app: FastifyInstance) {
   app.get("/orders/public", orderController.getPublicOrder);
   app.post("/orders/history/request-code", orderController.requestOrderHistoryCode);
   app.post("/orders/history/verify", orderController.getOrdersByPhone);
+
+  // Customer profile (phone-verified, no JWT required)
+  app.get("/customer-profile", orderController.getCustomerProfile);
+  app.patch("/customer-profile", orderController.updateCustomerProfile);
   app.patch("/orders/:id/status", orderController.updateOrderStatus);
   app.patch("/orders/:id/payment", orderController.updatePaymentStatus);
 

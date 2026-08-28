@@ -7,10 +7,14 @@ import multipart from "@fastify/multipart";
 import compress from "@fastify/compress";
 import rateLimiter from "../middlewares/rateLimiter";
 import version from "../utils/helpers/version";
+import { WEB_ORIGIN } from "./envConfig";
 
 let fastifyApp = fastify({ logger: true, exposeHeadRoutes: true });
-
-await fastifyApp.register(cors, { origin: true });
+parseFloat
+await fastifyApp.register(cors, {
+  origin: process.env.NODE_ENV === "production" ? WEB_ORIGIN : true,
+  credentials: true,
+});
 await fastifyApp.register(cookie);
 await fastifyApp.register(rateLimiter);
 await fastifyApp.register(compress, {

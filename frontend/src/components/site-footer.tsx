@@ -56,7 +56,7 @@ export function SiteFooter() {
         {/* Contact column */}
         <div className="space-y-3 text-sm text-muted-foreground">
           <h3 className="font-display text-base font-bold text-foreground">Contact & Location</h3>
-          <a 
+          <a
             href="https://maps.app.goo.gl/Wc3uMz7K1z4XcoHL8"
             target="_blank"
             rel="noopener noreferrer"
@@ -92,7 +92,9 @@ export function SiteFooter() {
           </Link>
           <Link to="/owner" className="w-fit text-muted-foreground hover:text-primary transition-colors">
             About the owner
-          </Link>
+          </Link>il.com
+          ￼
+
           <Link to="/scanner" className="w-fit text-muted-foreground hover:text-primary transition-colors">
             QR scanner
           </Link>

@@ -13,8 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MenuRouteImport } from './routes/menu'
 import { Route as MyOrdersRouteImport } from './routes/my-orders'
+import { Route as OwnerRouteImport } from './routes/owner'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ScannerRouteImport } from './routes/scanner'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
@@ -27,9 +31,6 @@ import { Route as AdminStaffRouteImport } from './routes/admin.staff'
 import { Route as AdminTablesRouteImport } from './routes/admin.tables'
 import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
 import { Route as TableTableNumberRouteImport } from './routes/table.$tableNumber'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as OwnerRouteImport } from './routes/owner'
-import { Route as ScannerRouteImport } from './routes/scanner'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,6 +52,11 @@ const CartRoute = CartRouteImport.update({
   path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MenuRoute = MenuRouteImport.update({
   id: '/menu',
   path: '/menu',
@@ -59,6 +65,21 @@ const MenuRoute = MenuRouteImport.update({
 const MyOrdersRoute = MyOrdersRouteImport.update({
   id: '/my-orders',
   path: '/my-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OwnerRoute = OwnerRouteImport.update({
+  id: '/owner',
+  path: '/owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScannerRoute = ScannerRouteImport.update({
+  id: '/scanner',
+  path: '/scanner',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -121,33 +142,19 @@ const TableTableNumberRoute = TableTableNumberRouteImport.update({
   path: '/table/$tableNumber',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OwnerRoute = OwnerRouteImport.update({
-  id: '/owner',
-  path: '/owner',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScannerRoute = ScannerRouteImport.update({
-  id: '/scanner',
-  path: '/scanner',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
-  '/settings': typeof SettingsRoute
-  '/login': typeof LoginRoute
   '/owner': typeof OwnerRoute
+  '/profile': typeof ProfileRoute
   '/scanner': typeof ScannerRoute
+  '/settings': typeof SettingsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -164,12 +171,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
-  '/settings': typeof SettingsRoute
-  '/login': typeof LoginRoute
   '/owner': typeof OwnerRoute
+  '/profile': typeof ProfileRoute
   '/scanner': typeof ScannerRoute
+  '/settings': typeof SettingsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -188,12 +196,13 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/login': typeof LoginRoute
   '/menu': typeof MenuRoute
   '/my-orders': typeof MyOrdersRoute
-  '/settings': typeof SettingsRoute
-  '/login': typeof LoginRoute
   '/owner': typeof OwnerRoute
+  '/profile': typeof ProfileRoute
   '/scanner': typeof ScannerRoute
+  '/settings': typeof SettingsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -213,12 +222,13 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/login'
     | '/menu'
     | '/my-orders'
-    | '/settings'
-    | '/login'
     | '/owner'
+    | '/profile'
     | '/scanner'
+    | '/settings'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -235,12 +245,13 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/cart'
+    | '/login'
     | '/menu'
     | '/my-orders'
-    | '/settings'
-    | '/login'
     | '/owner'
+    | '/profile'
     | '/scanner'
+    | '/settings'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -258,12 +269,13 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/login'
     | '/menu'
     | '/my-orders'
-    | '/settings'
-    | '/login'
     | '/owner'
+    | '/profile'
     | '/scanner'
+    | '/settings'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -282,12 +294,13 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
+  LoginRoute: typeof LoginRoute
   MenuRoute: typeof MenuRoute
   MyOrdersRoute: typeof MyOrdersRoute
-  SettingsRoute: typeof SettingsRoute
-  LoginRoute: typeof LoginRoute
   OwnerRoute: typeof OwnerRoute
+  ProfileRoute: typeof ProfileRoute
   ScannerRoute: typeof ScannerRoute
+  SettingsRoute: typeof SettingsRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
   TableTableNumberRoute: typeof TableTableNumberRoute
 }
@@ -322,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/menu': {
       id: '/menu'
       path: '/menu'
@@ -334,6 +354,27 @@ declare module '@tanstack/react-router' {
       path: '/my-orders'
       fullPath: '/my-orders'
       preLoaderRoute: typeof MyOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/owner': {
+      id: '/owner'
+      path: '/owner'
+      fullPath: '/owner'
+      preLoaderRoute: typeof OwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scanner': {
+      id: '/scanner'
+      path: '/scanner'
+      fullPath: '/scanner'
+      preLoaderRoute: typeof ScannerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -420,27 +461,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TableTableNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/owner': {
-      id: '/owner'
-      path: '/owner'
-      fullPath: '/owner'
-      preLoaderRoute: typeof OwnerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scanner': {
-      id: '/scanner'
-      path: '/scanner'
-      fullPath: '/scanner'
-      preLoaderRoute: typeof ScannerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -475,12 +495,13 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
+  LoginRoute: LoginRoute,
   MenuRoute: MenuRoute,
   MyOrdersRoute: MyOrdersRoute,
-  SettingsRoute: SettingsRoute,
-  LoginRoute: LoginRoute,
   OwnerRoute: OwnerRoute,
+  ProfileRoute: ProfileRoute,
   ScannerRoute: ScannerRoute,
+  SettingsRoute: SettingsRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
   TableTableNumberRoute: TableTableNumberRoute,
 }

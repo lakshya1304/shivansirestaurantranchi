@@ -23,6 +23,29 @@ export const apiClient = axios.create({
   withCredentials: true, // Crucial for Fastify httpOnly cookies
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    // If it's a 401, we haven't already retried, and it's not the login or refresh endpoints itself
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/refresh-token") &&
+      !originalRequest.url?.includes("/auth/login")
+    ) {
+      originalRequest._retry = true;
+      try {
+        await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 
 
 export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {

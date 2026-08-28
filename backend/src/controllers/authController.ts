@@ -298,7 +298,8 @@ export const verifyWebAuthnAuthentication = asyncHandler(
   async (req: FastifyRequest<{ Body: { email: string, response: any } }>, res: FastifyReply) => {
     const result = await authService.verifyWebAuthnAuthentication(req.body.email, req.body.response);
 
-    res.cookie("refreshToken", result.tokens.refreshToken, cookieOption("refresh"));
+    res.setCookie("refreshToken", result.tokens.refreshToken, cookieOption("refresh"));
+    res.setCookie("accessToken", result.tokens.accessToken, cookieOption("access"));
 
     sendSuccess(
       res,

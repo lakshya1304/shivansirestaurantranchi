@@ -3,6 +3,23 @@ import prisma from "../config/databaseConfig";
 import logger from "../config/loggerConfig";
 import crypto from "crypto";
 import { sendWhatsAppMessage } from "../utils/whatsapp";
+import jwt from "jsonwebtoken";
+import { JWT_ACCESS_SECRET } from "../config/envConfig";
+
+// 7-day profile token for phone-verified customer sessions
+const PROFILE_TOKEN_TTL = 7 * 24 * 60 * 60; // seconds
+
+function signProfileToken(phone: string): string {
+  return jwt.sign({ phone }, JWT_ACCESS_SECRET, { expiresIn: PROFILE_TOKEN_TTL });
+}
+
+function verifyProfileToken(token: string): { phone: string } {
+  try {
+    return jwt.verify(token, JWT_ACCESS_SECRET) as { phone: string };
+  } catch {
+    throw Object.assign(new Error("Profile session expired. Please verify your number again."), { statusCode: 401 });
+  }
+}
 
 // Helper for phone OTP hashing
 async function hashCode(phone: string, code: string) {
@@ -337,12 +354,20 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
       data: { used: true }
     });
 
-    const customer = await prisma.customer.findUnique({
+    let customer = await prisma.customer.findUnique({
       where: { phone },
-      select: { id: true, name: true, visits: true, reward_points: true, last_visit: true }
     });
 
-    if (!customer) return res.send(null);
+    if (!customer) {
+      customer = await prisma.customer.create({
+        data: {
+          phone,
+          visits: 0,
+          reward_points: 0,
+          total_spend: 0,
+        },
+      });
+    }
 
     const orders = await prisma.order.findMany({
       where: { customer_id: customer.id },
@@ -351,10 +376,70 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
       take: 50
     });
 
-    return res.send({ customer, orders });
+    // Issue a signed profile token so the customer can access /customer-profile
+    // without a full user account / JWT session.
+    const profileToken = signProfileToken(phone);
+
+    return res.send({ customer, orders, profileToken });
   } catch (error: any) {
     logger.error(`Error in getOrdersByPhone: ${error.message}`);
     return res.status(400).send({ error: error.message });
+  }
+};
+
+// ─── GET /data/customer-profile ─────────────────────────────────────────────
+// Query params: phone, token
+export const getCustomerProfile = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { phone, token } = req.query as { phone?: string; token?: string };
+    if (!phone || !token) return res.status(400).send({ error: "phone and token are required" });
+
+    const payload = verifyProfileToken(token);
+    if (payload.phone !== phone) return res.status(401).send({ error: "Token does not match phone" });
+
+    const customer = await prisma.customer.findUnique({ where: { phone } });
+    if (!customer) return res.status(404).send({ error: "No profile found for this number" });
+
+    const orders = await prisma.order.findMany({
+      where: { customer_id: customer.id },
+      include: { order_items: true },
+      orderBy: { created_at: "desc" },
+      take: 50,
+    });
+
+    return res.send({ customer, orders });
+  } catch (error: any) {
+    logger.error(`Error in getCustomerProfile: ${error.message}`);
+    return res.status(error.statusCode ?? 400).send({ error: error.message });
+  }
+};
+
+// ─── PATCH /data/customer-profile ───────────────────────────────────────────
+// Body: { phone, token, name?, birthday?, saved_address? }
+export const updateCustomerProfile = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { phone, token, name, birthday, saved_address } = req.body as any;
+    if (!phone || !token) return res.status(400).send({ error: "phone and token are required" });
+
+    const payload = verifyProfileToken(token);
+    if (payload.phone !== phone) return res.status(401).send({ error: "Token does not match phone" });
+
+    const customer = await prisma.customer.findUnique({ where: { phone } });
+    if (!customer) return res.status(404).send({ error: "No profile found for this number" });
+
+    const updated = await prisma.customer.update({
+      where: { phone },
+      data: {
+        ...(name !== undefined && { name: String(name).trim().slice(0, 80) }),
+        ...(birthday !== undefined && { birthday: birthday ? new Date(birthday) : null }),
+        ...(saved_address !== undefined && { saved_address: String(saved_address).trim().slice(0, 200) || null }),
+      },
+    });
+
+    return res.send({ customer: updated });
+  } catch (error: any) {
+    logger.error(`Error in updateCustomerProfile: ${error.message}`);
+    return res.status(error.statusCode ?? 400).send({ error: error.message });
   }
 };
 

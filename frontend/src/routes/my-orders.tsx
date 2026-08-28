@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { Gift, Loader2, Search } from "lucide-react";
+import { Gift, Loader2, Search, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { getOrdersByPhone, requestOrderHistoryCode } from "@/lib/orders.functions";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { formatDateTime, money } from "@/lib/format";
+import { saveCustomerSession } from "./login";
 
 export const Route = createFileRoute("/my-orders")({
   head: () => ({
@@ -50,6 +51,16 @@ function MyOrders() {
 
   const mutation = useMutation({
     mutationFn: (value: { phone: string; code: string }) => getOrdersByPhone(value),
+    onSuccess: (res: any) => {
+      // Also establish customer session so /profile works without re-verifying
+      if (res?.profileToken && res?.customer) {
+        saveCustomerSession({
+          phone: res.customer.phone ?? phone,
+          name: res.customer.name ?? phone,
+          profileToken: res.profileToken,
+        });
+      }
+    },
     onError: (err: Error) => toast.error(err.message || "That code is invalid or has expired."),
   });
 
@@ -143,6 +154,22 @@ function MyOrders() {
 
         {result ? (
           <>
+            {/* Profile prompt banner */}
+            <div className="glass flex flex-wrap items-center justify-between gap-3 rounded-3xl px-5 py-4">
+              <div className="flex items-center gap-3">
+                <UserCircle2 className="size-5 text-accent shrink-0" />
+                <p className="text-sm">
+                  <span className="font-medium">Save your profile</span>{" "}
+                  <span className="text-muted-foreground">— edit your name, birthday &amp; address.</span>
+                </p>
+              </div>
+              <Link to="/profile">
+                <Button variant="hero" size="sm" className="rounded-full">
+                  View my profile →
+                </Button>
+              </Link>
+            </div>
+
             <section className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-3">
               <Stat label="Guest" value={result.customer.name} />
               <Stat label="Visits" value={String(result.customer.visits)} />
