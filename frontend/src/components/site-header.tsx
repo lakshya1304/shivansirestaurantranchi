@@ -46,7 +46,7 @@ export function SiteHeader() {
           <Link
             to="/"
             className="flex min-w-0 items-center gap-3 rounded-xl transition-opacity duration-200 hover:opacity-80"
-            aria-label={`${import.meta.env.VITE_BUSINESS_NAME ?? "Restaurant"} — Home`}
+            aria-label={`${import.meta.env['VITE_BUSINESS_NAME'] ?? "Restaurant"} — Home`}
           >
             <span
               className="grid size-11 shrink-0 place-items-center rounded-2xl shadow-glow pulse-ring"
@@ -56,7 +56,7 @@ export function SiteHeader() {
             </span>
             <span className="min-w-0">
               <span className="block truncate font-display text-base font-bold leading-tight sm:text-lg">
-                {settings?.name ?? import.meta.env.VITE_BUSINESS_NAME ?? "Restaurant"}
+                {settings?.name ?? import.meta.env['VITE_BUSINESS_NAME'] ?? "Restaurant"}
               </span>
               <span className="block truncate text-[11px] text-muted-foreground">
                 {tableNumber ? `Table ${tableNumber} • dine-in` : (settings?.tagline ?? "Restaurant & Sweet Shop")}
@@ -163,9 +163,8 @@ export function SiteHeader() {
 
         {/* Slide-down panel */}
         <nav
-          className={`absolute left-0 right-0 top-[60px] glass-strong border-b border-border/40 px-4 pb-5 pt-3 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out ${
-            mobileOpen ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
-          }`}
+          className={`absolute left-0 right-0 top-[60px] glass-strong border-b border-border/40 px-4 pb-5 pt-3 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out ${mobileOpen ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+            }`}
         >
           <ul className="flex flex-col gap-1" role="list">
             {NAV_LINKS.map(({ to, label, icon: Icon, ...rest }) => {
@@ -175,11 +174,10 @@ export function SiteHeader() {
                   <Link
                     to={to}
                     {...("search" in rest ? { search: (rest as { search: { category: undefined } }).search } : {})}
-                    className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${
-                      active
+                    className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${active
                         ? "bg-primary/15 text-primary"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
-                    }`}
+                      }`}
                   >
                     <Icon className="size-5 shrink-0" aria-hidden="true" />
                     {label}
@@ -192,11 +190,10 @@ export function SiteHeader() {
             <li>
               <Link
                 to={isLoggedIn ? "/profile" : "/login"}
-                className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${
-                  pathname === "/profile" || pathname === "/login"
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${pathname === "/profile" || pathname === "/login"
                     ? "bg-primary/15 text-primary"
                     : "text-foreground hover:bg-primary/10 hover:text-primary"
-                }`}
+                  }`}
               >
                 <User className="size-5 shrink-0" aria-hidden="true" />
                 {isLoggedIn ? "Profile" : "Login"}

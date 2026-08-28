@@ -47,7 +47,7 @@ function SettingsManager() {
           f.type === "number" ? Number(form[f.key] ?? 0) : String(form[f.key] ?? ""),
         ]),
       ) as any;
-      data.is_suspended = Boolean(form.is_suspended);
+      data.is_suspended = Boolean(form['is_suspended']);
       return saveOwnerSettings(data);
     },
     onSuccess: () => {
@@ -131,7 +131,7 @@ function SettingsManager() {
               <input
                 type="checkbox"
                 className="peer sr-only"
-                checked={Boolean(form.is_suspended)}
+                checked={Boolean(form['is_suspended'])}
                 onChange={(e) => setForm({ ...form, is_suspended: e.target.checked })}
               />
               <div className="peer h-6 w-11 rounded-full bg-border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-destructive peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-destructive/30 dark:border-gray-600 dark:bg-gray-700"></div>
