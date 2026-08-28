@@ -16,13 +16,13 @@ import { formatDateTime, money } from "@/lib/format";
 export const Route = createFileRoute("/my-orders")({
   head: () => ({
     meta: [
-      { title: "My orders & loyalty — Shivansi Restaurant & Sweet Shop" },
+      { title: "My orders & loyalty — Maa Tara Sweets" },
       {
         name: "description",
-        content: "Look up your past Shivansi orders, download invoices and check your loyalty points.",
+        content: "Look up your past Maa Tara Sweets orders, download invoices and check your loyalty points.",
       },
-      { property: "og:title", content: "My orders & loyalty — Shivansi" },
-      { property: "og:description", content: "Past orders, invoices and loyalty points at Shivansi." },
+      { property: "og:title", content: "My orders & loyalty — Maa Tara Sweets" },
+      { property: "og:description", content: "Past orders, invoices and loyalty points at Maa Tara Sweets." },
     ],
   }),
   component: MyOrders,
@@ -151,36 +151,35 @@ function MyOrders() {
             </section>
 
             <section className="space-y-3">
-              {result.orders.map((order) => {
-                const typed = order as unknown as Order;
+              {result.orders.map((order: any) => {
                 return (
-                  <article key={typed.id} className="glass rounded-3xl p-5">
+                  <article key={order.id} className="glass rounded-3xl p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <p className="font-mono text-sm">{typed.order_number}</p>
+                        <p className="font-mono text-sm">{order.order_number}</p>
                         <p className="text-xs text-muted-foreground">
-                          {formatDateTime(typed.created_at)} •{" "}
-                          {typed.table_number == null ? "Takeaway" : `Table ${typed.table_number}`}
+                          {formatDateTime(order.created_at)} •{" "}
+                          {order.table_number == null ? "Takeaway" : `Table ${order.table_number}`}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge variant={typed.status === "rejected" ? "destructive" : "glass"}>
-                          {STATUS_LABEL[typed.status]}
+                        <Badge variant={order.status === "rejected" ? "destructive" : "glass"}>
+                          {STATUS_LABEL[order.status as keyof typeof STATUS_LABEL]}
                         </Badge>
-                        <span className="font-display font-bold">{money(typed.total)}</span>
+                        <span className="font-display font-bold">{money(order.total)}</span>
                         <Button
                           variant="glass"
                           size="sm"
                           className="rounded-full"
-                          onClick={() => setOpenId(openId === typed.id ? null : typed.id)}
+                          onClick={() => setOpenId(openId === order.id ? null : order.id)}
                         >
-                          {openId === typed.id ? "Hide bill" : "View bill"}
+                          {openId === order.id ? "Hide bill" : "View bill"}
                         </Button>
                       </div>
                     </div>
-                    {openId === typed.id ? (
+                    {openId === order.id ? (
                       <div className="mt-4">
-                        <Invoice order={typed} settings={null} />
+                        <Invoice order={order} settings={null} />
                       </div>
                     ) : null}
                   </article>

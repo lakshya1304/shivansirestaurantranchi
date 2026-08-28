@@ -6,10 +6,10 @@ import { useCart } from "@/lib/cart";
 export const Route = createFileRoute("/table/$tableNumber")({
   head: () => ({
     meta: [
-      { title: "Your table — Shivansi Restaurant & Sweet Shop" },
-      { name: "description", content: "Start a dine-in order for your table at Shivansi." },
-      { property: "og:title", content: "Your table — Shivansi Restaurant & Sweet Shop" },
-      { property: "og:description", content: "Start a dine-in order for your table at Shivansi." },
+      { title: "Your table — Maa Tara Sweets" },
+      { name: "description", content: "Start a dine-in order for your table at Maa Tara Sweets." },
+      { property: "og:title", content: "Your table — Maa Tara Sweets" },
+      { property: "og:description", content: "Start a dine-in order for your table at Maa Tara Sweets." },
       { name: "robots", content: "noindex" },
     ],
   }),

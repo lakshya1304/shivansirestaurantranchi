@@ -41,7 +41,7 @@ export function SiteHeader() {
           <Link
             to="/"
             className="flex min-w-0 items-center gap-3 rounded-xl transition-opacity duration-200 hover:opacity-80"
-            aria-label="Shivansi Restaurant — Home"
+            aria-label={`${import.meta.env.VITE_BUSINESS_NAME ?? "Restaurant"} — Home`}
           >
             <span
               className="grid size-11 shrink-0 place-items-center rounded-2xl shadow-glow pulse-ring"
@@ -51,7 +51,7 @@ export function SiteHeader() {
             </span>
             <span className="min-w-0">
               <span className="block truncate font-display text-base font-bold leading-tight sm:text-lg">
-                {settings?.name ?? import.meta.env.VITE_BUSINESS_NAME ?? "Shivansi"}
+                {settings?.name ?? import.meta.env.VITE_BUSINESS_NAME ?? "Restaurant"}
               </span>
               <span className="block truncate text-[11px] text-muted-foreground">
                 {tableNumber ? `Table ${tableNumber} • dine-in` : (settings?.tagline ?? "Restaurant & Sweet Shop")}

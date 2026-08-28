@@ -14,7 +14,7 @@ const getInitialState = (): ThemeState => {
     return { mode: "dark", base: "default" };
   }
   try {
-    const stored = localStorage.getItem("shivansi-theme-v1");
+    const stored = localStorage.getItem("maatara-theme-v1");
     if (stored) {
       return JSON.parse(stored) as ThemeState;
     }
@@ -33,13 +33,13 @@ export const themeSlice = createSlice({
     setThemeMode: (state, action: PayloadAction<ThemeMode>) => {
       state.mode = action.payload;
       if (typeof window !== "undefined") {
-        localStorage.setItem("shivansi-theme-v1", JSON.stringify(state));
+        localStorage.setItem("maatara-theme-v1", JSON.stringify(state));
       }
     },
     setThemeBase: (state, action: PayloadAction<ThemeBase>) => {
       state.base = action.payload;
       if (typeof window !== "undefined") {
-        localStorage.setItem("shivansi-theme-v1", JSON.stringify(state));
+        localStorage.setItem("maatara-theme-v1", JSON.stringify(state));
       }
     },
   },

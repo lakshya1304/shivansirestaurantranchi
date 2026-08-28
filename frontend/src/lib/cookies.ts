@@ -1,8 +1,8 @@
 /** Small first-party cookie helpers (no third-party trackers). */
 
-export const CONSENT_COOKIE = "shivansi-consent";
-export const TABLE_COOKIE = "shivansi-table";
-export const TABLE_SOURCE_COOKIE = "shivansi-table-source";
+export const CONSENT_COOKIE = "restaurant-consent";
+export const TABLE_COOKIE = "restaurant-table";
+export const TABLE_SOURCE_COOKIE = "restaurant-table-source";
 
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;

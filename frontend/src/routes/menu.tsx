@@ -8,16 +8,16 @@ export const Route = createFileRoute("/menu")({
   }),
   head: () => ({
     meta: [
-      { title: "Menu — Shivansi Restaurant & Sweet Shop" },
+      { title: "Menu — Maa Tara Sweets" },
       {
         name: "description",
         content:
           "Breakfast, snacks, main course, sweets, drinks, desserts and combos with live prices, prep time and veg badges.",
       },
-      { property: "og:title", content: "Menu — Shivansi Restaurant & Sweet Shop" },
+      { property: "og:title", content: "Menu — Maa Tara Sweets" },
       {
         property: "og:description",
-        content: "Browse the full Shivansi menu and order from your table.",
+        content: "Browse the full Maa Tara Sweets menu and order from your table.",
       },
     ],
   }),

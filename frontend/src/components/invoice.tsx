@@ -16,7 +16,7 @@ export function Invoice({
     <div id="invoice" className="glass rounded-3xl p-6">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div>
-          <h2 className="font-display text-xl font-bold">{settings?.name ?? "Shivansi"}</h2>
+          <h2 className="font-display text-xl font-bold">{settings?.name ?? import.meta.env.VITE_BUSINESS_NAME ?? "Restaurant"}</h2>
           <p className="text-xs text-muted-foreground">{settings?.address}</p>
           <p className="text-xs text-muted-foreground">{settings?.phone}</p>
           {settings?.gst_number ? (

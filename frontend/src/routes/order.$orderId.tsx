@@ -15,10 +15,10 @@ export const Route = createFileRoute("/order/$orderId")({
   }),
   head: () => ({
     meta: [
-      { title: "Track your order — Shivansi Restaurant & Sweet Shop" },
-      { name: "description", content: "Live status of your Shivansi order, from kitchen to table." },
-      { property: "og:title", content: "Track your order — Shivansi" },
-      { property: "og:description", content: "Live status of your Shivansi order." },
+      { title: "Track your order — Maa Tara Sweets" },
+      { name: "description", content: "Live status of your Maa Tara Sweets order, from kitchen to table." },
+      { property: "og:title", content: "Track your order — Maa Tara Sweets" },
+      { property: "og:description", content: "Live status of your Maa Tara Sweets order." },
       { name: "robots", content: "noindex" },
     ],
   }),

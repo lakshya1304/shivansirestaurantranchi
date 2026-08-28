@@ -23,9 +23,9 @@ export const Route = createFileRoute("/admin")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Owner dashboard — Shivansi Restaurant & Sweet Shop" },
+      { title: "Owner dashboard — Maa Tara Sweets" },
       { name: "description", content: "Manage live orders, menu, inventory, offers and reports." },
-      { property: "og:title", content: "Owner dashboard — Shivansi" },
+      { property: "og:title", content: "Owner dashboard — Maa Tara Sweets" },
       { property: "og:description", content: "Manage the restaurant from one place." },
       { name: "robots", content: "noindex" },
     ],

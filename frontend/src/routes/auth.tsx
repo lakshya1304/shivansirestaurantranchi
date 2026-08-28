@@ -16,10 +16,10 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Owner login — Shivansi Restaurant & Sweet Shop" },
-      { name: "description", content: "Sign in to manage menu, orders, inventory and reports at Shivansi." },
-      { property: "og:title", content: "Owner login — Shivansi" },
-      { property: "og:description", content: "Sign in to the Shivansi owner dashboard." },
+      { title: "Owner login — Maa Tara Sweets" },
+      { name: "description", content: "Sign in to manage menu, orders, inventory and reports at Maa Tara Sweets." },
+      { property: "og:title", content: "Owner login — Maa Tara Sweets" },
+      { property: "og:description", content: "Sign in to the Maa Tara Sweets owner dashboard." },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -20,10 +20,10 @@ import { PAYMENT_METHODS } from "@/lib/types";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your cart — Shivansi Restaurant & Sweet Shop" },
-      { name: "description", content: "Review your items, apply a coupon and place your order at Shivansi." },
-      { property: "og:title", content: "Your cart — Shivansi Restaurant & Sweet Shop" },
-      { property: "og:description", content: "Review your order and check out at Shivansi." },
+      { title: "Your cart — Maa Tara Sweets" },
+      { name: "description", content: "Review your items, apply a coupon and place your order at Maa Tara Sweets." },
+      { property: "og:title", content: "Your cart — Maa Tara Sweets" },
+      { property: "og:description", content: "Review your order and check out at Maa Tara Sweets." },
       { name: "robots", content: "noindex" },
     ],
   }),

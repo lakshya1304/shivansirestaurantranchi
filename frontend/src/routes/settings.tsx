@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Shivansi Restaurant" },
+      { title: "Settings — Maa Tara Sweets Restaurant" },
       { name: "description", content: "Customize your UI experience." },
     ],
   }),

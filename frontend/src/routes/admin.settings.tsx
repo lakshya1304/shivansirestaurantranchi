@@ -150,6 +150,26 @@ function SettingsManager() {
         </div>
       </div>
 
+      <div className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <h3 className="font-display text-lg font-bold">Location & Map View</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Verify your restaurant's location on Google Maps.
+          </p>
+          <div className="w-full h-[300px] overflow-hidden rounded-xl border border-border">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14656.786566418934!2d85.253683!3d23.3639423!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39f4e04778be81bd%3A0xc3b8a36270b2011b!2sDaladali%20Chowk!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+
 
 
       <div className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-2">

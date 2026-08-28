@@ -56,10 +56,15 @@ export function SiteFooter() {
         {/* Contact column */}
         <div className="space-y-3 text-sm text-muted-foreground">
           <h3 className="font-display text-base font-bold text-foreground">Contact & Location</h3>
-          <p className="flex items-start gap-2 hover:text-foreground transition-colors">
+          <a 
+            href="https://maps.app.goo.gl/Wc3uMz7K1z4XcoHL8"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-2 hover:text-foreground transition-colors"
+          >
             <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
             {s.address}
-          </p>
+          </a>
           <p className="flex items-center gap-2 hover:text-foreground transition-colors">
             <Phone className="size-4 shrink-0 text-accent" aria-hidden="true" />
             {s.phone}

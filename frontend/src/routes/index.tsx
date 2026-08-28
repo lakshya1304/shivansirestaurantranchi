@@ -13,13 +13,13 @@ import { useCart } from "@/lib/cart";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Shivansi Restaurant & Sweet Shop — Scan, Order, Enjoy" },
+      { title: "Maa Tara Sweets & Sweet Shop — Scan, Order, Enjoy" },
       {
         name: "description",
         content:
           "Order Indian breakfast, snacks, main course and fresh mithai straight from your table QR code. Live order tracking and festival offers.",
       },
-      { property: "og:title", content: "Shivansi Restaurant & Sweet Shop — Scan, Order, Enjoy" },
+      { property: "og:title", content: "Maa Tara Sweets & Sweet Shop — Scan, Order, Enjoy" },
       {
         property: "og:description",
         content: "Order Indian breakfast, snacks, main course and fresh mithai straight from your table QR code. Live order tracking and festival offers.",
@@ -59,7 +59,7 @@ function Home() {
               </Badge>
             )}
             <h1 className="font-display text-5xl font-bold leading-[1.1] sm:text-7xl gradient-text">
-              {settings?.name ?? "Shivansi Restaurant & Sweet Shop"}
+              {settings?.name ?? "Maa Tara Sweets"}
             </h1>
             <p className="max-w-xl text-base text-muted-foreground sm:text-lg leading-relaxed">
               {settings?.tagline ?? "Sweets, spice and everything nice"} — freshly cooked Indian classics and

@@ -21,7 +21,7 @@ export interface CartState {
   tableSource: TableSource | null;
 }
 
-const STORAGE_KEY = "shivansi-cart-v1";
+const STORAGE_KEY = "restaurant-cart-v1";
 
 const getInitialState = (): CartState => {
   if (typeof window === "undefined") {

@@ -120,12 +120,22 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     error.message.toLowerCase().includes("chunk");
 
   function hardReload() {
-    // Clear caches then do a hard reload to pick up the new build
+    // Clear app-specific caches and local storage, leaving other apps intact
+    const clearStorage = () => {
+      localStorage.removeItem("restaurant-theme-v1");
+      localStorage.removeItem("restaurant-cart-v1");
+    };
+
     if ("caches" in window) {
-      void caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).then(() => {
+      void caches.keys().then((keys) => {
+        const appKeys = keys.filter(k => k.includes("restaurant") || k.includes("vite") || k.includes("workbox"));
+        return Promise.all(appKeys.map((k) => caches.delete(k)));
+      }).then(() => {
+        clearStorage();
         window.location.reload();
       });
     } else {
+      clearStorage();
       window.location.reload();
     }
   }
