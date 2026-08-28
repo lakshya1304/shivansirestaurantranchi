@@ -14,9 +14,8 @@ import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { formatDateTime, money } from "@/lib/format";
-import { saveCustomerSession, getCustomerSession, clearCustomerSession } from "./login";
+import { saveCustomerSession, getCustomerSession, clearCustomerSession, LoginForm } from "./login";
 import { fetchAPI } from "@/lib/db";
-import { WhatsAppLoginForm } from "@/components/whatsapp-login-form";
 
 export const Route = createFileRoute("/my-orders")({
   head: () => ({
@@ -33,138 +32,7 @@ export const Route = createFileRoute("/my-orders")({
   component: MyOrders,
 });
 
-// ── Shared login success type ──────────────────────────────────────────────
-type LoginSuccessPayload = {
-  customer: any;
-  profileToken: string;
-  phone: string;
-};
-
-// ── Email/Password login form ──────────────────────────────────────────────
-function EmailLoginForm({ onSuccess }: { onSuccess: (data: LoginSuccessPayload) => void }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [busy, setBusy] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const res = await fetchAPI<any>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-        headers: { "Content-Type": "application/json" },
-      });
-      const user = res?.data ?? res;
-      const phone = user?.phone ?? email;
-      const profileToken = user?.profileToken ?? user?.token ?? "";
-      const customer = {
-        name: user?.name ?? user?.email ?? email,
-        visits: user?.visits ?? 0,
-        reward_points: user?.reward_points ?? 0,
-        ...user,
-      };
-      onSuccess({ customer, profileToken, phone });
-    } catch (error: any) {
-      toast.error(error?.message ?? error?.toString() ?? "Sign in failed. Check your email and password.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="orders-email">Email</Label>
-        <Input
-          id="orders-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-          placeholder="you@example.com"
-        />
-      </div>
-      <div>
-        <Label htmlFor="orders-password">Password</Label>
-        <div className="relative">
-          <Input
-            id="orders-password"
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={6}
-            required
-            autoComplete="current-password"
-            className="pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            className="absolute inset-y-0 right-0 flex h-full items-center justify-center px-3 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            tabIndex={-1}
-          >
-            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          </button>
-        </div>
-      </div>
-      <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
-        {busy ? <Loader2 className="size-4 animate-spin" /> : null} View my orders
-      </Button>
-      <p className="text-center text-xs text-muted-foreground">
-        For staff and registered email accounts.
-      </p>
-    </form>
-  );
-}
-
-// ── Tabbed login panel (WhatsApp + Email) ──────────────────────────────────
-function OrdersLoginPanel({ onSuccess }: { onSuccess: (data: LoginSuccessPayload) => void }) {
-  const [tab, setTab] = useState<"whatsapp" | "email">("whatsapp");
-
-  return (
-    <div className="glass rounded-3xl p-6 space-y-5">
-      {/* Tab switcher */}
-      <div className="flex gap-1 rounded-2xl bg-background/40 p-1">
-        <button
-          type="button"
-          id="orders-tab-whatsapp"
-          onClick={() => setTab("whatsapp")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${tab === "whatsapp"
-              ? "bg-(image:--gradient-primary) text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-            }`}
-        >
-          <MessageCircle className="size-4" />
-          WhatsApp
-        </button>
-        <button
-          type="button"
-          id="orders-tab-email"
-          onClick={() => setTab("email")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${tab === "email"
-              ? "bg-(image:--gradient-primary)text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-            }`}
-        >
-          <ShieldCheck className="size-4" />
-          Email
-        </button>
-      </div>
-
-      {/* Tab content */}
-      {tab === "whatsapp" && (
-        <WhatsAppLoginForm onSuccess={onSuccess} submitLabel="Verify & view my orders" />
-      )}
-      {tab === "email" && (
-        <EmailLoginForm onSuccess={onSuccess} />
-      )}
-    </div>
-  );
-}
+// Replaced custom login panels with Unified AuthForm from login.tsx
 
 // ── Main page component ────────────────────────────────────────────────────
 function MyOrders() {
@@ -187,7 +55,7 @@ function MyOrders() {
     retry: false,
   });
 
-  function handleLoginSuccess({ customer, profileToken, phone }: LoginSuccessPayload) {
+  function handleLoginSuccess({ customer, profileToken, phone }: { customer: any, profileToken: string, phone: string }) {
     saveCustomerSession({ phone, name: customer.name ?? phone, profileToken });
     toast.success(`Welcome back, ${customer.name ?? ""}!`);
     void queryClient.invalidateQueries({ queryKey: ["customer-profile", phone] });
@@ -226,7 +94,9 @@ function MyOrders() {
 
         {/* Unauthenticated: WhatsApp / Email tabbed login */}
         {!customerSession && (
-          <OrdersLoginPanel onSuccess={handleLoginSuccess} />
+          <div className="flex justify-center">
+            <LoginForm onSuccessProp={handleLoginSuccess} />
+          </div>
         )}
 
         {/* Loading state */}
