@@ -149,11 +149,20 @@ function ScannerPage() {
           <h1 className="font-display text-3xl font-bold">QR Scanner</h1>
           <p className="text-sm text-muted-foreground">
             Point your camera at a table QR code to jump straight to that table's menu.
+            Tap the screen to begin.
           </p>
         </header>
 
-        {/* Camera viewport */}
-        <div className="glass relative overflow-hidden rounded-3xl aspect-[4/3] flex items-center justify-center bg-black/20">
+        {/* Camera viewport — acts as the start button when idle */}
+        <button
+          type="button"
+          onClick={scanState !== "active" ? startScan : undefined}
+          disabled={scanState === "requesting" || scanState === "unsupported"}
+          className={`relative overflow-hidden rounded-3xl aspect-[4/3] flex items-center justify-center w-full transition-all duration-300 ${
+            scanState === "active" ? "glass bg-black/20 cursor-default" : "glass-strong hover:bg-primary/5 cursor-pointer ring-1 ring-border/50 hover:ring-primary/50"
+          }`}
+          aria-label={scanState !== "active" ? "Click to start camera" : "Camera preview active"}
+        >
           {/* Live video */}
           <video
             ref={videoRef}
@@ -205,12 +214,9 @@ function ScannerPage() {
                   <div>
                     <p className="font-semibold text-foreground">Camera access denied</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Allow camera access in your browser settings, then try again.
+                      Allow camera access in your browser settings, then click to try again.
                     </p>
                   </div>
-                  <Button variant="glass" className="rounded-full" onClick={() => setScanState("idle")}>
-                    <RotateCcw className="size-4" /> Try again
-                  </Button>
                 </>
               ) : scanState === "unsupported" ? (
                 <>
@@ -224,8 +230,15 @@ function ScannerPage() {
                 </>
               ) : (
                 <>
-                  <Camera className="size-14 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">Camera is off</p>
+                  <div className="grid size-16 place-items-center rounded-full bg-primary/10 text-primary">
+                    <Camera className="size-8" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Click to start camera</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Scan your table QR code to view the menu
+                    </p>
+                  </div>
                 </>
               )}
             </div>
@@ -234,18 +247,21 @@ function ScannerPage() {
           {/* Flip camera button (visible when active) */}
           {scanState === "active" && (
             <button
-              onClick={() => setFacingMode((m) => (m === "environment" ? "user" : "environment"))}
-              className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-black/60 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setFacingMode((m) => (m === "environment" ? "user" : "environment"));
+              }}
+              className="absolute top-3 right-3 grid size-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-black/60 transition-colors pointer-events-auto"
               aria-label="Flip camera"
             >
               <RotateCcw className="size-4" />
             </button>
           )}
-        </div>
+        </button>
 
         {/* Controls */}
-        <div className="flex flex-wrap gap-3">
-          {scanState === "active" ? (
+        {scanState === "active" && (
+          <div className="flex justify-center">
             <Button
               variant="glass"
               className="rounded-full"
@@ -253,17 +269,8 @@ function ScannerPage() {
             >
               <CameraOff className="size-4" /> Stop camera
             </Button>
-          ) : (
-            <Button
-              variant="hero"
-              className="rounded-full"
-              onClick={startScan}
-              disabled={scanState === "requesting" || scanState === "unsupported"}
-            >
-              <Camera className="size-4" /> Start scanning
-            </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Last scan result */}
         {lastResult && (
@@ -313,8 +320,8 @@ function ScannerPage() {
         <div className="glass rounded-3xl p-5 text-sm text-muted-foreground space-y-1">
           <p className="font-semibold text-foreground">How to use</p>
           <ol className="list-decimal list-inside space-y-1 text-xs">
-            <li>Tap <strong>Start scanning</strong> and allow camera access.</li>
-            <li>Point at a table QR code — the app will navigate automatically.</li>
+            <li><strong>Tap the camera screen</strong> — the browser will request camera access.</li>
+            <li>Point at a table QR code — the app navigates to the menu automatically.</li>
             <li>For other QR codes, the decoded text appears below with copy/open options.</li>
           </ol>
         </div>
