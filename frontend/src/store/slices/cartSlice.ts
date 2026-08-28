@@ -21,7 +21,7 @@ export interface CartState {
   tableSource: TableSource | null;
 }
 
-const STORAGE_KEY = "restaurant-cart-v1";
+const STORAGE_KEY = "maatara-cart-v1";
 
 const getInitialState = (): CartState => {
   if (typeof window === "undefined") {
@@ -31,7 +31,7 @@ const getInitialState = (): CartState => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) lines = JSON.parse(raw) as CartLine[];
-  } catch {}
+  } catch { }
 
   let tableNumber: number | null = null;
   let tableSource: TableSource | null = null;

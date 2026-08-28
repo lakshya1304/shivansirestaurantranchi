@@ -76,19 +76,22 @@ export function SiteFooter() {
         </div>
 
         {/* Quick links column */}
-        <div className="flex flex-col gap-3 text-sm">
-          <h3 className="font-display text-base font-bold text-foreground">Quick Links</h3>
+        <div className="flex flex-col gap-1.5 text-sm">
+          <h3 className="font-display text-base font-bold text-foreground mb-1">Quick Links</h3>
           <Link to="/menu" search={{ category: undefined }} className="w-fit text-muted-foreground hover:text-primary transition-colors">
             Full menu
           </Link>
           <Link to="/my-orders" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            My orders & invoices
+            My orders &amp; invoices
           </Link>
           <Link to="/settings" className="w-fit text-muted-foreground hover:text-primary transition-colors">
             Display settings
           </Link>
-          <Link to="/auth" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            Owner login
+          <Link to="/auth" search={{ redir: "/admin" }} className="w-fit text-muted-foreground hover:text-primary transition-colors">
+            Login / Sign up
+          </Link>
+          <Link to="/admin" className="w-fit text-muted-foreground hover:text-primary transition-colors">
+            Dashboard
           </Link>
         </div>
       </div>

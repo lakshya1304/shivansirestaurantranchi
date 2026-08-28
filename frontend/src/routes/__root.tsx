@@ -122,13 +122,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   function hardReload() {
     // Clear app-specific caches and local storage, leaving other apps intact
     const clearStorage = () => {
-      localStorage.removeItem("restaurant-theme-v1");
-      localStorage.removeItem("restaurant-cart-v1");
+      localStorage.removeItem("maatara-theme-v1");
+      localStorage.removeItem("maatara-cart-v1");
     };
 
     if ("caches" in window) {
       void caches.keys().then((keys) => {
-        const appKeys = keys.filter(k => k.includes("restaurant") || k.includes("vite") || k.includes("workbox"));
+        const appKeys = keys.filter(k => k.includes("maatara") || k.includes("vite") || k.includes("workbox"));
         return Promise.all(appKeys.map((k) => caches.delete(k)));
       }).then(() => {
         clearStorage();
@@ -289,7 +289,7 @@ function RootComponent() {
               </SuspensionGuard>
             </Suspense>
           </div>
-            <Toaster position="top-center" richColors />
+          <Toaster position="top-center" richColors />
         </CartProvider>
       </QueryClientProvider>
     </Provider>
