@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useIsAdmin } from "@/lib/auth";
 import { fetchAPI } from "@/lib/db";
 import { SiteFooter } from "@/components/site-footer";
-import { requestOrderHistoryCode, getOrdersByPhone } from "@/lib/orders.functions";
+import { WhatsAppLoginForm } from "@/components/whatsapp-login-form";
 
 export const Route = createFileRoute("/login")({
   validateSearch: z.object({
@@ -28,7 +28,6 @@ export const Route = createFileRoute("/login")({
 });
 
 type Tab = "whatsapp" | "email";
-type PhoneStage = "phone" | "otp";
 type EmailStage = "credentials" | "enroll" | "verify";
 
 // Store a verified customer session in localStorage (no JWT needed)
@@ -73,12 +72,6 @@ function LoginPage() {
 
   const [tab, setTab] = useState<Tab>("whatsapp");
 
-  // ── WhatsApp tab state ──────────────────────────────────────────────────────
-  const [phone, setPhone] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [phoneStage, setPhoneStage] = useState<PhoneStage>("phone");
-  const [phoneBusy, setPhoneBusy] = useState(false);
-
   // ── Email tab state ─────────────────────────────────────────────────────────
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -121,47 +114,15 @@ function LoginPage() {
     }
   }, [checking, user, isAdmin, mfaSatisfied, navigate, emailStage, startSecondStep, redir, role]);
 
-  // ── WhatsApp OTP handlers ───────────────────────────────────────────────────
-  async function handleSendOtp(e: React.FormEvent) {
-    e.preventDefault();
-    setPhoneBusy(true);
-    try {
-      const res = await requestOrderHistoryCode({ phone: phone.trim() });
-      setPhoneStage("otp");
-      toast.success(
-        res?.delivered
-          ? "A 6-digit code has been sent to your WhatsApp."
-          : "If that number is on WhatsApp, a code is on its way.",
-      );
-    } catch {
-      toast.error("Enter a valid phone number (e.g. 98765 43210).");
-    } finally {
-      setPhoneBusy(false);
-    }
-  }
-
-  async function handleVerifyOtp(e: React.FormEvent) {
-    e.preventDefault();
-    setPhoneBusy(true);
-    try {
-      const result = await getOrdersByPhone({ phone: phone.trim(), code: otpCode.trim() });
-      if (!result) {
-        toast.error("No profile found. Place an order first to create your account.");
-        return;
-      }
-      const { customer, profileToken } = result as any;
-      saveCustomerSession({
-        phone: phone.trim(),
-        name: customer.name ?? phone.trim(),
-        profileToken,
-      });
-      toast.success(`Welcome back, ${customer.name ?? ""}!`);
-      navigate({ to: redir || "/profile", replace: true });
-    } catch (error: any) {
-      toast.error(error.message || "That code is invalid or expired. Try again.");
-    } finally {
-      setPhoneBusy(false);
-    }
+  // ── WhatsApp OTP success handler ────────────────────────────────────────────
+  function handleWhatsAppSuccess({ customer, profileToken, phone }: { customer: any; profileToken: string; phone: string }) {
+    saveCustomerSession({
+      phone,
+      name: customer.name ?? phone,
+      profileToken,
+    });
+    toast.success(`Welcome back, ${customer.name ?? ""}!`);
+    navigate({ to: redir || "/my-orders", replace: true });
   }
 
   // ── Email/Password handlers ─────────────────────────────────────────────────
@@ -313,65 +274,7 @@ function LoginPage() {
 
           {/* ── WhatsApp OTP tab ─────────────────────────────────────────── */}
           {tab === "whatsapp" && (
-            <div className="space-y-4">
-              {phoneStage === "phone" ? (
-                <form onSubmit={handleSendOtp} className="space-y-4">
-                  <div>
-                    <Label htmlFor="wa-phone">WhatsApp phone number</Label>
-                    <Input
-                      id="wa-phone"
-                      type="tel"
-                      inputMode="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="98765 43210"
-                      maxLength={16}
-                      autoComplete="tel"
-                      required
-                    />
-                  </div>
-                  <Button type="submit" variant="hero" className="w-full rounded-full" disabled={phoneBusy}>
-                    {phoneBusy ? <Loader2 className="size-4 animate-spin" /> : <MessageCircle className="size-4" />}
-                    Send WhatsApp code
-                  </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    We'll send a 6-digit code to your WhatsApp. No password needed.
-                  </p>
-                </form>
-              ) : (
-                <form onSubmit={handleVerifyOtp} className="space-y-4">
-                  <p className="text-center text-sm text-muted-foreground">
-                    Enter the 6-digit code sent to{" "}
-                    <span className="font-medium text-foreground">{phone}</span> on WhatsApp.
-                  </p>
-                  <div>
-                    <Label htmlFor="wa-otp">6-digit code</Label>
-                    <Input
-                      id="wa-otp"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={6}
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  <Button type="submit" variant="hero" className="w-full rounded-full" disabled={phoneBusy}>
-                    {phoneBusy ? <Loader2 className="size-4 animate-spin" /> : null}
-                    Verify &amp; view my profile
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="glass"
-                    className="w-full rounded-full"
-                    onClick={() => { setPhoneStage("phone"); setOtpCode(""); }}
-                  >
-                    Use a different number
-                  </Button>
-                </form>
-              )}
-            </div>
+            <WhatsAppLoginForm onSuccess={handleWhatsAppSuccess} />
           )}
 
           {/* ── Email tab ────────────────────────────────────────────────── */}

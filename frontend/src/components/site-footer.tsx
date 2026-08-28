@@ -76,38 +76,41 @@ export function SiteFooter() {
         </div>
 
         {/* Quick links column */}
-        <div className="flex flex-col gap-1.5 text-sm">
-          <h3 className="font-display text-base font-bold text-foreground mb-1">Quick Links</h3>
-          <Link to="/menu" search={{ category: undefined }} className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            Full menu
-          </Link>
-          <Link to="/my-orders" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            My orders &amp; invoices
-          </Link>
-          <Link to="/settings" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            Display settings
-          </Link>
-          <Link to="/login" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            User login
-          </Link>
-          <Link to="/owner" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            About the owner
-          </Link>il.com
-          ￼
-
-          <Link to="/scanner" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            QR scanner
-          </Link>
-          <Link to="/admin" className="w-fit text-muted-foreground hover:text-primary transition-colors">
-            Administration
-          </Link>
+        <div className="space-y-1">
+          <h3 className="font-display text-base font-bold text-foreground mb-2">Quick Links</h3>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link to="/menu" search={{ category: undefined }} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              Full menu
+            </Link>
+            <Link to="/my-orders" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              My orders &amp; invoices
+            </Link>
+            <Link to="/login" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              User login
+            </Link>
+            <Link to="/profile" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              My profile
+            </Link>
+            <Link to="/settings" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              Display settings
+            </Link>
+            <Link to="/owner" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              About the owner
+            </Link>
+            <Link to="/scanner" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              QR scanner
+            </Link>
+            <Link to="/admin" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+              Administration
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Bottom bar */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 text-center text-xs text-muted-foreground">
         <p>© {new Date().getFullYear()} {s.name}. All rights reserved.</p>
-      </div>
+      </div>pp
     </footer>
   );
 }
