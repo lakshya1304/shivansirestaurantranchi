@@ -52,8 +52,11 @@ const envSchema = z.object({
     .string()
     .default(`${process.env.BUSINESS_NAME || "MaaTaraSweets"} <${process.env.SMTP_USER || process.env.GMAIL_USER || ""}>`),
 
-  // Email Sending Provider Preference ("auto" | "gmail" | "smtp")
-  EMAIL_TRANSPORT: z.enum(["auto", "gmail", "smtp"]).default("auto"),
+  // Email Sending Provider Preference ("auto" | "gmail" | "smtp" | "brevo")
+  EMAIL_TRANSPORT: z.enum(["auto", "gmail", "smtp", "brevo"]).default("auto"),
+
+  // Brevo API
+  BREVO_API_KEY: z.string().optional().or(z.literal("")),
 
   // Gmail API (HTTPS REST API for platforms like Render where outbound SMTP is blocked)
   GMAIL_CLIENT_ID: z.string().optional().or(z.literal("")),
@@ -103,6 +106,7 @@ export const {
   SMTP_PASS,
   SMTP_FROM,
   EMAIL_TRANSPORT,
+  BREVO_API_KEY,
   GMAIL_CLIENT_ID,
   GMAIL_CLIENT_SECRET,
   GMAIL_REFRESH_TOKEN,

@@ -1,17 +1,11 @@
-import transporter, { EMAIL_FROM } from "../../config/emailConfig";
+import { sendMailProvider } from "../../config/emailConfig";
 import logger from "../../config/loggerConfig";
 import { EmailOptions } from "../../types";
 import { renderTemplate, template } from "../format/mails";
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    await transporter.sendMail({
-      from: EMAIL_FROM,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text,
-    });
+    await sendMailProvider(options.to, options.subject, options.html, options.text);
     logger.info(`Email sent to ${options.to}: ${options.subject}`);
     return true;
   } catch (error: any) {
