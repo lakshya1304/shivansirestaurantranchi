@@ -63,5 +63,8 @@
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
+  },
   "private": true
 }

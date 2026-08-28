@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Clock, MapPin, Phone, ChefHat } from "lucide-react";
-import { settingsQuery } from "@/lib/db";
+import { settingsQuery, API_BASE_URL } from "@/lib/db";
+import { useState, useEffect } from "react";
 
 // Instant fallback — never blocks paint
 const BUSINESS_NAME = import.meta.env["VITE_BUSINESS_NAME"] ?? "Maa Tara Sweets";
@@ -27,6 +28,36 @@ export function SiteFooter() {
 
   // Merge: real data wins, placeholder fills any missing field instantly
   const s = { ...PLACEHOLDER_SETTINGS, ...settings };
+
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [isBackendUp, setIsBackendUp] = useState(true);
+
+  useEffect(() => {
+    function handleOnline() { setIsOnline(true); }
+    function handleOffline() { setIsOnline(false); }
+    
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    async function ping() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/health`);
+        setIsBackendUp(res.ok);
+      } catch {
+        setIsBackendUp(false);
+      }
+    }
+    
+    ping();
+    const id = setInterval(ping, 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <footer className="mt-20 border-t border-border/40 bg-background/50 relative overflow-hidden">
@@ -65,10 +96,13 @@ export function SiteFooter() {
             <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
             {s.address}
           </a>
-          <p className="flex items-center gap-2 hover:text-foreground transition-colors">
+          <a
+            href={`tel:${s.phone.replace(/\s/g, "")}`}
+            className="flex items-center gap-2 hover:text-foreground transition-colors"
+          >
             <Phone className="size-4 shrink-0 text-accent" aria-hidden="true" />
             {s.phone}
-          </p>
+          </a>
           <p className="flex items-center gap-2 hover:text-foreground transition-colors">
             <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
             {s.opening_time} – {s.closing_time}
@@ -108,9 +142,25 @@ export function SiteFooter() {
       </div>
 
       {/* Bottom bar */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 text-center text-xs text-muted-foreground">
-        <p>© {new Date().getFullYear()} {s.name}. All rights reserved.</p>
-      </div>pp
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        {/* Left side: Network status */}
+        <div className="flex items-center gap-2" title={isOnline ? "Online" : "Offline"}>
+           <span className="relative flex size-2">
+             {isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>}
+             <span className={`relative inline-flex size-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`}></span>
+           </span>
+        </div>
+
+        <p className="text-center">© {new Date().getFullYear()} {s.name}. All rights reserved.</p>
+
+        {/* Right side: Backend status */}
+        <div className="flex items-center gap-2" title={isBackendUp ? "Services OK" : "Services degraded"}>
+           <span className="relative flex size-2">
+             {!isBackendUp && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>}
+             <span className={`relative inline-flex size-2 rounded-full ${isBackendUp ? "bg-blue-500" : "bg-orange-500"}`}></span>
+           </span>
+        </div>
+      </div>
     </footer>
   );
 }

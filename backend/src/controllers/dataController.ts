@@ -161,3 +161,41 @@ export const getNotifications = async (req: FastifyRequest, res: FastifyReply) =
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
+
+export const getGoogleRatings = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const placeId = process.env.GOOGLE_PLACE_ID;
+    const apiKey = process.env.GOOGLE_API_KEY;
+
+    if (!placeId || !apiKey) {
+      return res.send({ error: "Google API credentials not configured" });
+    }
+
+    const data = await fetchWithCache("data:google_ratings", 3600, async () => {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=rating,user_ratings_total,reviews&key=${apiKey}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch Google Places data");
+      const result = (await response.json()) as any;
+      
+      if (result.status !== "OK") throw new Error(result.error_message || "Google API error");
+      
+      return {
+        rating: result.result.rating,
+        total_ratings: result.result.user_ratings_total,
+        reviews: (result.result.reviews || []).slice(0, 3).map((r: any) => ({
+          author_name: r.author_name,
+          rating: r.rating,
+          text: r.text,
+          time: r.time,
+        }))
+      };
+    });
+
+    return res.send(data);
+  } catch (error: any) {
+    logger.error(`Error in getGoogleRatings: ${error.message}`);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+

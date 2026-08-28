@@ -16,7 +16,7 @@ const orderSchema = z
     customerPhone: z
       .string()
       .trim()
-      .regex(/^[0-9+\-\s]{8,16}$/, "Enter a valid phone number"),
+      .regex(/^(?:\+?91[\-\s]?)?[6-9]\d{9}$/, "Enter a valid 10-digit phone number"),
     paymentMethod: z.string().max(30),
     couponCode: z.string().trim().max(30).nullable(),
     notes: z.string().trim().max(300).nullable(),
@@ -42,7 +42,7 @@ export const getPublicOrder = async (input: unknown) => {
   return fetchAPI<any>(`/orders/public?id=${data.id}&token=${data.token}`);
 };
 
-const phoneSchema = z.string().trim().regex(/^[0-9+\-\s]{8,16}$/);
+const phoneSchema = z.string().trim().regex(/^(?:\+?91[\-\s]?)?[6-9]\d{9}$/, "Enter a valid 10-digit phone number");
 
 export const requestOrderHistoryCode = async (input: unknown) => {
   const data = z.object({ phone: phoneSchema }).parse(input);

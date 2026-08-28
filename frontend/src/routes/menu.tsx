@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MenuExplorer } from "@/components/menu-explorer";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -26,6 +26,14 @@ export const Route = createFileRoute("/menu")({
 
 function MenuPage() {
   const { category } = Route.useSearch();
+  const navigate = useNavigate({ from: "/menu" });
+
+  function handleCategoryChange(slug: string) {
+    void navigate({
+      search: (prev) => ({ ...prev, category: slug === "all" ? undefined : slug }),
+      replace: true,
+    });
+  }
 
   return (
     <main className="px-4 py-10 sm:px-6">
@@ -36,7 +44,10 @@ function MenuPage() {
             Everything is prepared to order. Sweets are priced by weight and packed fresh.
           </p>
         </header>
-        <MenuExplorer {...(category ? { initialCategory: category } : {})} />
+        <MenuExplorer
+          {...(category ? { initialCategory: category } : {})}
+          onCategoryChange={handleCategoryChange}
+        />
       </div>
       <SiteFooter />
     </main>

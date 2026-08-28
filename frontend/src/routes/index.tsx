@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, QrCode, Sparkles, Star, Timer } from "lucide-react";
+import { ArrowRight, QrCode, Sparkles, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
@@ -78,9 +78,6 @@ function Home() {
             <div className="flex flex-wrap gap-6 pt-4 text-sm font-medium text-muted-foreground">
               <span className="flex items-center gap-2">
                 <Star className="size-4 text-accent" aria-hidden="true" /> 4.8 average rating
-              </span>
-              <span className="flex items-center gap-2">
-                <Timer className="size-4 text-accent" aria-hidden="true" /> Live kitchen tracking
               </span>
             </div>
           </div>
@@ -207,6 +204,19 @@ function Home() {
                 <footer className="mt-5 text-sm font-bold text-accent">{r.customer_name}</footer>
               </blockquote>
             ))}
+          </div>
+          {/* #19 QR Scan CTA — inside reviews section */}
+          <div className="flex justify-center pt-4">
+            <Link
+              to="/scanner"
+              role="button"
+              aria-label="Scan QR code to place your order"
+              className="group flex items-center gap-3 rounded-full border border-primary/40 bg-primary/10 px-6 py-3.5 text-sm font-semibold text-foreground shadow-sm backdrop-blur-sm transition-all duration-200 hover:scale-[1.02] hover:border-primary/70 hover:shadow-[0_0_20px_rgba(var(--primary-rgb,124,58,237),0.25)]"
+            >
+              <QrCode className="size-5 shrink-0 text-primary" aria-hidden="true" />
+              <span>Scan the QR at your table to order</span>
+              <ArrowRight className="size-4 text-primary transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
+            </Link>
           </div>
         </Section>
       ) : null}

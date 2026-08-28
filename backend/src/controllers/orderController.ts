@@ -96,10 +96,10 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       }
     }
 
-    // 5. Loyalty discounts
+    // 5. Loyalty discounts (only on the milestone order, e.g. exactly 25th, 50th visit)
     const visits = existingCustomer?.visits ?? 0;
     const loyaltyTier = loyaltyRules
-      .filter((r) => visits >= r.visits_required)
+      .filter((r) => (visits + 1) === r.visits_required)
       .sort((a, b) => b.visits_required - a.visits_required)[0];
     
     if (loyaltyTier) {
@@ -122,6 +122,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
     // 6. DB Transaction for order creation
     const orderNumber = `SHV-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const billId = `BILL-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const order = await prisma.$transaction(async (tx) => {
       // Upsert customer
@@ -165,14 +166,15 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       const newOrder = await tx.order.create({
         data: {
           order_number: orderNumber,
+          bill_id: billId,
           table_number: data.tableNumber,
           customer_id: customer.id,
           customer_name: data.customerName,
           customer_phone: data.customerPhone,
           payment_method: data.paymentMethod,
-          status: "pending",
+          status: "PENDING",
           payment_status: "pending",
-          session_token: "backend-token",
+          session_token: crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString("hex"),
           subtotal,
           discount,
           discount_label: discountLabel,
@@ -224,8 +226,16 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
         .map((i: any) => `${i.quantity}× ${i.name}`)
         .join(", ")}\nTotal: ₹${total}\n\nThis is an automated message from our ordering bot — replies are not monitored.`
     );
+
+    // Notify Admin
+    if (settings.phone) {
+      void sendWhatsAppMessage(
+        settings.phone,
+        `🔔 *New Order Alert: ${order.order_number}*\n\nCustomer: ${data.customerName}\n${serveAt}\nTotal: ₹${total}\n\nPlease check the admin dashboard to approve this order.`
+      );
+    }
     
-    return res.send({ id: order.id, token: order.session_token, orderNumber: order.order_number });
+    return res.send({ id: order.id, token: order.session_token, orderNumber: order.order_number, billId: order.bill_id });
   } catch (error: any) {
     logger.error(`Error in placeOrder: ${error.message}`);
     return res.status(400).send({ error: error.message });
@@ -243,12 +253,12 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
     });
 
     const STATUS_MESSAGE: Record<string, string> = {
-      accepted: "has been accepted by the kitchen 👨‍🍳",
-      preparing: "is being prepared right now 🔥",
-      ready: "is ready to be served ✅",
-      served: "has been served — enjoy your meal! 😋",
-      completed: "is complete. Thank you for dining with us 🙏",
-      rejected: "could not be accepted. Please talk to our staff.",
+      CONFIRMED: "has been accepted by the kitchen 👨‍🍳",
+      PREPARING: "is being prepared right now 🔥",
+      PREPARED: "is ready to be served ✅",
+      SERVED: "has been served — enjoy your meal! 😋",
+      COMPLETED: "is complete. Thank you for dining with us 🙏",
+      CANCELLED: "could not be accepted. Please talk to our staff.",
     };
 
     const line = STATUS_MESSAGE[status];
@@ -440,6 +450,55 @@ export const updateCustomerProfile = async (req: FastifyRequest, res: FastifyRep
   } catch (error: any) {
     logger.error(`Error in updateCustomerProfile: ${error.message}`);
     return res.status(error.statusCode ?? 400).send({ error: error.message });
+  }
+};
+
+export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { orderId, menuItemId, phone, stars, comment } = req.body as any;
+    if (!orderId || !menuItemId || !phone || !stars) {
+      return res.status(400).send({ error: "orderId, menuItemId, phone, and stars are required" });
+    }
+
+    // Verify order belongs to phone and contains the product
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, customer_phone: phone, order_items: { some: { product_id: menuItemId } } }
+    });
+
+    if (!order) return res.status(404).send({ error: "Order or item not found for this user" });
+
+    // Check if already rated
+    const existing = await prisma.rating.findFirst({
+      where: { orderId, menuItemId, phone }
+    });
+    if (existing) return res.status(400).send({ error: "You already rated this item for this order" });
+
+    const rating = await prisma.rating.create({
+      data: {
+        orderId,
+        menuItemId,
+        phone,
+        stars: Number(stars),
+        comment: comment || null,
+      }
+    });
+
+    // Update product rating aggregate
+    const allRatings = await prisma.rating.findMany({ where: { menuItemId } });
+    const avg = allRatings.reduce((acc: number, r: any) => acc + r.stars, 0) / allRatings.length;
+    
+    await prisma.product.update({
+      where: { id: menuItemId },
+      data: {
+        rating: avg,
+        review_count: allRatings.length
+      }
+    });
+
+    return res.send({ ok: true, rating });
+  } catch (error: any) {
+    logger.error(`Error in submitRating: ${error.message}`);
+    return res.status(500).send({ error: "Internal Server Error" });
   }
 };
 

@@ -55,7 +55,7 @@ function SettingsManager() {
       void qc.invalidateQueries({ queryKey: ["owner-settings"] });
       void qc.invalidateQueries({ queryKey: ["settings"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message ?? e?.toString() ?? "Could not save settings"),
   });
 
   const { data: config } = useQuery({ queryKey: ["app-config"], queryFn: () => getAppConfig() });
@@ -68,7 +68,7 @@ function SettingsManager() {
       setCfg((c) => ({ ...c, whatsappToken: "" }));
       void qc.invalidateQueries({ queryKey: ["app-config"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message ?? e?.toString() ?? "Could not save config"),
   });
 
   useEffect(() => {
@@ -110,6 +110,7 @@ function SettingsManager() {
             <Input
               id={field.key}
               type={field.type ?? "text"}
+              placeholder={`Enter ${field.label.toLowerCase()}`}
               value={String(form[field.key] ?? "")}
               onChange={(e) =>
                 setForm({
@@ -184,6 +185,7 @@ function SettingsManager() {
           <Input
             id="ownerEmail"
             type="email"
+            placeholder="Enter your email address"
             value={cfg.ownerEmail}
             onChange={(e) => setCfg({ ...cfg, ownerEmail: e.target.value })}
           />
@@ -192,6 +194,7 @@ function SettingsManager() {
           <Label htmlFor="waPhoneId">WhatsApp phone number ID</Label>
           <Input
             id="waPhoneId"
+            placeholder="Enter WhatsApp phone number ID"
             value={cfg.whatsappPhoneNumberId}
             onChange={(e) => setCfg({ ...cfg, whatsappPhoneNumberId: e.target.value })}
           />

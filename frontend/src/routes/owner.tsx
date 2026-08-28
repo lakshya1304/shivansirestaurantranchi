@@ -35,7 +35,7 @@ function OwnerPage() {
   const s = { ...PLACEHOLDER, ...settings };
 
   const highlights = [
-    { icon: Star, label: "Est.", value: "2005" },
+    { icon: Star, label: "Est.", value: "2025" },
     { icon: Heart, label: "Speciality", value: "Indian Sweets" },
     { icon: ChefHat, label: "Chef", value: "In-house" },
   ];

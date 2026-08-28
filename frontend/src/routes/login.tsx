@@ -94,7 +94,7 @@ function LoginPage() {
       setSecret(data.secret);
       setEmailStage("enroll");
     } catch (error: any) {
-      toast.error(error.message || "Failed to start enrollment");
+      toast.error(error?.message ?? error?.toString() ?? "Failed to start enrollment");
     }
   }, [hasMfaEnrolled, isAdmin, wantTotp]);
 
@@ -132,7 +132,7 @@ function LoginPage() {
     try {
       const { data } = await fetchAPI<any>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
         headers: { "Content-Type": "application/json" },
       });
       if (data?.requireTotp) {
@@ -141,7 +141,7 @@ function LoginPage() {
         await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
       }
     } catch (error: any) {
-      toast.error(error.message || "Sign in failed. Check your email and password.");
+      toast.error(error?.message ?? error?.toString() ?? "Sign in failed. Check your email and password.");
     } finally {
       setBusy(false);
     }
@@ -172,7 +172,7 @@ function LoginPage() {
       await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
       navigate({ to: isAdmin ? (redir || "/admin") : (redir || "/my-orders"), replace: true });
     } catch (error: any) {
-      toast.error(error.message || "Invalid or expired code");
+      toast.error(error?.message ?? error?.toString() ?? "Invalid or expired code");
     } finally {
       setBusy(false);
     }

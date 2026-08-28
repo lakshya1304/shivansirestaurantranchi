@@ -34,17 +34,23 @@ export function WhatsAppLoginForm({
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
+    const cleanPhone = phone.trim();
+    if (!/^(?:\+?91[\-\s]?)?[6-9]\d{9}$/.test(cleanPhone)) {
+      toast.error("Enter a valid 10-digit Indian phone number.");
+      return;
+    }
+
     setBusy(true);
     try {
-      const res = await requestOrderHistoryCode({ phone: phone.trim() });
+      const res = await requestOrderHistoryCode({ phone: cleanPhone });
       setStage("otp");
       toast.success(
         res?.delivered
           ? "A 6-digit code has been sent to your WhatsApp."
           : "If that number is on WhatsApp, a code is on its way.",
       );
-    } catch {
-      toast.error("Enter a valid phone number (e.g. 98765 43210).");
+    } catch (error: any) {
+      toast.error(error?.message ?? error?.toString() ?? "Failed to send code. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -65,7 +71,7 @@ export function WhatsAppLoginForm({
         phone: phone.trim(),
       });
     } catch (error: any) {
-      toast.error(error.message || "That code is invalid or expired. Try again.");
+      toast.error(error?.message ?? error?.toString() ?? "That code is invalid or expired. Try again.");
     } finally {
       setBusy(false);
     }

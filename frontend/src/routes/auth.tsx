@@ -57,7 +57,7 @@ function AuthPage() {
       setSecret(data.secret);
       setStage("enroll");
     } catch (error: any) {
-      toast.error(error.message || "Failed to start enrollment");
+      toast.error(error?.message ?? error?.toString() ?? "Failed to start enrollment");
     }
   }, [hasMfaEnrolled]);
 
@@ -82,7 +82,7 @@ function AuthPage() {
     try {
       const { data } = await fetchAPI<any>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
         headers: { "Content-Type": "application/json" }
       });
       if (data?.requireTotp) {
@@ -91,7 +91,7 @@ function AuthPage() {
         await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
       }
     } catch (error: any) {
-      toast.error(error.message || "Authentication failed");
+      toast.error(error?.message ?? error?.toString() ?? "Authentication failed");
     } finally {
       setBusy(false);
     }
@@ -123,7 +123,7 @@ function AuthPage() {
       await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
       navigate({ to: redir || "/admin", replace: true });
     } catch (error: any) {
-      toast.error(error.message || "Invalid or expired code");
+      toast.error(error?.message ?? error?.toString() ?? "Invalid or expired code");
     } finally {
       setBusy(false);
     }
@@ -233,6 +233,7 @@ function AuthPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
+                  placeholder="Enter your email address"
                 />
               </div>
               <div>
@@ -247,6 +248,7 @@ function AuthPage() {
                     required
                     autoComplete="current-password"
                     className="pr-10"
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"

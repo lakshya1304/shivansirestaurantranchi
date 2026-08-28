@@ -53,7 +53,7 @@ function EmailLoginForm({ onSuccess }: { onSuccess: (data: LoginSuccessPayload) 
     try {
       const res = await fetchAPI<any>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
         headers: { "Content-Type": "application/json" },
       });
       const user = res?.data ?? res;
@@ -67,7 +67,7 @@ function EmailLoginForm({ onSuccess }: { onSuccess: (data: LoginSuccessPayload) 
       };
       onSuccess({ customer, profileToken, phone });
     } catch (error: any) {
-      toast.error(error.message || "Sign in failed. Check your email and password.");
+      toast.error(error?.message ?? error?.toString() ?? "Sign in failed. Check your email and password.");
     } finally {
       setBusy(false);
     }
@@ -133,11 +133,10 @@ function OrdersLoginPanel({ onSuccess }: { onSuccess: (data: LoginSuccessPayload
           type="button"
           id="orders-tab-whatsapp"
           onClick={() => setTab("whatsapp")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${
-            tab === "whatsapp"
-              ? "bg-[image:var(--gradient-primary)] text-primary-foreground"
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${tab === "whatsapp"
+              ? "bg-(image:--gradient-primary) text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           <MessageCircle className="size-4" />
           WhatsApp
@@ -146,11 +145,10 @@ function OrdersLoginPanel({ onSuccess }: { onSuccess: (data: LoginSuccessPayload
           type="button"
           id="orders-tab-email"
           onClick={() => setTab("email")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${
-            tab === "email"
-              ? "bg-[image:var(--gradient-primary)] text-primary-foreground"
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${tab === "email"
+              ? "bg-(image:--gradient-primary)text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           <ShieldCheck className="size-4" />
           Email

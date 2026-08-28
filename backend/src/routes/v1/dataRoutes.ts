@@ -19,12 +19,18 @@ export default async function dataRoutes(app: FastifyInstance) {
   app.get("/customers", dataController.getCustomers);
   app.get("/orders", dataController.getOrders);
   app.get("/notifications", dataController.getNotifications);
+  
+  // Google Places integration
+  app.get("/ratings/google", dataController.getGoogleRatings);
 
   // Orders mutations
   app.post("/orders/place", orderController.placeOrder);
   app.get("/orders/public", orderController.getPublicOrder);
   app.post("/orders/history/request-code", orderController.requestOrderHistoryCode);
   app.post("/orders/history/verify", orderController.getOrdersByPhone);
+  
+  // Product ratings
+  app.post("/ratings", orderController.submitRating);
 
   // Customer profile (phone-verified, no JWT required)
   app.get("/customer-profile", orderController.getCustomerProfile);

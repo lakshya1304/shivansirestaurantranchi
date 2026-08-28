@@ -150,7 +150,7 @@ function CustomerProfile({
       setEditing(false);
       void refetch();
     },
-    onError: (e: any) => toast.error(e.message || "Save failed"),
+    onError: (e: any) => toast.error(e?.message ?? e?.toString() ?? "Save failed"),
   });
 
   function handleSignOut() {
@@ -272,7 +272,7 @@ function CustomerProfile({
                     id="profile-address"
                     value={form.saved_address}
                     onChange={(e) => setForm((f) => ({ ...f, saved_address: e.target.value }))}
-                    placeholder="Delivery address (optional)"
+                    placeholder="Enter your address"
                     maxLength={200}
                   />
                 </div>

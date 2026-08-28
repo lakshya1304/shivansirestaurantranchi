@@ -8,7 +8,13 @@ import { categoriesQuery, productsQuery, settingsQuery } from "@/lib/db";
 
 type DietFilter = "all" | "veg" | "nonveg";
 
-export function MenuExplorer({ initialCategory }: { initialCategory?: string }) {
+interface MenuExplorerProps {
+  initialCategory?: string;
+  /** Called when the user changes category — parent can sync to URL */
+  onCategoryChange?: (slug: string) => void;
+}
+
+export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorerProps) {
   const { data: categories = [] } = useQuery(categoriesQuery);
   const { data: products, isPending } = useQuery(productsQuery);
   const { data: settings } = useQuery(settingsQuery);
@@ -17,6 +23,11 @@ export function MenuExplorer({ initialCategory }: { initialCategory?: string }) 
   const [diet, setDiet] = useState<DietFilter>("all");
 
   const currency = settings?.currency ?? "₹";
+
+  function handleCategoryChange(slug: string) {
+    setCategory(slug);
+    onCategoryChange?.(slug);
+  }
 
   const filtered = useMemo(() => {
     const list = products ?? [];
@@ -39,7 +50,7 @@ export function MenuExplorer({ initialCategory }: { initialCategory?: string }) 
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search for poha, paneer, kaju katli…"
+            placeholder="Search..."
             className="h-11 rounded-full pl-9"
             maxLength={60}
           />
@@ -50,9 +61,8 @@ export function MenuExplorer({ initialCategory }: { initialCategory?: string }) 
               key={d}
               type="button"
               onClick={() => setDiet(d)}
-              className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
-                diet === d ? "border-primary bg-primary/20" : "border-border text-muted-foreground"
-              }`}
+              className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${diet === d ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
             >
               {d === "all" ? "All" : d === "veg" ? "Veg" : "Non-veg"}
             </button>
@@ -60,13 +70,15 @@ export function MenuExplorer({ initialCategory }: { initialCategory?: string }) 
         </div>
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+      {/* Category filter bar — horizontal scrollable */}
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Filter by category">
         <button
           type="button"
-          onClick={() => setCategory("all")}
-          className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
-            category === "all" ? "border-primary bg-primary/20" : "border-border text-muted-foreground"
-          }`}
+          onClick={() => handleCategoryChange("all")}
+          className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-all duration-150 ${category === "all"
+              ? "border-primary bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary-rgb,124,58,237),0.2)]"
+              : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+            }`}
         >
           Everything
         </button>
@@ -76,10 +88,11 @@ export function MenuExplorer({ initialCategory }: { initialCategory?: string }) 
             <button
               key={c.id}
               type="button"
-              onClick={() => setCategory(c.slug)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
-                category === c.slug ? "border-primary bg-primary/20" : "border-border text-muted-foreground"
-              }`}
+              onClick={() => handleCategoryChange(c.slug)}
+              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-all duration-150 ${category === c.slug
+                  ? "border-primary bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary-rgb,124,58,237),0.2)]"
+                  : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
             >
               {c.name}
             </button>

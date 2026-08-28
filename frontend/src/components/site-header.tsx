@@ -1,11 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChefHat, Receipt, ShoppingBag, UtensilsCrossed, Settings } from "lucide-react";
+import { ChefHat, Receipt, ShoppingBag, UtensilsCrossed, Settings, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/lib/cart";
 import { settingsQuery } from "@/lib/db";
+import { useIsAdmin } from "@/lib/auth";
+import { getCustomerSession } from "@/routes/login";
 
 const NAV_LINKS = [
   { to: "/menu" as const, search: { category: undefined }, label: "Menu", icon: UtensilsCrossed },
@@ -18,6 +20,9 @@ export function SiteHeader() {
   const { data: settings } = useQuery(settingsQuery);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useIsAdmin();
+  const customerSession = typeof window !== "undefined" ? getCustomerSession() : null;
+  const isLoggedIn = !!user || !!customerSession;
 
   // Close menu on route change
   useEffect(() => { setMobileOpen(false); }, [pathname]);
@@ -77,6 +82,18 @@ export function SiteHeader() {
                   </Link>
                 </Button>
               ))}
+              {/* Profile / Login — context-aware */}
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="rounded-xl transition-all duration-200 hover:bg-primary/10 hover:text-primary"
+              >
+                <Link to={isLoggedIn ? "/profile" : "/login"}>
+                  <User className="size-4" aria-hidden="true" />
+                  <span>{isLoggedIn ? "Profile" : "Login"}</span>
+                </Link>
+              </Button>
             </nav>
 
             {/* Cart — always visible */}
@@ -171,6 +188,23 @@ export function SiteHeader() {
                 </li>
               );
             })}
+            {/* Profile / Login — mobile */}
+            <li>
+              <Link
+                to={isLoggedIn ? "/profile" : "/login"}
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${
+                  pathname === "/profile" || pathname === "/login"
+                    ? "bg-primary/15 text-primary"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
+                }`}
+              >
+                <User className="size-5 shrink-0" aria-hidden="true" />
+                {isLoggedIn ? "Profile" : "Login"}
+                {(pathname === "/profile" || pathname === "/login") && (
+                  <span className="ml-auto size-1.5 rounded-full bg-primary" aria-hidden="true" />
+                )}
+              </Link>
+            </li>
           </ul>
 
           {/* Table badge at bottom of drawer */}

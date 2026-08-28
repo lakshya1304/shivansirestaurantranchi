@@ -64,8 +64,8 @@ function CartPage() {
       toast.error("Please enter your name");
       return;
     }
-    if (!/^[0-9+\-\s]{8,16}$/.test(phone.trim())) {
-      toast.error("Please enter a valid phone number");
+    if (!/^(?:\+?91[\-\s]?)?[6-9]\d{9}$/.test(phone.trim())) {
+      toast.error("Please enter a valid 10-digit phone number");
       return;
     }
     if (!takeaway && (!effectiveTable || effectiveTable < 1)) {
@@ -95,8 +95,8 @@ function CartPage() {
       clear();
       toast.success(`Order ${result.orderNumber} sent to the kitchen`);
       navigate({ to: "/order/$orderId", params: { orderId: result.id }, search: { t: result.token } });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not place the order");
+    } catch (error: any) {
+      toast.error(error?.message ?? error?.toString() ?? "Could not place the order");
     } finally {
       setSubmitting(false);
     }
@@ -186,7 +186,7 @@ function CartPage() {
           <div className="grid gap-3">
             <div>
               <Label htmlFor="name">Your name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required />
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name" maxLength={60} required />
             </div>
             <div>
               <Label htmlFor="phone">Phone number</Label>
@@ -194,7 +194,7 @@ function CartPage() {
                 id="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="98765 43210"
+                placeholder="Enter your phone number"
                 maxLength={16}
                 required
               />
@@ -205,7 +205,7 @@ function CartPage() {
                 id="coupon"
                 value={coupon}
                 onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-                placeholder="DIWALI25"
+                placeholder="Enter coupon code"
                 maxLength={30}
               />
             </div>
@@ -273,7 +273,7 @@ function CartPage() {
                     inputMode="numeric"
                     value={tableInput}
                     onChange={(e) => setTableInput(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))}
-                    placeholder="e.g. 7"
+                    placeholder="Table number"
                   />
                 )}
               </div>

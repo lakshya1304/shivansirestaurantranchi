@@ -124,21 +124,28 @@ export const updateRole = async (
   const targetUser = await prisma.user.findUnique({ where: { id } });
   if (!targetUser) throw new NotFoundError("User not found");
 
-  if (requestor.role === "ADMIN") {
-    if (role === "SUPERADMIN") throw new ForbiddenError("Admins cannot grant SUPERADMIN role");
-    if (targetUser.role === "SUPERADMIN") throw new ForbiddenError("Admins cannot modify a SUPERADMIN");
-    if (targetUser.role === "ADMIN" && targetUser.id !== requestor.id)
-      throw new ForbiddenError("Admins cannot demote other Admins. Ask a SUPERADMIN.");
-  }
-
   // Protect root superadmin
   if (targetUser.email === ROOT_EMAIL && role !== "SUPERADMIN")
     throw new ForbiddenError("The root SUPERADMIN cannot be demoted.");
 
-  const updated = await prisma.user.update({
-    where: { id },
-    data: { role },
-    select: { id: true, name: true, email: true, role: true, createdAt: true, isActive: true },
+  const updated = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({
+      where: { id },
+      data: { role },
+      select: { id: true, name: true, email: true, role: true, createdAt: true, isActive: true },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: "ROLE_CHANGE",
+        entity: "USER",
+        entityId: id,
+        details: { oldRole: targetUser.role, newRole: role },
+        userId: requestor.id
+      }
+    });
+
+    return user;
   });
 
   return reply.send({ success: true, user: updated });
@@ -159,13 +166,18 @@ export const deleteUser = async (
   if (targetUser.id === requestor.id) throw new ForbiddenError("You cannot delete your own account");
   if (targetUser.email === ROOT_EMAIL) throw new ForbiddenError("The root SUPERADMIN cannot be deleted");
 
-  assertCanModify(requestor.role, targetUser.role, targetUser.id, requestor.id);
-
-  // Additional check: Admins cannot delete other Admins
-  if (requestor.role === "ADMIN" && targetUser.role === "ADMIN")
-    throw new ForbiddenError("Admins cannot delete other Admins. Ask a SUPERADMIN.");
-
-  await prisma.user.delete({ where: { id } });
+  await prisma.$transaction(async (tx) => {
+    await tx.user.delete({ where: { id } });
+    await tx.auditLog.create({
+      data: {
+        action: "DELETE_USER",
+        entity: "USER",
+        entityId: id,
+        details: { deletedEmail: targetUser.email, deletedRole: targetUser.role },
+        userId: requestor.id
+      }
+    });
+  });
 
   return reply.send({ success: true, message: "User deleted successfully" });
 };
