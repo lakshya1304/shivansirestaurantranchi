@@ -73,7 +73,7 @@
 ---
 
 ### Key Technical Notes
-- **Auth**: JWT (email) + WhatsApp OTP via `phone_verifications` table. Customer sessions stored in `localStorage` as `customer_session`.
+- **Auth**: JWT (email), WhatsApp OTP via `phone_verifications` table, and Google OAuth. Users can register via `/signup` and login via `/login` with Email/Password or Google. Customer sessions stored in `localStorage` as `customer_session`.
 - **Database**: PostgreSQL + Prisma. Seed via `bun run prisma/seed.ts [--reset]`.
 - **Frontend**: TanStack Start/Router, React Query, Redux (theme). Sonner for toasts.
 - **Backend**: Fastify + Prisma. Role hierarchy: USER < ADMIN < SUPERADMIN.

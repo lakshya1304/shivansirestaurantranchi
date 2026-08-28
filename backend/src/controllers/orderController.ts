@@ -46,7 +46,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       const product = products.find((p) => p.id === line.productId);
       if (!product) throw new Error("An item in your cart is no longer available");
       if (!product.is_available) throw new Error(`${product.name} is currently unavailable`);
-      
+
       const unitPrice = product.sold_by_weight
         ? Math.round(((Number(product.price_per_kg) || 0) * (line.weightGrams || 250)) / 1000)
         : Number(product.offer_price) > 0
@@ -101,7 +101,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
     const loyaltyTier = loyaltyRules
       .filter((r) => (visits + 1) === r.visits_required)
       .sort((a, b) => b.visits_required - a.visits_required)[0];
-    
+
     if (loyaltyTier) {
       const loyaltyValue = (subtotal * Number(loyaltyTier.discount_percent)) / 100;
       if (loyaltyValue > discount) {
@@ -231,10 +231,10 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
     if (settings.phone) {
       void sendWhatsAppMessage(
         settings.phone,
-        `🔔 *New Order Alert: ${order.order_number}*\n\nCustomer: ${data.customerName}\n${serveAt}\nTotal: ₹${total}\n\nPlease check the admin dashboard to approve this order.`
+        `*New Order Alert: ${order.order_number}*\n\nCustomer: ${data.customerName}\n${serveAt}\nTotal: ₹${total}\n\nPlease check the admin dashboard to approve this order.`
       );
     }
-    
+
     return res.send({ id: order.id, token: order.session_token, orderNumber: order.order_number, billId: order.bill_id });
   } catch (error: any) {
     logger.error(`Error in placeOrder: ${error.message}`);
@@ -253,11 +253,11 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
     });
 
     const STATUS_MESSAGE: Record<string, string> = {
-      CONFIRMED: "has been accepted by the kitchen 👨‍🍳",
-      PREPARING: "is being prepared right now 🔥",
-      PREPARED: "is ready to be served ✅",
-      SERVED: "has been served — enjoy your meal! 😋",
-      COMPLETED: "is complete. Thank you for dining with us 🙏",
+      CONFIRMED: "has been accepted by the kitchen",
+      PREPARING: "is being prepared right now",
+      PREPARED: "is ready to be served",
+      SERVED: "has been served — enjoy your meal!",
+      COMPLETED: "is complete. Thank you for dining with us",
       CANCELLED: "could not be accepted. Please talk to our staff.",
     };
 
@@ -265,8 +265,7 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
     if (line && order.customer_phone) {
       void sendWhatsAppMessage(
         order.customer_phone,
-        `🍽 *Shivansi Restaurant & Sweet Shop*\n\nHi ${order.customer_name}, your order *${order.order_number}* ${line}\n${
-          order.table_number ? `Table ${order.table_number}` : "Takeaway"
+        `🍽 *Shivansi Restaurant & Sweet Shop*\n\nHi ${order.customer_name}, your order *${order.order_number}* ${line}\n${order.table_number ? `Table ${order.table_number}` : "Takeaway"
         }\n\nAutomated bot update — replies are not monitored.`
       );
     }
@@ -313,7 +312,7 @@ export const requestOrderHistoryCode = async (req: FastifyRequest, res: FastifyR
     const { phone } = req.body as any;
     const code = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 1000000).padStart(6, "0");
     const hash = await hashCode(phone, code);
-    
+
     await prisma.phoneVerification.create({
       data: {
         phone,
@@ -337,7 +336,7 @@ export const requestOrderHistoryCode = async (req: FastifyRequest, res: FastifyR
 export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { phone, code } = req.body as any;
-    
+
     const challenge = await prisma.phoneVerification.findFirst({
       where: {
         phone,
@@ -486,7 +485,7 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
     // Update product rating aggregate
     const allRatings = await prisma.rating.findMany({ where: { menuItemId } });
     const avg = allRatings.reduce((acc: number, r: any) => acc + r.stars, 0) / allRatings.length;
-    
+
     await prisma.product.update({
       where: { id: menuItemId },
       data: {
@@ -501,4 +500,3 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
-
