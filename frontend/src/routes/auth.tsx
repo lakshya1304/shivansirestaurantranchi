@@ -80,18 +80,20 @@ function AuthPage() {
     event.preventDefault();
     setBusy(true);
     try {
-      const { data } = await fetchAPI<any>("/auth/login", {
+      const res = await fetchAPI<any>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
         headers: { "Content-Type": "application/json" }
       });
-      if (data?.requireTotp) {
+      // Backend wraps response as { data: { requireTotp, user, accessToken } }
+      const payload = res?.data ?? res;
+      if (payload?.requireTotp) {
         setStage("verify");
       } else {
         await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
       }
     } catch (error: any) {
-      toast.error(error?.message ?? error?.toString() ?? "Authentication failed");
+      toast.error(error?.message ?? "Authentication failed");
     } finally {
       setBusy(false);
     }

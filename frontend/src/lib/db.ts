@@ -64,14 +64,19 @@ export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
     });
     return response.data;
   } catch (error: any) {
-    const msg = error.response?.data?.error || error.response?.data?.message;
-    if (msg) {
-      throw new Error(msg);
-    }
-    if (error.code === 'ERR_NETWORK') {
+    // Safely extract a string message regardless of backend response shape:
+    // { error: "msg" } | { message: "msg" } | { error: { message: "msg" } }
+    const raw = error.response?.data?.error ?? error.response?.data?.message ?? null;
+    const msg: string | null =
+      raw == null ? null
+      : typeof raw === "string" ? raw
+      : typeof raw?.message === "string" ? raw.message
+      : null;
+    if (msg) throw new Error(msg);
+    if (error.code === "ERR_NETWORK") {
       throw new Error("Unable to connect to the server. Please check your internet connection.");
     }
-    throw new Error("Something went wrong. Please try again later.");
+    throw new Error(error?.message ?? "Something went wrong. Please try again later.");
   }
 }
 

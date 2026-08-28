@@ -130,18 +130,19 @@ function LoginPage() {
     event.preventDefault();
     setBusy(true);
     try {
-      const { data } = await fetchAPI<any>("/auth/login", {
+      const res = await fetchAPI<any>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
         headers: { "Content-Type": "application/json" },
       });
-      if (data?.requireTotp) {
+      const payload = res?.data ?? res;
+      if (payload?.requireTotp) {
         setEmailStage("verify");
       } else {
         await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
       }
     } catch (error: any) {
-      toast.error(error?.message ?? error?.toString() ?? "Sign in failed. Check your email and password.");
+      toast.error(error?.message ?? "Sign in failed. Check your email and password.");
     } finally {
       setBusy(false);
     }
