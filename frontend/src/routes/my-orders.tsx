@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Gift, LogOut, Loader2, UserCircle2 } from "lucide-react";
+import {
+  Eye, EyeOff, Gift, LogOut, Loader2,
+  MessageCircle, ShieldCheck, UserCircle2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { STATUS_LABEL, type Order } from "@/lib/types";
@@ -28,15 +33,149 @@ export const Route = createFileRoute("/my-orders")({
   component: MyOrders,
 });
 
+// ── Shared login success type ──────────────────────────────────────────────
+type LoginSuccessPayload = {
+  customer: any;
+  profileToken: string;
+  phone: string;
+};
+
+// ── Email/Password login form ──────────────────────────────────────────────
+function EmailLoginForm({ onSuccess }: { onSuccess: (data: LoginSuccessPayload) => void }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const res = await fetchAPI<any>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const user = res?.data ?? res;
+      const phone = user?.phone ?? email;
+      const profileToken = user?.profileToken ?? user?.token ?? "";
+      const customer = {
+        name: user?.name ?? user?.email ?? email,
+        visits: user?.visits ?? 0,
+        reward_points: user?.reward_points ?? 0,
+        ...user,
+      };
+      onSuccess({ customer, profileToken, phone });
+    } catch (error: any) {
+      toast.error(error.message || "Sign in failed. Check your email and password.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="orders-email">Email</Label>
+        <Input
+          id="orders-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          placeholder="you@example.com"
+        />
+      </div>
+      <div>
+        <Label htmlFor="orders-password">Password</Label>
+        <div className="relative">
+          <Input
+            id="orders-password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={6}
+            required
+            autoComplete="current-password"
+            className="pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute inset-y-0 right-0 flex h-full items-center justify-center px-3 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </div>
+      </div>
+      <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
+        {busy ? <Loader2 className="size-4 animate-spin" /> : null} View my orders
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">
+        For staff and registered email accounts.
+      </p>
+    </form>
+  );
+}
+
+// ── Tabbed login panel (WhatsApp + Email) ──────────────────────────────────
+function OrdersLoginPanel({ onSuccess }: { onSuccess: (data: LoginSuccessPayload) => void }) {
+  const [tab, setTab] = useState<"whatsapp" | "email">("whatsapp");
+
+  return (
+    <div className="glass rounded-3xl p-6 space-y-5">
+      {/* Tab switcher */}
+      <div className="flex gap-1 rounded-2xl bg-background/40 p-1">
+        <button
+          type="button"
+          id="orders-tab-whatsapp"
+          onClick={() => setTab("whatsapp")}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${
+            tab === "whatsapp"
+              ? "bg-[image:var(--gradient-primary)] text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <MessageCircle className="size-4" />
+          WhatsApp
+        </button>
+        <button
+          type="button"
+          id="orders-tab-email"
+          onClick={() => setTab("email")}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${
+            tab === "email"
+              ? "bg-[image:var(--gradient-primary)] text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ShieldCheck className="size-4" />
+          Email
+        </button>
+      </div>
+
+      {/* Tab content */}
+      {tab === "whatsapp" && (
+        <WhatsAppLoginForm onSuccess={onSuccess} submitLabel="Verify & view my orders" />
+      )}
+      {tab === "email" && (
+        <EmailLoginForm onSuccess={onSuccess} />
+      )}
+    </div>
+  );
+}
+
+// ── Main page component ────────────────────────────────────────────────────
 function MyOrders() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
 
-  // ── Check for existing verified session ────────────────────────────────────
   const customerSession = getCustomerSession();
 
-  // If already signed in, load orders automatically
   const { data: result, isLoading } = useQuery({
     queryKey: ["customer-profile", customerSession?.phone],
     queryFn: async () => {
@@ -50,23 +189,12 @@ function MyOrders() {
     retry: false,
   });
 
-  // ── WhatsApp OTP success — save session and reload ─────────────────────────
-  function handleLoginSuccess({
-    customer,
-    profileToken,
-    phone,
-  }: {
-    customer: any;
-    profileToken: string;
-    phone: string;
-  }) {
+  function handleLoginSuccess({ customer, profileToken, phone }: LoginSuccessPayload) {
     saveCustomerSession({ phone, name: customer.name ?? phone, profileToken });
     toast.success(`Welcome back, ${customer.name ?? ""}!`);
-    // Invalidate so the query above re-fires with the new session
     void queryClient.invalidateQueries({ queryKey: ["customer-profile", phone] });
   }
 
-  // ── Sign out ───────────────────────────────────────────────────────────────
   function handleSignOut() {
     clearCustomerSession();
     navigate({ to: "/login", replace: true });
@@ -83,8 +211,7 @@ function MyOrders() {
             <h1 className="font-display text-3xl font-bold sm:text-4xl">My orders</h1>
             {!customerSession && (
               <p className="text-sm text-muted-foreground">
-                Enter the phone number you used at checkout. For your privacy we send a one-time
-                code on WhatsApp before showing your history, invoices and rewards.
+                Sign in to view your order history, invoices and loyalty rewards.
               </p>
             )}
           </div>
@@ -99,17 +226,12 @@ function MyOrders() {
           )}
         </header>
 
-        {/* ── Unauthenticated: show shared WhatsApp login form ─────────────── */}
+        {/* Unauthenticated: WhatsApp / Email tabbed login */}
         {!customerSession && (
-          <div className="glass rounded-3xl p-6">
-            <WhatsAppLoginForm
-              onSuccess={handleLoginSuccess}
-              submitLabel="Verify & view my orders"
-            />
-          </div>
+          <OrdersLoginPanel onSuccess={handleLoginSuccess} />
         )}
 
-        {/* Loading state while fetching session orders */}
+        {/* Loading state */}
         {customerSession && isLoading && (
           <div className="glass flex items-center justify-center gap-3 rounded-3xl p-8">
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -117,7 +239,7 @@ function MyOrders() {
           </div>
         )}
 
-        {/* ── Authenticated: order results ─────────────────────────────────── */}
+        {/* Authenticated: order results */}
         {result ? (
           <>
             {/* Profile banner */}
