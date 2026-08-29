@@ -1,32 +1,60 @@
-// import { NextFunction, Request, Response } from "express";
+import {
+  FastifyReply,
+  FastifyRequest,
+} from "fastify";
 
-import {FastifyReply,FastifyRequest} from "fastify";
-
-import { AppError } from "../utils/errors/error";
-import logger from "../config/loggerConfig";
-import { NODE_ENV } from "../../core/config/envConfig";
-import { sendError } from "../utils/common/response";
+import { AppError } from "../utils/errors/error.js";
+import { NODE_ENV } from "../../core/config/envConfig.js";
+import { sendError } from "../utils/common/response.js";
 
 export default function errorHandler(
-  err: any,
+  err: unknown,
   req: FastifyRequest,
   res: FastifyReply,
 ) {
-  if (!(err instanceof AppError)) {
-    err = new AppError(err.message || "Something went wrong.", err.statusCode || 500);
-  }
+  const error =
+    err instanceof AppError
+      ? err
+      : new AppError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong.",
+        (err as any)?.statusCode ?? 500,
+      );
 
-  const { message, statusCode, name, stack, details } = err;
-
-  logger.info(`${name || "Error"}: ${message}`, {
-    details,
+  const {
+    message,
     statusCode,
+    name,
     stack,
-    url: req.originalUrl,
-    method: req.method,
-  });
+    details,
+  } = error;
 
-  const errDetails = NODE_ENV === "development" ? { name, stack, details } : undefined;
+  req.log.error(
+    {
+      err: error,
+      errorName: name,
+      statusCode,
+      details,
+      url: req.url,
+      method: req.method,
+    },
+    `${name || "Error"}: ${message}`,
+  );
 
-  sendError(res, message, statusCode, errDetails);
+  const errDetails =
+    NODE_ENV === "development"
+      ? {
+        name,
+        stack,
+        details,
+      }
+      : undefined;
+
+  sendError(
+    res,
+    message,
+    statusCode,
+    errDetails,
+  );
 }

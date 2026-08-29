@@ -18,8 +18,11 @@ const envSchema = z.object({
   BUSINESS_NAME: z.string().default("Maa Tara Sweets"),
   LOG_LEVEL: z.string().default("debug"),
   // Database
-  DATABASE_URL: z.string().min(1),
-  DIRECT_URL: z.string().optional(),
+  ADMIN_DATABASE_URL: z.string().min(1),
+  ADMIN_DIRECT_URL: z.string().optional(),
+  APP_DATABASE_URL: z.string().min(1),
+  APP_DIRECT_URL: z.string().optional(),
+  SALT_ROUND: z.number().optional().default(10),
 
   // Auth
   JWT_ACCESS_SECRET: z.string().min(16).default("dev-access-secret-change-in-production"),
@@ -34,7 +37,8 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW: z.string().default("1 minute"),
 
   // Redis (optional)
-  REDIS_URL: z.string().url().optional().or(z.literal("")),
+  REDIS_URL_RATELIMIT: z.string().url().optional().or(z.literal("")),
+  REDIS_URL_CACHE: z.string().url().optional().or(z.literal("")),
 
   // Razorpay (optional — mock mode without keys)
   RAZORPAY_KEY_ID: z.string().optional().or(z.literal("")),
@@ -92,15 +96,18 @@ export const {
   WEB_ORIGIN,
   BUSINESS_NAME,
   LOG_LEVEL,
-  DATABASE_URL,
-  DIRECT_URL,
+  ADMIN_DATABASE_URL,
+  ADMIN_DIRECT_URL,
+  APP_DATABASE_URL, SALT_ROUND,
+  APP_DIRECT_URL,
   JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET,
   JWT_EXPIRES_IN_ACCESS,
   JWT_EXPIRES_IN_REFRESH,
   RATE_LIMIT_MAX,
   RATE_LIMIT_WINDOW,
-  REDIS_URL,
+  REDIS_URL_CACHE,
+  REDIS_URL_RATELIMIT,
   RAZORPAY_KEY_ID,
   RAZORPAY_KEY_SECRET,
   RAZORPAY_WEBHOOK_SECRET,

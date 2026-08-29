@@ -8,6 +8,7 @@ import compress from "@fastify/compress";
 import rateLimiter from "../middlewares/rateLimiter";
 import version from "../utils/helpers/version";
 import { WEB_ORIGIN } from "./envConfig";
+import { env } from "node:process";
 
 let fastifyApp = fastify({ logger: true, exposeHeadRoutes: true });
 parseFloat
@@ -47,7 +48,7 @@ await fastifyApp.register(swaggerUi, {
 });
 
 fastifyApp.get("/", (req: FastifyRequest, res: FastifyReply) => {
-  res.code(200).send({ message: "Server fired up", version: version });
+  res.code(200).send({ message: "Server fired up", version: version, mode: env.NODE_ENV });
 });
 
 export default fastifyApp;

@@ -1,9 +1,9 @@
-import prisma from "../config/databaseConfig";
+import { prismaAdmin } from "../config/databaseConfig";
 import logger from "../config/loggerConfig";
 
 async function loadCredentials(): Promise<{ token: string; phoneNumberId: string } | null> {
   try {
-    const config = await prisma.appConfig.findFirst({
+    const config = await prismaAdmin.appConfig.findFirst({
       select: { whatsapp_token: true, whatsapp_phone_number_id: true }
     });
     if (config?.whatsapp_token && config.whatsapp_phone_number_id) {

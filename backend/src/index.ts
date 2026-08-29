@@ -1,11 +1,11 @@
 import app from "./app";
 import { API_PORT, NODE_ENV } from "./core/config/envConfig";
 import logger from "./core/config/loggerConfig";
-import redis, { connectRedis } from "./core/config/redisConfig";
+import { cache, connectRedisCache, connectRedisRateLimit, rateLimit } from "./core/config/redisConfig";
 
 const startServer = async () => {
   try {
-    await connectRedis();
+    Promise.all([connectRedisCache(), connectRedisRateLimit()]);
     const address = await app.listen({ port: API_PORT, host: "0.0.0.0" });
   } catch (err: any) {
     logger.error(err?.message || err);
@@ -21,9 +21,9 @@ async function gracefulShutdown(signal: string) {
     logger.info("HTTP server closed.");
 
     try {
-      await redis.disconnect();
+      Promise.all([cache.disconnect(), rateLimit.disconnect()]);
     } catch (err) {
-      logger.error("Error dismounting RAM", { error: err });
+      logger.error({ error: err }, "Error dismounting RAM");
     }
 
     logger.info("All connections closed. Goodbye!");
@@ -40,13 +40,13 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
 process.on("unhandledRejection", (reason: any) => {
-  logger.error("Unhandled Rejection", { error: reason?.message || reason });
+  logger.error({ error: reason?.message || reason }, "Unhandled Rejection");
 });
 
 process.on("uncaughtException", (error: Error) => {
-  logger.error("Uncaught Exception", {
+  logger.error({
     error: error.message,
     stack: error.stack,
-  });
+  }, "Uncaught Exception");
   process.exit(1);
 });

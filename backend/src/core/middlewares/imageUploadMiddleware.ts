@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import sharp from "sharp";
-import { uploadToImgBB } from "../utils/imgbb";
+import uploadToService from "../utils/image";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -111,7 +111,8 @@ export function createImageUploadMiddleware(opts: ImageUploadMiddlewareOptions =
           const filename = `${namePrefix}_${baseName}_${Date.now()}.webp`;
 
           // ── 4. Upload to imgbb ────────────────────────────────────────
-          const result = await uploadToImgBB(optimised, filename);
+          const result = await uploadToService("supabase", optimised, filename);
+
           imageUrl = result.url;
         } else {
           // Text field — smart-coerce and collect

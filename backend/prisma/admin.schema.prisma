@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prismaAdmin"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+model User {
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  phone    String?
+  password String  @map("hashed_password")
+  role     Role
+
+  avatarUrl String?
+
+  isActive     Boolean  @default(true)
+  lastLogin    DateTime @default(now())
+  refreshToken String?
+
+  totpSecret    String?
+  isTotpEnabled Boolean @default(false)
+
+  currentChallenge String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLog AuditLog[]
+  passkeys Passkey[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Passkey {
+  id             String @id @default(uuid())
+  credentialID   Bytes
+  credentialPublicKey Bytes
+  counter        BigInt
+  transports     String[]
+  
+  userId         String
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([credentialID])
+  @@map("passkeys")
+}
+
+model AuditLog {
+  id       String @id @default(uuid())
+  action   String
+  entity   String
+  entityId String
+  details  Json?
+
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model RestaurantSettings {
+  id              String  @id @default(uuid())
+  name            String
+  tagline         String?
+  logo_url        String?
+  banner_url      String?
+  address         String?
+  phone           String?
+  gst_number      String?
+  opening_time    String?
+  closing_time    String?
+  upi_id          String?
+  tax_percent     Float   @default(5)
+  packing_charge  Float   @default(0)
+  delivery_charge Float   @default(0)
+  currency        String  @default("INR")
+  theme           String  @default("default")
+  is_suspended    Boolean @default(false)
+
+  @@map("restaurant_settings")
+}
+
+model AppConfig {
+  id                       String   @id @default(uuid())
+  owner_email              String?
+  whatsapp_token           String?
+  whatsapp_phone_number_id String?
+  updated_at               DateTime @updatedAt
+
+  @@map("app_config")
+}

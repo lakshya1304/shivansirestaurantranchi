@@ -22,6 +22,11 @@ export const authenticate = asyncHandler(
 
     const decoded = await verifyAccessToken(token);
 
+    delete req.headers.role;
+    delete req.headers["x-role"];
+    delete req.headers["x-user-role"];
+
+
     req.user = {
       id: decoded.id,
       email: decoded.email,

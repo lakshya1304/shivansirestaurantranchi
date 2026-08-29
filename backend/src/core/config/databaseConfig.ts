@@ -1,26 +1,28 @@
-
+import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../generated/prisma";
+import { PrismaClient as PrismaAdminClient } from "../../generated/prismaAdmin";
+import { PrismaClient as PrismaAppClient } from "../../generated/prismaApp";
 import env from "./envConfig";
-const { DATABASE_URL, NODE_ENV } = env;
 import bcrypt from "bcrypt";
 import logger from "./loggerConfig";
 
-// Pass the connection string directly to PrismaPg — avoids the
-// cross-package instanceof pg.Pool check that silently drops the URL.
-const adapter = new PrismaPg(DATABASE_URL);
+const connectionStringAdmin = env.ADMIN_DATABASE_URL;
+const connectionStringApp = env.APP_DATABASE_URL;
 
-const basePrisma = new PrismaClient({
-  adapter,
-  log: NODE_ENV === "development" ? ["error", "query", "warn"] : ["info"],
-});
+const poolAdmin = new Pool({ connectionString: connectionStringAdmin, max: 20, idleTimeoutMillis: 30000 });
+const adapterAdmin = new PrismaPg(poolAdmin);
+const basePrismaAdmin = new PrismaAdminClient({ adapter: adapterAdmin });
+
+const poolApp = new Pool({ connectionString: connectionStringApp, max: 20, idleTimeoutMillis: 30000 });
+const adapterApp = new PrismaPg(poolApp);
+const basePrismaApp = new PrismaAppClient({ adapter: adapterApp });
 
 interface UserData {
-  password: string;
-  [key: string]: string;
+  password?: string;
+  [key: string]: any;
 }
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = env.SALT_ROUNDS || 10;
 
 async function hashUserPassword(data: UserData): Promise<void> {
   if (data && data.password) {
@@ -29,7 +31,7 @@ async function hashUserPassword(data: UserData): Promise<void> {
   }
 }
 
-const prisma = basePrisma.$extends({
+export const prismaAdmin = basePrismaAdmin.$extends({
   query: {
     user: {
       async create({ args, query }: any) {
@@ -42,13 +44,29 @@ const prisma = basePrisma.$extends({
       },
     },
   },
-}) as unknown as PrismaClient;
+}) as unknown as PrismaAdminClient;
+
+export const prismaApp = basePrismaApp.$extends({
+  query: {
+    user: {
+      async create({ args, query }: any) {
+        await hashUserPassword(args.data);
+        return query(args);
+      },
+      async update({ args, query }: any) {
+        await hashUserPassword(args.data);
+        return query(args);
+      },
+    },
+  },
+}) as unknown as PrismaAppClient;
 
 function shutDownHandler(signal: string) {
   return async () => {
     logger.info(`Received ${signal}, shutting down gracefully.`);
-    await basePrisma.$disconnect();
-    logger.info(`Database connection closed.`);
+    await basePrismaAdmin.$disconnect();
+    await basePrismaApp.$disconnect();
+    logger.info(`Database connections closed.`);
     process.exit(0);
   };
 }
@@ -56,4 +74,4 @@ function shutDownHandler(signal: string) {
 process.on("SIGINT", shutDownHandler("SIGINT"));
 process.on("SIGTERM", shutDownHandler("SIGTERM"));
 
-export default prisma;
+export default { prismaApp, prismaAdmin };
