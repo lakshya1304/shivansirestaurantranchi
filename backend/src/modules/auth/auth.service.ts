@@ -1,5 +1,6 @@
 import AuditLogRepository from "../../core/repositories/auditLogRepository";
 import UserRepository from "../../core/repositories/userRepository";
+import AdminRepository from "../../core/repositories/adminRepository";
 import { JwtPayload, RegisterBody, testUser, TokenPair } from "../../core/types";
 import {
   ConflictError,
@@ -35,7 +36,7 @@ import type { RegistrationResponseJSON, AuthenticationResponseJSON } from "@simp
 import logger from "../../core/config/loggerConfig";
 import { hash } from "../../core/utils/helpers/hash";
 import { sendError, sendSuccess } from "../../core/utils/common/response";
-import prisma from "../../core/config/databaseConfig";
+import { prismaAdmin } from "../../core/config/databaseConfig";
 import {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -50,6 +51,7 @@ const rpID = new URL(WEB_ORIGIN).hostname;
 const origin = WEB_ORIGIN;
 
 const userRepo = new UserRepository();
+const adminRepo = new AdminRepository();
 const auditLogRepo = new AuditLogRepository();
 
 export default class AuthService {
@@ -172,8 +174,7 @@ export default class AuthService {
       throw new ConflictError("A user with this email already exists.");
     }
 
-    const isSuperAdmin = data.email === "nishanrajak01@gmail.com";
-    const role = isSuperAdmin ? "SUPERADMIN" : "USER";
+    const role = "USER";
 
     const user = await userRepo.create({
       name: data.name,
@@ -216,7 +217,12 @@ export default class AuthService {
     password: string,
     totpToken?: string,
   ): Promise<{ user: any; tokens: TokenPair; requireTotp?: boolean }> {
-    const user = await userRepo.findByEmail(email);
+    let user: any = await adminRepo.findByEmail(email);
+    let repo: any = adminRepo;
+    if (!user) {
+      user = await userRepo.findByEmail(email);
+      repo = userRepo;
+    }
     if (!user) throw new UnauthorizedError("Invalid email or password.");
     if (!user.isActive) {
       throw new UnauthorizedError("Account is deactivated. Contact admin.");
@@ -246,8 +252,8 @@ export default class AuthService {
     const tokens = generateTokenPair(payload);
 
     await storeRefreshToken(user.id, tokens.refreshToken);
-    await userRepo.updateRefreshToken(user.id, tokens.refreshToken);
-    await userRepo.updateLastLogin(user.id);
+    await repo.updateRefreshToken(user.id, tokens.refreshToken);
+    await repo.updateLastLogin(user.id);
 
     const safeUser = { ...user } as any;
     delete safeUser.password;
@@ -258,11 +264,15 @@ export default class AuthService {
     return { user: safeUser, tokens };
   }
 
-  async logout(userId: string, accessToken: string): Promise<void> {
+  async logout(userId: string, accessToken: string, role?: string): Promise<void> {
     await blacklistToken(accessToken);
     await removeRefreshToken(userId);
-    await userRepo.updateRefreshToken(userId, null);
-    logger.info(`User ${userId} logged out.`);
+    if (role === "ADMIN" || role === "SUPERADMIN") {
+      await adminRepo.updateRefreshToken(userId, null);
+    } else {
+      await userRepo.updateRefreshToken(userId, null);
+    }
+    logger.info(`User/Admin ${userId} logged out.`);
   }
 
   async passless(
@@ -329,7 +339,8 @@ export default class AuthService {
       throw new UnauthorizedError("Refresh token is invalid or has been revoked.");
     }
 
-    const user = await userRepo.findById(decoded.id);
+    const tokenRepo: any = (decoded.role === "ADMIN" || decoded.role === "SUPERADMIN") ? adminRepo : userRepo;
+    const user = await tokenRepo.findById(decoded.id);
     if (!user.isActive) throw new UnauthorizedError("Account is deactivated");
 
     const payload: JwtPayload = {
@@ -340,7 +351,7 @@ export default class AuthService {
     const tokens = generateTokenPair(payload);
 
     await storeRefreshToken(user.id, tokens.refreshToken);
-    await userRepo.updateRefreshToken(user.id, tokens.refreshToken);
+    await tokenRepo.updateRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
   }
@@ -350,17 +361,19 @@ export default class AuthService {
     currentPassword: string,
     newPassword: string,
     accessToken: string,
+    role?: string
   ): Promise<void> {
-    const user = await userRepo.findById(userId);
+    const repo: any = (role === "ADMIN" || role === "SUPERADMIN") ? adminRepo : userRepo;
+    const user = await repo.findById(userId);
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) throw new ValidationError("Current password is incorrect");
 
-    await userRepo.update(userId, { password: newPassword });
+    await repo.update(userId, { password: newPassword });
 
     await blacklistToken(accessToken);
     await removeRefreshToken(userId);
-    await userRepo.updateRefreshToken(userId, null);
+    await repo.updateRefreshToken(userId, null);
 
     await auditLogRepo.logAction({
       action: "CHANGE_PASSWORD",
@@ -487,13 +500,13 @@ export default class AuthService {
       const credentialIDBuffer = Buffer.from(credential.id);
       const credentialPublicKeyBuffer = Buffer.from(credential.publicKey);
 
-      await prisma.passkey.create({
+      await prismaAdmin.passkey.create({
         data: {
           credentialID: credentialIDBuffer,
           credentialPublicKey: credentialPublicKeyBuffer,
           counter: BigInt(credential.counter),
           transports: response.response.transports || [],
-          userId: user.id,
+          adminId: user.id,
         },
       });
 
@@ -508,7 +521,7 @@ export default class AuthService {
     const user = await userRepo.findByEmail(email);
     if (!user) throw new NotFoundError("User not found.");
 
-    const passkeys = await prisma.passkey.findMany({ where: { userId: user.id } });
+    const passkeys = await prismaAdmin.passkey.findMany({ where: { adminId: user.id } });
 
     const options = await generateAuthenticationOptions({
       rpID,
@@ -532,7 +545,7 @@ export default class AuthService {
     if (!user || !user.currentChallenge) throw new UnauthorizedError("Invalid or missing authentication challenge.");
     if (!user.isActive) throw new UnauthorizedError("Account is deactivated.");
 
-    const passkeys = await prisma.passkey.findMany({ where: { userId: user.id } });
+    const passkeys = await prismaAdmin.passkey.findMany({ where: { adminId: user.id } });
     const passkey = passkeys.find((key: any) => key.credentialID === response.id);
 
     if (!passkey) {
@@ -567,7 +580,7 @@ export default class AuthService {
     }
 
     if (verification.verified && verification.authenticationInfo) {
-      await prisma.passkey.update({
+      await prismaAdmin.passkey.update({
         where: { id: passkey.id },
         data: { counter: BigInt(verification.authenticationInfo.newCounter) },
       });

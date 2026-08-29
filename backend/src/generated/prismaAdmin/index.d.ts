@@ -14,10 +14,10 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 
 /**
- * Model User
+ * Model Admin
  * 
  */
-export type User = $Result.DefaultSelection<Prisma.$UserPayload>
+export type Admin = $Result.DefaultSelection<Prisma.$AdminPayload>
 /**
  * Model Passkey
  * 
@@ -44,7 +44,6 @@ export type AppConfig = $Result.DefaultSelection<Prisma.$AppConfigPayload>
  */
 export namespace $Enums {
   export const Role: {
-  USER: 'USER',
   ADMIN: 'ADMIN',
   SUPERADMIN: 'SUPERADMIN'
 };
@@ -66,8 +65,8 @@ export const Role: typeof $Enums.Role
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Users
- * const users = await prisma.user.findMany()
+ * // Fetch zero or more Admins
+ * const admins = await prisma.admin.findMany()
  * ```
  *
  *
@@ -89,8 +88,8 @@ export class PrismaClient<
    * const prisma = new PrismaClient({
    *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
    * })
-   * // Fetch zero or more Users
-   * const users = await prisma.user.findMany()
+   * // Fetch zero or more Admins
+   * const admins = await prisma.admin.findMany()
    * ```
    *
    *
@@ -179,14 +178,14 @@ export class PrismaClient<
   }>>
 
       /**
-   * `prisma.user`: Exposes CRUD operations for the **User** model.
+   * `prisma.admin`: Exposes CRUD operations for the **Admin** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more Users
-    * const users = await prisma.user.findMany()
+    * // Fetch zero or more Admins
+    * const admins = await prisma.admin.findMany()
     * ```
     */
-  get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+  get admin(): Prisma.AdminDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.passkey`: Exposes CRUD operations for the **Passkey** model.
@@ -661,7 +660,7 @@ export namespace Prisma {
 
 
   export const ModelName: {
-    User: 'User',
+    Admin: 'Admin',
     Passkey: 'Passkey',
     AuditLog: 'AuditLog',
     RestaurantSettings: 'RestaurantSettings',
@@ -681,81 +680,81 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "passkey" | "auditLog" | "restaurantSettings" | "appConfig"
+      modelProps: "admin" | "passkey" | "auditLog" | "restaurantSettings" | "appConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
-      User: {
-        payload: Prisma.$UserPayload<ExtArgs>
-        fields: Prisma.UserFieldRefs
+      Admin: {
+        payload: Prisma.$AdminPayload<ExtArgs>
+        fields: Prisma.AdminFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.UserFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload> | null
+            args: Prisma.AdminFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.UserFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>
+            args: Prisma.AdminFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>
           }
           findFirst: {
-            args: Prisma.UserFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload> | null
+            args: Prisma.AdminFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.UserFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>
+            args: Prisma.AdminFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>
           }
           findMany: {
-            args: Prisma.UserFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>[]
+            args: Prisma.AdminFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>[]
           }
           create: {
-            args: Prisma.UserCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>
+            args: Prisma.AdminCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>
           }
           createMany: {
-            args: Prisma.UserCreateManyArgs<ExtArgs>
+            args: Prisma.AdminCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
           createManyAndReturn: {
-            args: Prisma.UserCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>[]
+            args: Prisma.AdminCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>[]
           }
           delete: {
-            args: Prisma.UserDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>
+            args: Prisma.AdminDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>
           }
           update: {
-            args: Prisma.UserUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>
+            args: Prisma.AdminUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>
           }
           deleteMany: {
-            args: Prisma.UserDeleteManyArgs<ExtArgs>
+            args: Prisma.AdminDeleteManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateMany: {
-            args: Prisma.UserUpdateManyArgs<ExtArgs>
+            args: Prisma.AdminUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateManyAndReturn: {
-            args: Prisma.UserUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>[]
+            args: Prisma.AdminUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>[]
           }
           upsert: {
-            args: Prisma.UserUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$UserPayload>
+            args: Prisma.AdminUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminPayload>
           }
           aggregate: {
-            args: Prisma.UserAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateUser>
+            args: Prisma.AdminAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdmin>
           }
           groupBy: {
-            args: Prisma.UserGroupByArgs<ExtArgs>
-            result: $Utils.Optional<UserGroupByOutputType>[]
+            args: Prisma.AdminGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminGroupByOutputType>[]
           }
           count: {
-            args: Prisma.UserCountArgs<ExtArgs>
-            result: $Utils.Optional<UserCountAggregateOutputType> | number
+            args: Prisma.AdminCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminCountAggregateOutputType> | number
           }
         }
       }
@@ -1163,7 +1162,7 @@ export namespace Prisma {
     comments?: runtime.SqlCommenterPlugin[]
   }
   export type GlobalOmitConfig = {
-    user?: UserOmit
+    admin?: AdminOmit
     passkey?: PasskeyOmit
     auditLog?: AuditLogOmit
     restaurantSettings?: RestaurantSettingsOmit
@@ -1244,41 +1243,41 @@ export namespace Prisma {
 
 
   /**
-   * Count Type UserCountOutputType
+   * Count Type AdminCountOutputType
    */
 
-  export type UserCountOutputType = {
+  export type AdminCountOutputType = {
     auditLog: number
     passkeys: number
   }
 
-  export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    auditLog?: boolean | UserCountOutputTypeCountAuditLogArgs
-    passkeys?: boolean | UserCountOutputTypeCountPasskeysArgs
+  export type AdminCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    auditLog?: boolean | AdminCountOutputTypeCountAuditLogArgs
+    passkeys?: boolean | AdminCountOutputTypeCountPasskeysArgs
   }
 
   // Custom InputTypes
   /**
-   * UserCountOutputType without action
+   * AdminCountOutputType without action
    */
-  export type UserCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the UserCountOutputType
+     * Select specific fields to fetch from the AdminCountOutputType
      */
-    select?: UserCountOutputTypeSelect<ExtArgs> | null
+    select?: AdminCountOutputTypeSelect<ExtArgs> | null
   }
 
   /**
-   * UserCountOutputType without action
+   * AdminCountOutputType without action
    */
-  export type UserCountOutputTypeCountAuditLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminCountOutputTypeCountAuditLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AuditLogWhereInput
   }
 
   /**
-   * UserCountOutputType without action
+   * AdminCountOutputType without action
    */
-  export type UserCountOutputTypeCountPasskeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminCountOutputTypeCountPasskeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PasskeyWhereInput
   }
 
@@ -1288,16 +1287,16 @@ export namespace Prisma {
    */
 
   /**
-   * Model User
+   * Model Admin
    */
 
-  export type AggregateUser = {
-    _count: UserCountAggregateOutputType | null
-    _min: UserMinAggregateOutputType | null
-    _max: UserMaxAggregateOutputType | null
+  export type AggregateAdmin = {
+    _count: AdminCountAggregateOutputType | null
+    _min: AdminMinAggregateOutputType | null
+    _max: AdminMaxAggregateOutputType | null
   }
 
-  export type UserMinAggregateOutputType = {
+  export type AdminMinAggregateOutputType = {
     id: string | null
     name: string | null
     email: string | null
@@ -1315,7 +1314,7 @@ export namespace Prisma {
     updatedAt: Date | null
   }
 
-  export type UserMaxAggregateOutputType = {
+  export type AdminMaxAggregateOutputType = {
     id: string | null
     name: string | null
     email: string | null
@@ -1333,7 +1332,7 @@ export namespace Prisma {
     updatedAt: Date | null
   }
 
-  export type UserCountAggregateOutputType = {
+  export type AdminCountAggregateOutputType = {
     id: number
     name: number
     email: number
@@ -1353,7 +1352,7 @@ export namespace Prisma {
   }
 
 
-  export type UserMinAggregateInputType = {
+  export type AdminMinAggregateInputType = {
     id?: true
     name?: true
     email?: true
@@ -1371,7 +1370,7 @@ export namespace Prisma {
     updatedAt?: true
   }
 
-  export type UserMaxAggregateInputType = {
+  export type AdminMaxAggregateInputType = {
     id?: true
     name?: true
     email?: true
@@ -1389,7 +1388,7 @@ export namespace Prisma {
     updatedAt?: true
   }
 
-  export type UserCountAggregateInputType = {
+  export type AdminCountAggregateInputType = {
     id?: true
     name?: true
     email?: true
@@ -1408,79 +1407,79 @@ export namespace Prisma {
     _all?: true
   }
 
-  export type UserAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which User to aggregate.
+     * Filter which Admin to aggregate.
      */
-    where?: UserWhereInput
+    where?: AdminWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Users to fetch.
+     * Determine the order of Admins to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: AdminOrderByWithRelationInput | AdminOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
      */
-    cursor?: UserWhereUniqueInput
+    cursor?: AdminWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Users from the position of the cursor.
+     * Take `±n` Admins from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Users.
+     * Skip the first `n` Admins.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Count returned Users
+     * Count returned Admins
     **/
-    _count?: true | UserCountAggregateInputType
+    _count?: true | AdminCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    _min?: UserMinAggregateInputType
+    _min?: AdminMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    _max?: UserMaxAggregateInputType
+    _max?: AdminMaxAggregateInputType
   }
 
-  export type GetUserAggregateType<T extends UserAggregateArgs> = {
-        [P in keyof T & keyof AggregateUser]: P extends '_count' | 'count'
+  export type GetAdminAggregateType<T extends AdminAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdmin]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateUser[P]>
-      : GetScalarType<T[P], AggregateUser[P]>
+        : GetScalarType<T[P], AggregateAdmin[P]>
+      : GetScalarType<T[P], AggregateAdmin[P]>
   }
 
 
 
 
-  export type UserGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: UserWhereInput
-    orderBy?: UserOrderByWithAggregationInput | UserOrderByWithAggregationInput[]
-    by: UserScalarFieldEnum[] | UserScalarFieldEnum
-    having?: UserScalarWhereWithAggregatesInput
+  export type AdminGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminWhereInput
+    orderBy?: AdminOrderByWithAggregationInput | AdminOrderByWithAggregationInput[]
+    by: AdminScalarFieldEnum[] | AdminScalarFieldEnum
+    having?: AdminScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    _count?: UserCountAggregateInputType | true
-    _min?: UserMinAggregateInputType
-    _max?: UserMaxAggregateInputType
+    _count?: AdminCountAggregateInputType | true
+    _min?: AdminMinAggregateInputType
+    _max?: AdminMaxAggregateInputType
   }
 
-  export type UserGroupByOutputType = {
+  export type AdminGroupByOutputType = {
     id: string
     name: string
     email: string
@@ -1496,26 +1495,26 @@ export namespace Prisma {
     currentChallenge: string | null
     createdAt: Date
     updatedAt: Date
-    _count: UserCountAggregateOutputType | null
-    _min: UserMinAggregateOutputType | null
-    _max: UserMaxAggregateOutputType | null
+    _count: AdminCountAggregateOutputType | null
+    _min: AdminMinAggregateOutputType | null
+    _max: AdminMaxAggregateOutputType | null
   }
 
-  type GetUserGroupByPayload<T extends UserGroupByArgs> = Prisma.PrismaPromise<
+  type GetAdminGroupByPayload<T extends AdminGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickEnumerable<UserGroupByOutputType, T['by']> &
+      PickEnumerable<AdminGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof UserGroupByOutputType))]: P extends '_count'
+          [P in ((keyof T) & (keyof AdminGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
               ? number
-              : GetScalarType<T[P], UserGroupByOutputType[P]>
-            : GetScalarType<T[P], UserGroupByOutputType[P]>
+              : GetScalarType<T[P], AdminGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminGroupByOutputType[P]>
         }
       >
     >
 
 
-  export type UserSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type AdminSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
     email?: boolean
@@ -1531,12 +1530,12 @@ export namespace Prisma {
     currentChallenge?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    auditLog?: boolean | User$auditLogArgs<ExtArgs>
-    passkeys?: boolean | User$passkeysArgs<ExtArgs>
-    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["user"]>
+    auditLog?: boolean | Admin$auditLogArgs<ExtArgs>
+    passkeys?: boolean | Admin$passkeysArgs<ExtArgs>
+    _count?: boolean | AdminCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["admin"]>
 
-  export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type AdminSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
     email?: boolean
@@ -1552,9 +1551,9 @@ export namespace Prisma {
     currentChallenge?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-  }, ExtArgs["result"]["user"]>
+  }, ExtArgs["result"]["admin"]>
 
-  export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type AdminSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
     email?: boolean
@@ -1570,9 +1569,9 @@ export namespace Prisma {
     currentChallenge?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-  }, ExtArgs["result"]["user"]>
+  }, ExtArgs["result"]["admin"]>
 
-  export type UserSelectScalar = {
+  export type AdminSelectScalar = {
     id?: boolean
     name?: boolean
     email?: boolean
@@ -1590,17 +1589,17 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "phone" | "password" | "role" | "avatarUrl" | "isActive" | "lastLogin" | "refreshToken" | "totpSecret" | "isTotpEnabled" | "currentChallenge" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
-  export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    auditLog?: boolean | User$auditLogArgs<ExtArgs>
-    passkeys?: boolean | User$passkeysArgs<ExtArgs>
-    _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
+  export type AdminOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "phone" | "password" | "role" | "avatarUrl" | "isActive" | "lastLogin" | "refreshToken" | "totpSecret" | "isTotpEnabled" | "currentChallenge" | "createdAt" | "updatedAt", ExtArgs["result"]["admin"]>
+  export type AdminInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    auditLog?: boolean | Admin$auditLogArgs<ExtArgs>
+    passkeys?: boolean | Admin$passkeysArgs<ExtArgs>
+    _count?: boolean | AdminCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-  export type UserIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type AdminIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type AdminIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
-  export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "User"
+  export type $AdminPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Admin"
     objects: {
       auditLog: Prisma.$AuditLogPayload<ExtArgs>[]
       passkeys: Prisma.$PasskeyPayload<ExtArgs>[]
@@ -1621,136 +1620,136 @@ export namespace Prisma {
       currentChallenge: string | null
       createdAt: Date
       updatedAt: Date
-    }, ExtArgs["result"]["user"]>
+    }, ExtArgs["result"]["admin"]>
     composites: {}
   }
 
-  type UserGetPayload<S extends boolean | null | undefined | UserDefaultArgs> = $Result.GetResult<Prisma.$UserPayload, S>
+  type AdminGetPayload<S extends boolean | null | undefined | AdminDefaultArgs> = $Result.GetResult<Prisma.$AdminPayload, S>
 
-  type UserCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<UserFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: UserCountAggregateInputType | true
+  type AdminCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminCountAggregateInputType | true
     }
 
-  export interface UserDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['User'], meta: { name: 'User' } }
+  export interface AdminDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Admin'], meta: { name: 'Admin' } }
     /**
-     * Find zero or one User that matches the filter.
-     * @param {UserFindUniqueArgs} args - Arguments to find a User
+     * Find zero or one Admin that matches the filter.
+     * @param {AdminFindUniqueArgs} args - Arguments to find a Admin
      * @example
-     * // Get one User
-     * const user = await prisma.user.findUnique({
+     * // Get one Admin
+     * const admin = await prisma.admin.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUnique<T extends UserFindUniqueArgs>(args: SelectSubset<T, UserFindUniqueArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends AdminFindUniqueArgs>(args: SelectSubset<T, AdminFindUniqueArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one User that matches the filter or throw an error with `error.code='P2025'`
+     * Find one Admin that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
-     * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
+     * @param {AdminFindUniqueOrThrowArgs} args - Arguments to find a Admin
      * @example
-     * // Get one User
-     * const user = await prisma.user.findUniqueOrThrow({
+     * // Get one Admin
+     * const admin = await prisma.admin.findUniqueOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(args: SelectSubset<T, UserFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends AdminFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first User that matches the filter.
+     * Find the first Admin that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindFirstArgs} args - Arguments to find a User
+     * @param {AdminFindFirstArgs} args - Arguments to find a Admin
      * @example
-     * // Get one User
-     * const user = await prisma.user.findFirst({
+     * // Get one Admin
+     * const admin = await prisma.admin.findFirst({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirst<T extends UserFindFirstArgs>(args?: SelectSubset<T, UserFindFirstArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends AdminFindFirstArgs>(args?: SelectSubset<T, AdminFindFirstArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first User that matches the filter or
+     * Find the first Admin that matches the filter or
      * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindFirstOrThrowArgs} args - Arguments to find a User
+     * @param {AdminFindFirstOrThrowArgs} args - Arguments to find a Admin
      * @example
-     * // Get one User
-     * const user = await prisma.user.findFirstOrThrow({
+     * // Get one Admin
+     * const admin = await prisma.admin.findFirstOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirstOrThrow<T extends UserFindFirstOrThrowArgs>(args?: SelectSubset<T, UserFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends AdminFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find zero or more Users that matches the filter.
+     * Find zero or more Admins that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @param {AdminFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Users
-     * const users = await prisma.user.findMany()
+     * // Get all Admins
+     * const admins = await prisma.admin.findMany()
      * 
-     * // Get first 10 Users
-     * const users = await prisma.user.findMany({ take: 10 })
+     * // Get first 10 Admins
+     * const admins = await prisma.admin.findMany({ take: 10 })
      * 
      * // Only select the `id`
-     * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
+     * const adminWithIdOnly = await prisma.admin.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends UserFindManyArgs>(args?: SelectSubset<T, UserFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends AdminFindManyArgs>(args?: SelectSubset<T, AdminFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
-     * Create a User.
-     * @param {UserCreateArgs} args - Arguments to create a User.
+     * Create a Admin.
+     * @param {AdminCreateArgs} args - Arguments to create a Admin.
      * @example
-     * // Create one User
-     * const User = await prisma.user.create({
+     * // Create one Admin
+     * const Admin = await prisma.admin.create({
      *   data: {
-     *     // ... data to create a User
+     *     // ... data to create a Admin
      *   }
      * })
      * 
      */
-    create<T extends UserCreateArgs>(args: SelectSubset<T, UserCreateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends AdminCreateArgs>(args: SelectSubset<T, AdminCreateArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Create many Users.
-     * @param {UserCreateManyArgs} args - Arguments to create many Users.
+     * Create many Admins.
+     * @param {AdminCreateManyArgs} args - Arguments to create many Admins.
      * @example
-     * // Create many Users
-     * const user = await prisma.user.createMany({
+     * // Create many Admins
+     * const admin = await prisma.admin.createMany({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      *     
      */
-    createMany<T extends UserCreateManyArgs>(args?: SelectSubset<T, UserCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    createMany<T extends AdminCreateManyArgs>(args?: SelectSubset<T, AdminCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create many Users and returns the data saved in the database.
-     * @param {UserCreateManyAndReturnArgs} args - Arguments to create many Users.
+     * Create many Admins and returns the data saved in the database.
+     * @param {AdminCreateManyAndReturnArgs} args - Arguments to create many Admins.
      * @example
-     * // Create many Users
-     * const user = await prisma.user.createManyAndReturn({
+     * // Create many Admins
+     * const admin = await prisma.admin.createManyAndReturn({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      * 
-     * // Create many Users and only return the `id`
-     * const userWithIdOnly = await prisma.user.createManyAndReturn({
+     * // Create many Admins and only return the `id`
+     * const adminWithIdOnly = await prisma.admin.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -1760,28 +1759,28 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends UserCreateManyAndReturnArgs>(args?: SelectSubset<T, UserCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+    createManyAndReturn<T extends AdminCreateManyAndReturnArgs>(args?: SelectSubset<T, AdminCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Delete a User.
-     * @param {UserDeleteArgs} args - Arguments to delete one User.
+     * Delete a Admin.
+     * @param {AdminDeleteArgs} args - Arguments to delete one Admin.
      * @example
-     * // Delete one User
-     * const User = await prisma.user.delete({
+     * // Delete one Admin
+     * const Admin = await prisma.admin.delete({
      *   where: {
-     *     // ... filter to delete one User
+     *     // ... filter to delete one Admin
      *   }
      * })
      * 
      */
-    delete<T extends UserDeleteArgs>(args: SelectSubset<T, UserDeleteArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends AdminDeleteArgs>(args: SelectSubset<T, AdminDeleteArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Update one User.
-     * @param {UserUpdateArgs} args - Arguments to update one User.
+     * Update one Admin.
+     * @param {AdminUpdateArgs} args - Arguments to update one Admin.
      * @example
-     * // Update one User
-     * const user = await prisma.user.update({
+     * // Update one Admin
+     * const admin = await prisma.admin.update({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -1791,30 +1790,30 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends UserUpdateArgs>(args: SelectSubset<T, UserUpdateArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends AdminUpdateArgs>(args: SelectSubset<T, AdminUpdateArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Delete zero or more Users.
-     * @param {UserDeleteManyArgs} args - Arguments to filter Users to delete.
+     * Delete zero or more Admins.
+     * @param {AdminDeleteManyArgs} args - Arguments to filter Admins to delete.
      * @example
-     * // Delete a few Users
-     * const { count } = await prisma.user.deleteMany({
+     * // Delete a few Admins
+     * const { count } = await prisma.admin.deleteMany({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      * 
      */
-    deleteMany<T extends UserDeleteManyArgs>(args?: SelectSubset<T, UserDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    deleteMany<T extends AdminDeleteManyArgs>(args?: SelectSubset<T, AdminDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more Users.
+     * Update zero or more Admins.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserUpdateManyArgs} args - Arguments to update one or more rows.
+     * @param {AdminUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Users
-     * const user = await prisma.user.updateMany({
+     * // Update many Admins
+     * const admin = await prisma.admin.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -1824,14 +1823,14 @@ export namespace Prisma {
      * })
      * 
      */
-    updateMany<T extends UserUpdateManyArgs>(args: SelectSubset<T, UserUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    updateMany<T extends AdminUpdateManyArgs>(args: SelectSubset<T, AdminUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more Users and returns the data updated in the database.
-     * @param {UserUpdateManyAndReturnArgs} args - Arguments to update many Users.
+     * Update zero or more Admins and returns the data updated in the database.
+     * @param {AdminUpdateManyAndReturnArgs} args - Arguments to update many Admins.
      * @example
-     * // Update many Users
-     * const user = await prisma.user.updateManyAndReturn({
+     * // Update many Admins
+     * const admin = await prisma.admin.updateManyAndReturn({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -1840,8 +1839,8 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Users and only return the `id`
-     * const userWithIdOnly = await prisma.user.updateManyAndReturn({
+     * // Update zero or more Admins and only return the `id`
+     * const adminWithIdOnly = await prisma.admin.updateManyAndReturn({
      *   select: { id: true },
      *   where: {
      *     // ... provide filter here
@@ -1854,56 +1853,56 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    updateManyAndReturn<T extends UserUpdateManyAndReturnArgs>(args: SelectSubset<T, UserUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+    updateManyAndReturn<T extends AdminUpdateManyAndReturnArgs>(args: SelectSubset<T, AdminUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Create or update one User.
-     * @param {UserUpsertArgs} args - Arguments to update or create a User.
+     * Create or update one Admin.
+     * @param {AdminUpsertArgs} args - Arguments to update or create a Admin.
      * @example
-     * // Update or create a User
-     * const user = await prisma.user.upsert({
+     * // Update or create a Admin
+     * const admin = await prisma.admin.upsert({
      *   create: {
-     *     // ... data to create a User
+     *     // ... data to create a Admin
      *   },
      *   update: {
      *     // ... in case it already exists, update
      *   },
      *   where: {
-     *     // ... the filter for the User we want to update
+     *     // ... the filter for the Admin we want to update
      *   }
      * })
      */
-    upsert<T extends UserUpsertArgs>(args: SelectSubset<T, UserUpsertArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends AdminUpsertArgs>(args: SelectSubset<T, AdminUpsertArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
-     * Count the number of Users.
+     * Count the number of Admins.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserCountArgs} args - Arguments to filter Users to count.
+     * @param {AdminCountArgs} args - Arguments to filter Admins to count.
      * @example
-     * // Count the number of Users
-     * const count = await prisma.user.count({
+     * // Count the number of Admins
+     * const count = await prisma.admin.count({
      *   where: {
-     *     // ... the filter for the Users we want to count
+     *     // ... the filter for the Admins we want to count
      *   }
      * })
     **/
-    count<T extends UserCountArgs>(
-      args?: Subset<T, UserCountArgs>,
+    count<T extends AdminCountArgs>(
+      args?: Subset<T, AdminCountArgs>,
     ): Prisma.PrismaPromise<
       T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
-          : GetScalarType<T['select'], UserCountAggregateOutputType>
+          : GetScalarType<T['select'], AdminCountAggregateOutputType>
         : number
     >
 
     /**
-     * Allows you to perform aggregations operations on a User.
+     * Allows you to perform aggregations operations on a Admin.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @param {AdminAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
      * // Where email contains prisma.io
@@ -1923,13 +1922,13 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends UserAggregateArgs>(args: Subset<T, UserAggregateArgs>): Prisma.PrismaPromise<GetUserAggregateType<T>>
+    aggregate<T extends AdminAggregateArgs>(args: Subset<T, AdminAggregateArgs>): Prisma.PrismaPromise<GetAdminAggregateType<T>>
 
     /**
-     * Group by User.
+     * Group by Admin.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserGroupByArgs} args - Group by arguments.
+     * @param {AdminGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
      * const result = await prisma.user.groupBy({
@@ -1944,14 +1943,14 @@ export namespace Prisma {
      * 
     **/
     groupBy<
-      T extends UserGroupByArgs,
+      T extends AdminGroupByArgs,
       HasSelectOrTake extends Or<
         Extends<'skip', Keys<T>>,
         Extends<'take', Keys<T>>
       >,
       OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: UserGroupByArgs['orderBy'] }
-        : { orderBy?: UserGroupByArgs['orderBy'] },
+        ? { orderBy: AdminGroupByArgs['orderBy'] }
+        : { orderBy?: AdminGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
@@ -2000,23 +1999,23 @@ export namespace Prisma {
             ? never
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
-    >(args: SubsetIntersection<T, UserGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+    >(args: SubsetIntersection<T, AdminGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
   /**
-   * Fields of the User model
+   * Fields of the Admin model
    */
-  readonly fields: UserFieldRefs;
+  readonly fields: AdminFieldRefs;
   }
 
   /**
-   * The delegate class that acts as a "Promise-like" for User.
+   * The delegate class that acts as a "Promise-like" for Admin.
    * Why is this prefixed with `Prisma__`?
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__UserClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__AdminClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    auditLog<T extends User$auditLogArgs<ExtArgs> = {}>(args?: Subset<T, User$auditLogArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    passkeys<T extends User$passkeysArgs<ExtArgs> = {}>(args?: Subset<T, User$passkeysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasskeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    auditLog<T extends Admin$auditLogArgs<ExtArgs> = {}>(args?: Subset<T, Admin$auditLogArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    passkeys<T extends Admin$passkeysArgs<ExtArgs> = {}>(args?: Subset<T, Admin$passkeysArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PasskeyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2043,420 +2042,420 @@ export namespace Prisma {
 
 
   /**
-   * Fields of the User model
+   * Fields of the Admin model
    */
-  interface UserFieldRefs {
-    readonly id: FieldRef<"User", 'String'>
-    readonly name: FieldRef<"User", 'String'>
-    readonly email: FieldRef<"User", 'String'>
-    readonly phone: FieldRef<"User", 'String'>
-    readonly password: FieldRef<"User", 'String'>
-    readonly role: FieldRef<"User", 'Role'>
-    readonly avatarUrl: FieldRef<"User", 'String'>
-    readonly isActive: FieldRef<"User", 'Boolean'>
-    readonly lastLogin: FieldRef<"User", 'DateTime'>
-    readonly refreshToken: FieldRef<"User", 'String'>
-    readonly totpSecret: FieldRef<"User", 'String'>
-    readonly isTotpEnabled: FieldRef<"User", 'Boolean'>
-    readonly currentChallenge: FieldRef<"User", 'String'>
-    readonly createdAt: FieldRef<"User", 'DateTime'>
-    readonly updatedAt: FieldRef<"User", 'DateTime'>
+  interface AdminFieldRefs {
+    readonly id: FieldRef<"Admin", 'String'>
+    readonly name: FieldRef<"Admin", 'String'>
+    readonly email: FieldRef<"Admin", 'String'>
+    readonly phone: FieldRef<"Admin", 'String'>
+    readonly password: FieldRef<"Admin", 'String'>
+    readonly role: FieldRef<"Admin", 'Role'>
+    readonly avatarUrl: FieldRef<"Admin", 'String'>
+    readonly isActive: FieldRef<"Admin", 'Boolean'>
+    readonly lastLogin: FieldRef<"Admin", 'DateTime'>
+    readonly refreshToken: FieldRef<"Admin", 'String'>
+    readonly totpSecret: FieldRef<"Admin", 'String'>
+    readonly isTotpEnabled: FieldRef<"Admin", 'Boolean'>
+    readonly currentChallenge: FieldRef<"Admin", 'String'>
+    readonly createdAt: FieldRef<"Admin", 'DateTime'>
+    readonly updatedAt: FieldRef<"Admin", 'DateTime'>
   }
     
 
   // Custom InputTypes
   /**
-   * User findUnique
+   * Admin findUnique
    */
-  export type UserFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * Filter, which User to fetch.
+     * Filter, which Admin to fetch.
      */
-    where: UserWhereUniqueInput
+    where: AdminWhereUniqueInput
   }
 
   /**
-   * User findUniqueOrThrow
+   * Admin findUniqueOrThrow
    */
-  export type UserFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * Filter, which User to fetch.
+     * Filter, which Admin to fetch.
      */
-    where: UserWhereUniqueInput
+    where: AdminWhereUniqueInput
   }
 
   /**
-   * User findFirst
+   * Admin findFirst
    */
-  export type UserFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * Filter, which User to fetch.
+     * Filter, which Admin to fetch.
      */
-    where?: UserWhereInput
+    where?: AdminWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Users to fetch.
+     * Determine the order of Admins to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: AdminOrderByWithRelationInput | AdminOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for Users.
+     * Sets the position for searching for Admins.
      */
-    cursor?: UserWhereUniqueInput
+    cursor?: AdminWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Users from the position of the cursor.
+     * Take `±n` Admins from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Users.
+     * Skip the first `n` Admins.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of Users.
+     * Filter by unique combinations of Admins.
      */
-    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+    distinct?: AdminScalarFieldEnum | AdminScalarFieldEnum[]
   }
 
   /**
-   * User findFirstOrThrow
+   * Admin findFirstOrThrow
    */
-  export type UserFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * Filter, which User to fetch.
+     * Filter, which Admin to fetch.
      */
-    where?: UserWhereInput
+    where?: AdminWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Users to fetch.
+     * Determine the order of Admins to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: AdminOrderByWithRelationInput | AdminOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for Users.
+     * Sets the position for searching for Admins.
      */
-    cursor?: UserWhereUniqueInput
+    cursor?: AdminWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Users from the position of the cursor.
+     * Take `±n` Admins from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Users.
+     * Skip the first `n` Admins.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of Users.
+     * Filter by unique combinations of Admins.
      */
-    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+    distinct?: AdminScalarFieldEnum | AdminScalarFieldEnum[]
   }
 
   /**
-   * User findMany
+   * Admin findMany
    */
-  export type UserFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * Filter, which Users to fetch.
+     * Filter, which Admins to fetch.
      */
-    where?: UserWhereInput
+    where?: AdminWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Users to fetch.
+     * Determine the order of Admins to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: AdminOrderByWithRelationInput | AdminOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for listing Users.
+     * Sets the position for listing Admins.
      */
-    cursor?: UserWhereUniqueInput
+    cursor?: AdminWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Users from the position of the cursor.
+     * Take `±n` Admins from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Users.
+     * Skip the first `n` Admins.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of Users.
+     * Filter by unique combinations of Admins.
      */
-    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+    distinct?: AdminScalarFieldEnum | AdminScalarFieldEnum[]
   }
 
   /**
-   * User create
+   * Admin create
    */
-  export type UserCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * The data needed to create a User.
+     * The data needed to create a Admin.
      */
-    data: XOR<UserCreateInput, UserUncheckedCreateInput>
+    data: XOR<AdminCreateInput, AdminUncheckedCreateInput>
   }
 
   /**
-   * User createMany
+   * Admin createMany
    */
-  export type UserCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to create many Users.
+     * The data used to create many Admins.
      */
-    data: UserCreateManyInput | UserCreateManyInput[]
+    data: AdminCreateManyInput | AdminCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * User createManyAndReturn
+   * Admin createManyAndReturn
    */
-  export type UserCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelectCreateManyAndReturn<ExtArgs> | null
+    select?: AdminSelectCreateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
-     * The data used to create many Users.
+     * The data used to create many Admins.
      */
-    data: UserCreateManyInput | UserCreateManyInput[]
+    data: AdminCreateManyInput | AdminCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * User update
+   * Admin update
    */
-  export type UserUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * The data needed to update a User.
+     * The data needed to update a Admin.
      */
-    data: XOR<UserUpdateInput, UserUncheckedUpdateInput>
+    data: XOR<AdminUpdateInput, AdminUncheckedUpdateInput>
     /**
-     * Choose, which User to update.
+     * Choose, which Admin to update.
      */
-    where: UserWhereUniqueInput
+    where: AdminWhereUniqueInput
   }
 
   /**
-   * User updateMany
+   * Admin updateMany
    */
-  export type UserUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to update Users.
+     * The data used to update Admins.
      */
-    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>
+    data: XOR<AdminUpdateManyMutationInput, AdminUncheckedUpdateManyInput>
     /**
-     * Filter which Users to update
+     * Filter which Admins to update
      */
-    where?: UserWhereInput
+    where?: AdminWhereInput
     /**
-     * Limit how many Users to update.
+     * Limit how many Admins to update.
      */
     limit?: number
   }
 
   /**
-   * User updateManyAndReturn
+   * Admin updateManyAndReturn
    */
-  export type UserUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelectUpdateManyAndReturn<ExtArgs> | null
+    select?: AdminSelectUpdateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
-     * The data used to update Users.
+     * The data used to update Admins.
      */
-    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>
+    data: XOR<AdminUpdateManyMutationInput, AdminUncheckedUpdateManyInput>
     /**
-     * Filter which Users to update
+     * Filter which Admins to update
      */
-    where?: UserWhereInput
+    where?: AdminWhereInput
     /**
-     * Limit how many Users to update.
+     * Limit how many Admins to update.
      */
     limit?: number
   }
 
   /**
-   * User upsert
+   * Admin upsert
    */
-  export type UserUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * The filter to search for the User to update in case it exists.
+     * The filter to search for the Admin to update in case it exists.
      */
-    where: UserWhereUniqueInput
+    where: AdminWhereUniqueInput
     /**
-     * In case the User found by the `where` argument doesn't exist, create a new User with this data.
+     * In case the Admin found by the `where` argument doesn't exist, create a new Admin with this data.
      */
-    create: XOR<UserCreateInput, UserUncheckedCreateInput>
+    create: XOR<AdminCreateInput, AdminUncheckedCreateInput>
     /**
-     * In case the User was found with the provided `where` argument, update it with this data.
+     * In case the Admin was found with the provided `where` argument, update it with this data.
      */
-    update: XOR<UserUpdateInput, UserUncheckedUpdateInput>
+    update: XOR<AdminUpdateInput, AdminUncheckedUpdateInput>
   }
 
   /**
-   * User delete
+   * Admin delete
    */
-  export type UserDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
     /**
-     * Filter which User to delete.
+     * Filter which Admin to delete.
      */
-    where: UserWhereUniqueInput
+    where: AdminWhereUniqueInput
   }
 
   /**
-   * User deleteMany
+   * Admin deleteMany
    */
-  export type UserDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which Users to delete
+     * Filter which Admins to delete
      */
-    where?: UserWhereInput
+    where?: AdminWhereInput
     /**
-     * Limit how many Users to delete.
+     * Limit how many Admins to delete.
      */
     limit?: number
   }
 
   /**
-   * User.auditLog
+   * Admin.auditLog
    */
-  export type User$auditLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Admin$auditLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the AuditLog
      */
@@ -2478,9 +2477,9 @@ export namespace Prisma {
   }
 
   /**
-   * User.passkeys
+   * Admin.passkeys
    */
-  export type User$passkeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Admin$passkeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Passkey
      */
@@ -2502,21 +2501,21 @@ export namespace Prisma {
   }
 
   /**
-   * User without action
+   * Admin without action
    */
-  export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type AdminDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the User
+     * Select specific fields to fetch from the Admin
      */
-    select?: UserSelect<ExtArgs> | null
+    select?: AdminSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the User
+     * Omit specific fields from the Admin
      */
-    omit?: UserOmit<ExtArgs> | null
+    omit?: AdminOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: UserInclude<ExtArgs> | null
+    include?: AdminInclude<ExtArgs> | null
   }
 
 
@@ -2545,7 +2544,7 @@ export namespace Prisma {
     credentialID: Bytes | null
     credentialPublicKey: Bytes | null
     counter: bigint | null
-    userId: string | null
+    adminId: string | null
     createdAt: Date | null
   }
 
@@ -2554,7 +2553,7 @@ export namespace Prisma {
     credentialID: Bytes | null
     credentialPublicKey: Bytes | null
     counter: bigint | null
-    userId: string | null
+    adminId: string | null
     createdAt: Date | null
   }
 
@@ -2564,7 +2563,7 @@ export namespace Prisma {
     credentialPublicKey: number
     counter: number
     transports: number
-    userId: number
+    adminId: number
     createdAt: number
     _all: number
   }
@@ -2583,7 +2582,7 @@ export namespace Prisma {
     credentialID?: true
     credentialPublicKey?: true
     counter?: true
-    userId?: true
+    adminId?: true
     createdAt?: true
   }
 
@@ -2592,7 +2591,7 @@ export namespace Prisma {
     credentialID?: true
     credentialPublicKey?: true
     counter?: true
-    userId?: true
+    adminId?: true
     createdAt?: true
   }
 
@@ -2602,7 +2601,7 @@ export namespace Prisma {
     credentialPublicKey?: true
     counter?: true
     transports?: true
-    userId?: true
+    adminId?: true
     createdAt?: true
     _all?: true
   }
@@ -2699,7 +2698,7 @@ export namespace Prisma {
     credentialPublicKey: Bytes
     counter: bigint
     transports: string[]
-    userId: string
+    adminId: string
     createdAt: Date
     _count: PasskeyCountAggregateOutputType | null
     _avg: PasskeyAvgAggregateOutputType | null
@@ -2728,9 +2727,9 @@ export namespace Prisma {
     credentialPublicKey?: boolean
     counter?: boolean
     transports?: boolean
-    userId?: boolean
+    adminId?: boolean
     createdAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["passkey"]>
 
   export type PasskeySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2739,9 +2738,9 @@ export namespace Prisma {
     credentialPublicKey?: boolean
     counter?: boolean
     transports?: boolean
-    userId?: boolean
+    adminId?: boolean
     createdAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["passkey"]>
 
   export type PasskeySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -2750,9 +2749,9 @@ export namespace Prisma {
     credentialPublicKey?: boolean
     counter?: boolean
     transports?: boolean
-    userId?: boolean
+    adminId?: boolean
     createdAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["passkey"]>
 
   export type PasskeySelectScalar = {
@@ -2761,25 +2760,25 @@ export namespace Prisma {
     credentialPublicKey?: boolean
     counter?: boolean
     transports?: boolean
-    userId?: boolean
+    adminId?: boolean
     createdAt?: boolean
   }
 
-  export type PasskeyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "credentialID" | "credentialPublicKey" | "counter" | "transports" | "userId" | "createdAt", ExtArgs["result"]["passkey"]>
+  export type PasskeyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "credentialID" | "credentialPublicKey" | "counter" | "transports" | "adminId" | "createdAt", ExtArgs["result"]["passkey"]>
   export type PasskeyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }
   export type PasskeyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }
   export type PasskeyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }
 
   export type $PasskeyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Passkey"
     objects: {
-      user: Prisma.$UserPayload<ExtArgs>
+      admin: Prisma.$AdminPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2787,7 +2786,7 @@ export namespace Prisma {
       credentialPublicKey: Prisma.Bytes
       counter: bigint
       transports: string[]
-      userId: string
+      adminId: string
       createdAt: Date
     }, ExtArgs["result"]["passkey"]>
     composites: {}
@@ -3183,7 +3182,7 @@ export namespace Prisma {
    */
   export interface Prisma__PasskeyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    admin<T extends AdminDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminDefaultArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3218,7 +3217,7 @@ export namespace Prisma {
     readonly credentialPublicKey: FieldRef<"Passkey", 'Bytes'>
     readonly counter: FieldRef<"Passkey", 'BigInt'>
     readonly transports: FieldRef<"Passkey", 'String[]'>
-    readonly userId: FieldRef<"Passkey", 'String'>
+    readonly adminId: FieldRef<"Passkey", 'String'>
     readonly createdAt: FieldRef<"Passkey", 'DateTime'>
   }
     
@@ -3655,7 +3654,7 @@ export namespace Prisma {
     entity: string | null
     entityId: string | null
     createdAt: Date | null
-    userId: string | null
+    adminId: string | null
   }
 
   export type AuditLogMaxAggregateOutputType = {
@@ -3664,7 +3663,7 @@ export namespace Prisma {
     entity: string | null
     entityId: string | null
     createdAt: Date | null
-    userId: string | null
+    adminId: string | null
   }
 
   export type AuditLogCountAggregateOutputType = {
@@ -3674,7 +3673,7 @@ export namespace Prisma {
     entityId: number
     details: number
     createdAt: number
-    userId: number
+    adminId: number
     _all: number
   }
 
@@ -3685,7 +3684,7 @@ export namespace Prisma {
     entity?: true
     entityId?: true
     createdAt?: true
-    userId?: true
+    adminId?: true
   }
 
   export type AuditLogMaxAggregateInputType = {
@@ -3694,7 +3693,7 @@ export namespace Prisma {
     entity?: true
     entityId?: true
     createdAt?: true
-    userId?: true
+    adminId?: true
   }
 
   export type AuditLogCountAggregateInputType = {
@@ -3704,7 +3703,7 @@ export namespace Prisma {
     entityId?: true
     details?: true
     createdAt?: true
-    userId?: true
+    adminId?: true
     _all?: true
   }
 
@@ -3787,7 +3786,7 @@ export namespace Prisma {
     entityId: string
     details: JsonValue | null
     createdAt: Date
-    userId: string
+    adminId: string
     _count: AuditLogCountAggregateOutputType | null
     _min: AuditLogMinAggregateOutputType | null
     _max: AuditLogMaxAggregateOutputType | null
@@ -3814,8 +3813,8 @@ export namespace Prisma {
     entityId?: boolean
     details?: boolean
     createdAt?: boolean
-    userId?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    adminId?: boolean
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
   export type AuditLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3825,8 +3824,8 @@ export namespace Prisma {
     entityId?: boolean
     details?: boolean
     createdAt?: boolean
-    userId?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    adminId?: boolean
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
   export type AuditLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3836,8 +3835,8 @@ export namespace Prisma {
     entityId?: boolean
     details?: boolean
     createdAt?: boolean
-    userId?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    adminId?: boolean
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["auditLog"]>
 
   export type AuditLogSelectScalar = {
@@ -3847,24 +3846,24 @@ export namespace Prisma {
     entityId?: boolean
     details?: boolean
     createdAt?: boolean
-    userId?: boolean
+    adminId?: boolean
   }
 
-  export type AuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "action" | "entity" | "entityId" | "details" | "createdAt" | "userId", ExtArgs["result"]["auditLog"]>
+  export type AuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "action" | "entity" | "entityId" | "details" | "createdAt" | "adminId", ExtArgs["result"]["auditLog"]>
   export type AuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }
   export type AuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }
   export type AuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    admin?: boolean | AdminDefaultArgs<ExtArgs>
   }
 
   export type $AuditLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AuditLog"
     objects: {
-      user: Prisma.$UserPayload<ExtArgs>
+      admin: Prisma.$AdminPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3873,7 +3872,7 @@ export namespace Prisma {
       entityId: string
       details: Prisma.JsonValue | null
       createdAt: Date
-      userId: string
+      adminId: string
     }, ExtArgs["result"]["auditLog"]>
     composites: {}
   }
@@ -4268,7 +4267,7 @@ export namespace Prisma {
    */
   export interface Prisma__AuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    admin<T extends AdminDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AdminDefaultArgs<ExtArgs>>): Prisma__AdminClient<$Result.GetResult<Prisma.$AdminPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4304,7 +4303,7 @@ export namespace Prisma {
     readonly entityId: FieldRef<"AuditLog", 'String'>
     readonly details: FieldRef<"AuditLog", 'Json'>
     readonly createdAt: FieldRef<"AuditLog", 'DateTime'>
-    readonly userId: FieldRef<"AuditLog", 'String'>
+    readonly adminId: FieldRef<"AuditLog", 'String'>
   }
     
 
@@ -6936,7 +6935,7 @@ export namespace Prisma {
   export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-  export const UserScalarFieldEnum: {
+  export const AdminScalarFieldEnum: {
     id: 'id',
     name: 'name',
     email: 'email',
@@ -6954,7 +6953,7 @@ export namespace Prisma {
     updatedAt: 'updatedAt'
   };
 
-  export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+  export type AdminScalarFieldEnum = (typeof AdminScalarFieldEnum)[keyof typeof AdminScalarFieldEnum]
 
 
   export const PasskeyScalarFieldEnum: {
@@ -6963,7 +6962,7 @@ export namespace Prisma {
     credentialPublicKey: 'credentialPublicKey',
     counter: 'counter',
     transports: 'transports',
-    userId: 'userId',
+    adminId: 'adminId',
     createdAt: 'createdAt'
   };
 
@@ -6977,7 +6976,7 @@ export namespace Prisma {
     entityId: 'entityId',
     details: 'details',
     createdAt: 'createdAt',
-    userId: 'userId'
+    adminId: 'adminId'
   };
 
   export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
@@ -7185,30 +7184,30 @@ export namespace Prisma {
    */
 
 
-  export type UserWhereInput = {
-    AND?: UserWhereInput | UserWhereInput[]
-    OR?: UserWhereInput[]
-    NOT?: UserWhereInput | UserWhereInput[]
-    id?: StringFilter<"User"> | string
-    name?: StringFilter<"User"> | string
-    email?: StringFilter<"User"> | string
-    phone?: StringNullableFilter<"User"> | string | null
-    password?: StringFilter<"User"> | string
-    role?: EnumRoleFilter<"User"> | $Enums.Role
-    avatarUrl?: StringNullableFilter<"User"> | string | null
-    isActive?: BoolFilter<"User"> | boolean
-    lastLogin?: DateTimeFilter<"User"> | Date | string
-    refreshToken?: StringNullableFilter<"User"> | string | null
-    totpSecret?: StringNullableFilter<"User"> | string | null
-    isTotpEnabled?: BoolFilter<"User"> | boolean
-    currentChallenge?: StringNullableFilter<"User"> | string | null
-    createdAt?: DateTimeFilter<"User"> | Date | string
-    updatedAt?: DateTimeFilter<"User"> | Date | string
+  export type AdminWhereInput = {
+    AND?: AdminWhereInput | AdminWhereInput[]
+    OR?: AdminWhereInput[]
+    NOT?: AdminWhereInput | AdminWhereInput[]
+    id?: StringFilter<"Admin"> | string
+    name?: StringFilter<"Admin"> | string
+    email?: StringFilter<"Admin"> | string
+    phone?: StringNullableFilter<"Admin"> | string | null
+    password?: StringFilter<"Admin"> | string
+    role?: EnumRoleFilter<"Admin"> | $Enums.Role
+    avatarUrl?: StringNullableFilter<"Admin"> | string | null
+    isActive?: BoolFilter<"Admin"> | boolean
+    lastLogin?: DateTimeFilter<"Admin"> | Date | string
+    refreshToken?: StringNullableFilter<"Admin"> | string | null
+    totpSecret?: StringNullableFilter<"Admin"> | string | null
+    isTotpEnabled?: BoolFilter<"Admin"> | boolean
+    currentChallenge?: StringNullableFilter<"Admin"> | string | null
+    createdAt?: DateTimeFilter<"Admin"> | Date | string
+    updatedAt?: DateTimeFilter<"Admin"> | Date | string
     auditLog?: AuditLogListRelationFilter
     passkeys?: PasskeyListRelationFilter
   }
 
-  export type UserOrderByWithRelationInput = {
+  export type AdminOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
@@ -7228,30 +7227,30 @@ export namespace Prisma {
     passkeys?: PasskeyOrderByRelationAggregateInput
   }
 
-  export type UserWhereUniqueInput = Prisma.AtLeast<{
+  export type AdminWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     email?: string
-    AND?: UserWhereInput | UserWhereInput[]
-    OR?: UserWhereInput[]
-    NOT?: UserWhereInput | UserWhereInput[]
-    name?: StringFilter<"User"> | string
-    phone?: StringNullableFilter<"User"> | string | null
-    password?: StringFilter<"User"> | string
-    role?: EnumRoleFilter<"User"> | $Enums.Role
-    avatarUrl?: StringNullableFilter<"User"> | string | null
-    isActive?: BoolFilter<"User"> | boolean
-    lastLogin?: DateTimeFilter<"User"> | Date | string
-    refreshToken?: StringNullableFilter<"User"> | string | null
-    totpSecret?: StringNullableFilter<"User"> | string | null
-    isTotpEnabled?: BoolFilter<"User"> | boolean
-    currentChallenge?: StringNullableFilter<"User"> | string | null
-    createdAt?: DateTimeFilter<"User"> | Date | string
-    updatedAt?: DateTimeFilter<"User"> | Date | string
+    AND?: AdminWhereInput | AdminWhereInput[]
+    OR?: AdminWhereInput[]
+    NOT?: AdminWhereInput | AdminWhereInput[]
+    name?: StringFilter<"Admin"> | string
+    phone?: StringNullableFilter<"Admin"> | string | null
+    password?: StringFilter<"Admin"> | string
+    role?: EnumRoleFilter<"Admin"> | $Enums.Role
+    avatarUrl?: StringNullableFilter<"Admin"> | string | null
+    isActive?: BoolFilter<"Admin"> | boolean
+    lastLogin?: DateTimeFilter<"Admin"> | Date | string
+    refreshToken?: StringNullableFilter<"Admin"> | string | null
+    totpSecret?: StringNullableFilter<"Admin"> | string | null
+    isTotpEnabled?: BoolFilter<"Admin"> | boolean
+    currentChallenge?: StringNullableFilter<"Admin"> | string | null
+    createdAt?: DateTimeFilter<"Admin"> | Date | string
+    updatedAt?: DateTimeFilter<"Admin"> | Date | string
     auditLog?: AuditLogListRelationFilter
     passkeys?: PasskeyListRelationFilter
   }, "id" | "email">
 
-  export type UserOrderByWithAggregationInput = {
+  export type AdminOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
@@ -7267,30 +7266,30 @@ export namespace Prisma {
     currentChallenge?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    _count?: UserCountOrderByAggregateInput
-    _max?: UserMaxOrderByAggregateInput
-    _min?: UserMinOrderByAggregateInput
+    _count?: AdminCountOrderByAggregateInput
+    _max?: AdminMaxOrderByAggregateInput
+    _min?: AdminMinOrderByAggregateInput
   }
 
-  export type UserScalarWhereWithAggregatesInput = {
-    AND?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
-    OR?: UserScalarWhereWithAggregatesInput[]
-    NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"User"> | string
-    name?: StringWithAggregatesFilter<"User"> | string
-    email?: StringWithAggregatesFilter<"User"> | string
-    phone?: StringNullableWithAggregatesFilter<"User"> | string | null
-    password?: StringWithAggregatesFilter<"User"> | string
-    role?: EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
-    avatarUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
-    isActive?: BoolWithAggregatesFilter<"User"> | boolean
-    lastLogin?: DateTimeWithAggregatesFilter<"User"> | Date | string
-    refreshToken?: StringNullableWithAggregatesFilter<"User"> | string | null
-    totpSecret?: StringNullableWithAggregatesFilter<"User"> | string | null
-    isTotpEnabled?: BoolWithAggregatesFilter<"User"> | boolean
-    currentChallenge?: StringNullableWithAggregatesFilter<"User"> | string | null
-    createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  export type AdminScalarWhereWithAggregatesInput = {
+    AND?: AdminScalarWhereWithAggregatesInput | AdminScalarWhereWithAggregatesInput[]
+    OR?: AdminScalarWhereWithAggregatesInput[]
+    NOT?: AdminScalarWhereWithAggregatesInput | AdminScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Admin"> | string
+    name?: StringWithAggregatesFilter<"Admin"> | string
+    email?: StringWithAggregatesFilter<"Admin"> | string
+    phone?: StringNullableWithAggregatesFilter<"Admin"> | string | null
+    password?: StringWithAggregatesFilter<"Admin"> | string
+    role?: EnumRoleWithAggregatesFilter<"Admin"> | $Enums.Role
+    avatarUrl?: StringNullableWithAggregatesFilter<"Admin"> | string | null
+    isActive?: BoolWithAggregatesFilter<"Admin"> | boolean
+    lastLogin?: DateTimeWithAggregatesFilter<"Admin"> | Date | string
+    refreshToken?: StringNullableWithAggregatesFilter<"Admin"> | string | null
+    totpSecret?: StringNullableWithAggregatesFilter<"Admin"> | string | null
+    isTotpEnabled?: BoolWithAggregatesFilter<"Admin"> | boolean
+    currentChallenge?: StringNullableWithAggregatesFilter<"Admin"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Admin"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Admin"> | Date | string
   }
 
   export type PasskeyWhereInput = {
@@ -7302,9 +7301,9 @@ export namespace Prisma {
     credentialPublicKey?: BytesFilter<"Passkey"> | Bytes
     counter?: BigIntFilter<"Passkey"> | bigint | number
     transports?: StringNullableListFilter<"Passkey">
-    userId?: StringFilter<"Passkey"> | string
+    adminId?: StringFilter<"Passkey"> | string
     createdAt?: DateTimeFilter<"Passkey"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    admin?: XOR<AdminScalarRelationFilter, AdminWhereInput>
   }
 
   export type PasskeyOrderByWithRelationInput = {
@@ -7313,9 +7312,9 @@ export namespace Prisma {
     credentialPublicKey?: SortOrder
     counter?: SortOrder
     transports?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
-    user?: UserOrderByWithRelationInput
+    admin?: AdminOrderByWithRelationInput
   }
 
   export type PasskeyWhereUniqueInput = Prisma.AtLeast<{
@@ -7327,9 +7326,9 @@ export namespace Prisma {
     credentialPublicKey?: BytesFilter<"Passkey"> | Bytes
     counter?: BigIntFilter<"Passkey"> | bigint | number
     transports?: StringNullableListFilter<"Passkey">
-    userId?: StringFilter<"Passkey"> | string
+    adminId?: StringFilter<"Passkey"> | string
     createdAt?: DateTimeFilter<"Passkey"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    admin?: XOR<AdminScalarRelationFilter, AdminWhereInput>
   }, "id">
 
   export type PasskeyOrderByWithAggregationInput = {
@@ -7338,7 +7337,7 @@ export namespace Prisma {
     credentialPublicKey?: SortOrder
     counter?: SortOrder
     transports?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
     _count?: PasskeyCountOrderByAggregateInput
     _avg?: PasskeyAvgOrderByAggregateInput
@@ -7356,7 +7355,7 @@ export namespace Prisma {
     credentialPublicKey?: BytesWithAggregatesFilter<"Passkey"> | Bytes
     counter?: BigIntWithAggregatesFilter<"Passkey"> | bigint | number
     transports?: StringNullableListFilter<"Passkey">
-    userId?: StringWithAggregatesFilter<"Passkey"> | string
+    adminId?: StringWithAggregatesFilter<"Passkey"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Passkey"> | Date | string
   }
 
@@ -7370,8 +7369,8 @@ export namespace Prisma {
     entityId?: StringFilter<"AuditLog"> | string
     details?: JsonNullableFilter<"AuditLog">
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-    userId?: StringFilter<"AuditLog"> | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    adminId?: StringFilter<"AuditLog"> | string
+    admin?: XOR<AdminScalarRelationFilter, AdminWhereInput>
   }
 
   export type AuditLogOrderByWithRelationInput = {
@@ -7381,8 +7380,8 @@ export namespace Prisma {
     entityId?: SortOrder
     details?: SortOrderInput | SortOrder
     createdAt?: SortOrder
-    userId?: SortOrder
-    user?: UserOrderByWithRelationInput
+    adminId?: SortOrder
+    admin?: AdminOrderByWithRelationInput
   }
 
   export type AuditLogWhereUniqueInput = Prisma.AtLeast<{
@@ -7395,8 +7394,8 @@ export namespace Prisma {
     entityId?: StringFilter<"AuditLog"> | string
     details?: JsonNullableFilter<"AuditLog">
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-    userId?: StringFilter<"AuditLog"> | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    adminId?: StringFilter<"AuditLog"> | string
+    admin?: XOR<AdminScalarRelationFilter, AdminWhereInput>
   }, "id">
 
   export type AuditLogOrderByWithAggregationInput = {
@@ -7406,7 +7405,7 @@ export namespace Prisma {
     entityId?: SortOrder
     details?: SortOrderInput | SortOrder
     createdAt?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
     _count?: AuditLogCountOrderByAggregateInput
     _max?: AuditLogMaxOrderByAggregateInput
     _min?: AuditLogMinOrderByAggregateInput
@@ -7422,7 +7421,7 @@ export namespace Prisma {
     entityId?: StringWithAggregatesFilter<"AuditLog"> | string
     details?: JsonNullableWithAggregatesFilter<"AuditLog">
     createdAt?: DateTimeWithAggregatesFilter<"AuditLog"> | Date | string
-    userId?: StringWithAggregatesFilter<"AuditLog"> | string
+    adminId?: StringWithAggregatesFilter<"AuditLog"> | string
   }
 
   export type RestaurantSettingsWhereInput = {
@@ -7591,7 +7590,7 @@ export namespace Prisma {
     updated_at?: DateTimeWithAggregatesFilter<"AppConfig"> | Date | string
   }
 
-  export type UserCreateInput = {
+  export type AdminCreateInput = {
     id?: string
     name: string
     email: string
@@ -7607,11 +7606,11 @@ export namespace Prisma {
     currentChallenge?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    auditLog?: AuditLogCreateNestedManyWithoutUserInput
-    passkeys?: PasskeyCreateNestedManyWithoutUserInput
+    auditLog?: AuditLogCreateNestedManyWithoutAdminInput
+    passkeys?: PasskeyCreateNestedManyWithoutAdminInput
   }
 
-  export type UserUncheckedCreateInput = {
+  export type AdminUncheckedCreateInput = {
     id?: string
     name: string
     email: string
@@ -7627,11 +7626,11 @@ export namespace Prisma {
     currentChallenge?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    auditLog?: AuditLogUncheckedCreateNestedManyWithoutUserInput
-    passkeys?: PasskeyUncheckedCreateNestedManyWithoutUserInput
+    auditLog?: AuditLogUncheckedCreateNestedManyWithoutAdminInput
+    passkeys?: PasskeyUncheckedCreateNestedManyWithoutAdminInput
   }
 
-  export type UserUpdateInput = {
+  export type AdminUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -7647,11 +7646,11 @@ export namespace Prisma {
     currentChallenge?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    auditLog?: AuditLogUpdateManyWithoutUserNestedInput
-    passkeys?: PasskeyUpdateManyWithoutUserNestedInput
+    auditLog?: AuditLogUpdateManyWithoutAdminNestedInput
+    passkeys?: PasskeyUpdateManyWithoutAdminNestedInput
   }
 
-  export type UserUncheckedUpdateInput = {
+  export type AdminUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -7667,11 +7666,11 @@ export namespace Prisma {
     currentChallenge?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    auditLog?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
-    passkeys?: PasskeyUncheckedUpdateManyWithoutUserNestedInput
+    auditLog?: AuditLogUncheckedUpdateManyWithoutAdminNestedInput
+    passkeys?: PasskeyUncheckedUpdateManyWithoutAdminNestedInput
   }
 
-  export type UserCreateManyInput = {
+  export type AdminCreateManyInput = {
     id?: string
     name: string
     email: string
@@ -7689,7 +7688,7 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type UserUpdateManyMutationInput = {
+  export type AdminUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -7707,7 +7706,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type UserUncheckedUpdateManyInput = {
+  export type AdminUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -7732,7 +7731,7 @@ export namespace Prisma {
     counter: bigint | number
     transports?: PasskeyCreatetransportsInput | string[]
     createdAt?: Date | string
-    user: UserCreateNestedOneWithoutPasskeysInput
+    admin: AdminCreateNestedOneWithoutPasskeysInput
   }
 
   export type PasskeyUncheckedCreateInput = {
@@ -7741,7 +7740,7 @@ export namespace Prisma {
     credentialPublicKey: Bytes
     counter: bigint | number
     transports?: PasskeyCreatetransportsInput | string[]
-    userId: string
+    adminId: string
     createdAt?: Date | string
   }
 
@@ -7752,7 +7751,7 @@ export namespace Prisma {
     counter?: BigIntFieldUpdateOperationsInput | bigint | number
     transports?: PasskeyUpdatetransportsInput | string[]
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutPasskeysNestedInput
+    admin?: AdminUpdateOneRequiredWithoutPasskeysNestedInput
   }
 
   export type PasskeyUncheckedUpdateInput = {
@@ -7761,7 +7760,7 @@ export namespace Prisma {
     credentialPublicKey?: BytesFieldUpdateOperationsInput | Bytes
     counter?: BigIntFieldUpdateOperationsInput | bigint | number
     transports?: PasskeyUpdatetransportsInput | string[]
-    userId?: StringFieldUpdateOperationsInput | string
+    adminId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7771,7 +7770,7 @@ export namespace Prisma {
     credentialPublicKey: Bytes
     counter: bigint | number
     transports?: PasskeyCreatetransportsInput | string[]
-    userId: string
+    adminId: string
     createdAt?: Date | string
   }
 
@@ -7790,7 +7789,7 @@ export namespace Prisma {
     credentialPublicKey?: BytesFieldUpdateOperationsInput | Bytes
     counter?: BigIntFieldUpdateOperationsInput | bigint | number
     transports?: PasskeyUpdatetransportsInput | string[]
-    userId?: StringFieldUpdateOperationsInput | string
+    adminId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7801,7 +7800,7 @@ export namespace Prisma {
     entityId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
-    user: UserCreateNestedOneWithoutAuditLogInput
+    admin: AdminCreateNestedOneWithoutAuditLogInput
   }
 
   export type AuditLogUncheckedCreateInput = {
@@ -7811,7 +7810,7 @@ export namespace Prisma {
     entityId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
-    userId: string
+    adminId: string
   }
 
   export type AuditLogUpdateInput = {
@@ -7821,7 +7820,7 @@ export namespace Prisma {
     entityId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutAuditLogNestedInput
+    admin?: AdminUpdateOneRequiredWithoutAuditLogNestedInput
   }
 
   export type AuditLogUncheckedUpdateInput = {
@@ -7831,7 +7830,7 @@ export namespace Prisma {
     entityId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: StringFieldUpdateOperationsInput | string
+    adminId?: StringFieldUpdateOperationsInput | string
   }
 
   export type AuditLogCreateManyInput = {
@@ -7841,7 +7840,7 @@ export namespace Prisma {
     entityId: string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
-    userId: string
+    adminId: string
   }
 
   export type AuditLogUpdateManyMutationInput = {
@@ -7860,7 +7859,7 @@ export namespace Prisma {
     entityId?: StringFieldUpdateOperationsInput | string
     details?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: StringFieldUpdateOperationsInput | string
+    adminId?: StringFieldUpdateOperationsInput | string
   }
 
   export type RestaurantSettingsCreateInput = {
@@ -8137,7 +8136,7 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type UserCountOrderByAggregateInput = {
+  export type AdminCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
@@ -8155,7 +8154,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type UserMaxOrderByAggregateInput = {
+  export type AdminMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
@@ -8173,7 +8172,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type UserMinOrderByAggregateInput = {
+  export type AdminMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     email?: SortOrder
@@ -8285,9 +8284,9 @@ export namespace Prisma {
     isEmpty?: boolean
   }
 
-  export type UserScalarRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
+  export type AdminScalarRelationFilter = {
+    is?: AdminWhereInput
+    isNot?: AdminWhereInput
   }
 
   export type PasskeyCountOrderByAggregateInput = {
@@ -8296,7 +8295,7 @@ export namespace Prisma {
     credentialPublicKey?: SortOrder
     counter?: SortOrder
     transports?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8309,7 +8308,7 @@ export namespace Prisma {
     credentialID?: SortOrder
     credentialPublicKey?: SortOrder
     counter?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8318,7 +8317,7 @@ export namespace Prisma {
     credentialID?: SortOrder
     credentialPublicKey?: SortOrder
     counter?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -8382,7 +8381,7 @@ export namespace Prisma {
     entityId?: SortOrder
     details?: SortOrder
     createdAt?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
   }
 
   export type AuditLogMaxOrderByAggregateInput = {
@@ -8391,7 +8390,7 @@ export namespace Prisma {
     entity?: SortOrder
     entityId?: SortOrder
     createdAt?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
   }
 
   export type AuditLogMinOrderByAggregateInput = {
@@ -8400,7 +8399,7 @@ export namespace Prisma {
     entity?: SortOrder
     entityId?: SortOrder
     createdAt?: SortOrder
-    userId?: SortOrder
+    adminId?: SortOrder
   }
   export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -8552,31 +8551,31 @@ export namespace Prisma {
     updated_at?: SortOrder
   }
 
-  export type AuditLogCreateNestedManyWithoutUserInput = {
-    create?: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput> | AuditLogCreateWithoutUserInput[] | AuditLogUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: AuditLogCreateOrConnectWithoutUserInput | AuditLogCreateOrConnectWithoutUserInput[]
-    createMany?: AuditLogCreateManyUserInputEnvelope
+  export type AuditLogCreateNestedManyWithoutAdminInput = {
+    create?: XOR<AuditLogCreateWithoutAdminInput, AuditLogUncheckedCreateWithoutAdminInput> | AuditLogCreateWithoutAdminInput[] | AuditLogUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutAdminInput | AuditLogCreateOrConnectWithoutAdminInput[]
+    createMany?: AuditLogCreateManyAdminInputEnvelope
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
   }
 
-  export type PasskeyCreateNestedManyWithoutUserInput = {
-    create?: XOR<PasskeyCreateWithoutUserInput, PasskeyUncheckedCreateWithoutUserInput> | PasskeyCreateWithoutUserInput[] | PasskeyUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PasskeyCreateOrConnectWithoutUserInput | PasskeyCreateOrConnectWithoutUserInput[]
-    createMany?: PasskeyCreateManyUserInputEnvelope
+  export type PasskeyCreateNestedManyWithoutAdminInput = {
+    create?: XOR<PasskeyCreateWithoutAdminInput, PasskeyUncheckedCreateWithoutAdminInput> | PasskeyCreateWithoutAdminInput[] | PasskeyUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: PasskeyCreateOrConnectWithoutAdminInput | PasskeyCreateOrConnectWithoutAdminInput[]
+    createMany?: PasskeyCreateManyAdminInputEnvelope
     connect?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
   }
 
-  export type AuditLogUncheckedCreateNestedManyWithoutUserInput = {
-    create?: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput> | AuditLogCreateWithoutUserInput[] | AuditLogUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: AuditLogCreateOrConnectWithoutUserInput | AuditLogCreateOrConnectWithoutUserInput[]
-    createMany?: AuditLogCreateManyUserInputEnvelope
+  export type AuditLogUncheckedCreateNestedManyWithoutAdminInput = {
+    create?: XOR<AuditLogCreateWithoutAdminInput, AuditLogUncheckedCreateWithoutAdminInput> | AuditLogCreateWithoutAdminInput[] | AuditLogUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutAdminInput | AuditLogCreateOrConnectWithoutAdminInput[]
+    createMany?: AuditLogCreateManyAdminInputEnvelope
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
   }
 
-  export type PasskeyUncheckedCreateNestedManyWithoutUserInput = {
-    create?: XOR<PasskeyCreateWithoutUserInput, PasskeyUncheckedCreateWithoutUserInput> | PasskeyCreateWithoutUserInput[] | PasskeyUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PasskeyCreateOrConnectWithoutUserInput | PasskeyCreateOrConnectWithoutUserInput[]
-    createMany?: PasskeyCreateManyUserInputEnvelope
+  export type PasskeyUncheckedCreateNestedManyWithoutAdminInput = {
+    create?: XOR<PasskeyCreateWithoutAdminInput, PasskeyUncheckedCreateWithoutAdminInput> | PasskeyCreateWithoutAdminInput[] | PasskeyUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: PasskeyCreateOrConnectWithoutAdminInput | PasskeyCreateOrConnectWithoutAdminInput[]
+    createMany?: PasskeyCreateManyAdminInputEnvelope
     connect?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
   }
 
@@ -8600,59 +8599,59 @@ export namespace Prisma {
     set?: Date | string
   }
 
-  export type AuditLogUpdateManyWithoutUserNestedInput = {
-    create?: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput> | AuditLogCreateWithoutUserInput[] | AuditLogUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: AuditLogCreateOrConnectWithoutUserInput | AuditLogCreateOrConnectWithoutUserInput[]
-    upsert?: AuditLogUpsertWithWhereUniqueWithoutUserInput | AuditLogUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: AuditLogCreateManyUserInputEnvelope
+  export type AuditLogUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<AuditLogCreateWithoutAdminInput, AuditLogUncheckedCreateWithoutAdminInput> | AuditLogCreateWithoutAdminInput[] | AuditLogUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutAdminInput | AuditLogCreateOrConnectWithoutAdminInput[]
+    upsert?: AuditLogUpsertWithWhereUniqueWithoutAdminInput | AuditLogUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: AuditLogCreateManyAdminInputEnvelope
     set?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
     disconnect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
     delete?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
-    update?: AuditLogUpdateWithWhereUniqueWithoutUserInput | AuditLogUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: AuditLogUpdateManyWithWhereWithoutUserInput | AuditLogUpdateManyWithWhereWithoutUserInput[]
+    update?: AuditLogUpdateWithWhereUniqueWithoutAdminInput | AuditLogUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: AuditLogUpdateManyWithWhereWithoutAdminInput | AuditLogUpdateManyWithWhereWithoutAdminInput[]
     deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
   }
 
-  export type PasskeyUpdateManyWithoutUserNestedInput = {
-    create?: XOR<PasskeyCreateWithoutUserInput, PasskeyUncheckedCreateWithoutUserInput> | PasskeyCreateWithoutUserInput[] | PasskeyUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PasskeyCreateOrConnectWithoutUserInput | PasskeyCreateOrConnectWithoutUserInput[]
-    upsert?: PasskeyUpsertWithWhereUniqueWithoutUserInput | PasskeyUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: PasskeyCreateManyUserInputEnvelope
+  export type PasskeyUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<PasskeyCreateWithoutAdminInput, PasskeyUncheckedCreateWithoutAdminInput> | PasskeyCreateWithoutAdminInput[] | PasskeyUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: PasskeyCreateOrConnectWithoutAdminInput | PasskeyCreateOrConnectWithoutAdminInput[]
+    upsert?: PasskeyUpsertWithWhereUniqueWithoutAdminInput | PasskeyUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: PasskeyCreateManyAdminInputEnvelope
     set?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
     disconnect?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
     delete?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
     connect?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
-    update?: PasskeyUpdateWithWhereUniqueWithoutUserInput | PasskeyUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: PasskeyUpdateManyWithWhereWithoutUserInput | PasskeyUpdateManyWithWhereWithoutUserInput[]
+    update?: PasskeyUpdateWithWhereUniqueWithoutAdminInput | PasskeyUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: PasskeyUpdateManyWithWhereWithoutAdminInput | PasskeyUpdateManyWithWhereWithoutAdminInput[]
     deleteMany?: PasskeyScalarWhereInput | PasskeyScalarWhereInput[]
   }
 
-  export type AuditLogUncheckedUpdateManyWithoutUserNestedInput = {
-    create?: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput> | AuditLogCreateWithoutUserInput[] | AuditLogUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: AuditLogCreateOrConnectWithoutUserInput | AuditLogCreateOrConnectWithoutUserInput[]
-    upsert?: AuditLogUpsertWithWhereUniqueWithoutUserInput | AuditLogUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: AuditLogCreateManyUserInputEnvelope
+  export type AuditLogUncheckedUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<AuditLogCreateWithoutAdminInput, AuditLogUncheckedCreateWithoutAdminInput> | AuditLogCreateWithoutAdminInput[] | AuditLogUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: AuditLogCreateOrConnectWithoutAdminInput | AuditLogCreateOrConnectWithoutAdminInput[]
+    upsert?: AuditLogUpsertWithWhereUniqueWithoutAdminInput | AuditLogUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: AuditLogCreateManyAdminInputEnvelope
     set?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
     disconnect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
     delete?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
     connect?: AuditLogWhereUniqueInput | AuditLogWhereUniqueInput[]
-    update?: AuditLogUpdateWithWhereUniqueWithoutUserInput | AuditLogUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: AuditLogUpdateManyWithWhereWithoutUserInput | AuditLogUpdateManyWithWhereWithoutUserInput[]
+    update?: AuditLogUpdateWithWhereUniqueWithoutAdminInput | AuditLogUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: AuditLogUpdateManyWithWhereWithoutAdminInput | AuditLogUpdateManyWithWhereWithoutAdminInput[]
     deleteMany?: AuditLogScalarWhereInput | AuditLogScalarWhereInput[]
   }
 
-  export type PasskeyUncheckedUpdateManyWithoutUserNestedInput = {
-    create?: XOR<PasskeyCreateWithoutUserInput, PasskeyUncheckedCreateWithoutUserInput> | PasskeyCreateWithoutUserInput[] | PasskeyUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PasskeyCreateOrConnectWithoutUserInput | PasskeyCreateOrConnectWithoutUserInput[]
-    upsert?: PasskeyUpsertWithWhereUniqueWithoutUserInput | PasskeyUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: PasskeyCreateManyUserInputEnvelope
+  export type PasskeyUncheckedUpdateManyWithoutAdminNestedInput = {
+    create?: XOR<PasskeyCreateWithoutAdminInput, PasskeyUncheckedCreateWithoutAdminInput> | PasskeyCreateWithoutAdminInput[] | PasskeyUncheckedCreateWithoutAdminInput[]
+    connectOrCreate?: PasskeyCreateOrConnectWithoutAdminInput | PasskeyCreateOrConnectWithoutAdminInput[]
+    upsert?: PasskeyUpsertWithWhereUniqueWithoutAdminInput | PasskeyUpsertWithWhereUniqueWithoutAdminInput[]
+    createMany?: PasskeyCreateManyAdminInputEnvelope
     set?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
     disconnect?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
     delete?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
     connect?: PasskeyWhereUniqueInput | PasskeyWhereUniqueInput[]
-    update?: PasskeyUpdateWithWhereUniqueWithoutUserInput | PasskeyUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: PasskeyUpdateManyWithWhereWithoutUserInput | PasskeyUpdateManyWithWhereWithoutUserInput[]
+    update?: PasskeyUpdateWithWhereUniqueWithoutAdminInput | PasskeyUpdateWithWhereUniqueWithoutAdminInput[]
+    updateMany?: PasskeyUpdateManyWithWhereWithoutAdminInput | PasskeyUpdateManyWithWhereWithoutAdminInput[]
     deleteMany?: PasskeyScalarWhereInput | PasskeyScalarWhereInput[]
   }
 
@@ -8660,10 +8659,10 @@ export namespace Prisma {
     set: string[]
   }
 
-  export type UserCreateNestedOneWithoutPasskeysInput = {
-    create?: XOR<UserCreateWithoutPasskeysInput, UserUncheckedCreateWithoutPasskeysInput>
-    connectOrCreate?: UserCreateOrConnectWithoutPasskeysInput
-    connect?: UserWhereUniqueInput
+  export type AdminCreateNestedOneWithoutPasskeysInput = {
+    create?: XOR<AdminCreateWithoutPasskeysInput, AdminUncheckedCreateWithoutPasskeysInput>
+    connectOrCreate?: AdminCreateOrConnectWithoutPasskeysInput
+    connect?: AdminWhereUniqueInput
   }
 
   export type BytesFieldUpdateOperationsInput = {
@@ -8683,26 +8682,26 @@ export namespace Prisma {
     push?: string | string[]
   }
 
-  export type UserUpdateOneRequiredWithoutPasskeysNestedInput = {
-    create?: XOR<UserCreateWithoutPasskeysInput, UserUncheckedCreateWithoutPasskeysInput>
-    connectOrCreate?: UserCreateOrConnectWithoutPasskeysInput
-    upsert?: UserUpsertWithoutPasskeysInput
-    connect?: UserWhereUniqueInput
-    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPasskeysInput, UserUpdateWithoutPasskeysInput>, UserUncheckedUpdateWithoutPasskeysInput>
+  export type AdminUpdateOneRequiredWithoutPasskeysNestedInput = {
+    create?: XOR<AdminCreateWithoutPasskeysInput, AdminUncheckedCreateWithoutPasskeysInput>
+    connectOrCreate?: AdminCreateOrConnectWithoutPasskeysInput
+    upsert?: AdminUpsertWithoutPasskeysInput
+    connect?: AdminWhereUniqueInput
+    update?: XOR<XOR<AdminUpdateToOneWithWhereWithoutPasskeysInput, AdminUpdateWithoutPasskeysInput>, AdminUncheckedUpdateWithoutPasskeysInput>
   }
 
-  export type UserCreateNestedOneWithoutAuditLogInput = {
-    create?: XOR<UserCreateWithoutAuditLogInput, UserUncheckedCreateWithoutAuditLogInput>
-    connectOrCreate?: UserCreateOrConnectWithoutAuditLogInput
-    connect?: UserWhereUniqueInput
+  export type AdminCreateNestedOneWithoutAuditLogInput = {
+    create?: XOR<AdminCreateWithoutAuditLogInput, AdminUncheckedCreateWithoutAuditLogInput>
+    connectOrCreate?: AdminCreateOrConnectWithoutAuditLogInput
+    connect?: AdminWhereUniqueInput
   }
 
-  export type UserUpdateOneRequiredWithoutAuditLogNestedInput = {
-    create?: XOR<UserCreateWithoutAuditLogInput, UserUncheckedCreateWithoutAuditLogInput>
-    connectOrCreate?: UserCreateOrConnectWithoutAuditLogInput
-    upsert?: UserUpsertWithoutAuditLogInput
-    connect?: UserWhereUniqueInput
-    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAuditLogInput, UserUpdateWithoutAuditLogInput>, UserUncheckedUpdateWithoutAuditLogInput>
+  export type AdminUpdateOneRequiredWithoutAuditLogNestedInput = {
+    create?: XOR<AdminCreateWithoutAuditLogInput, AdminUncheckedCreateWithoutAuditLogInput>
+    connectOrCreate?: AdminCreateOrConnectWithoutAuditLogInput
+    upsert?: AdminUpsertWithoutAuditLogInput
+    connect?: AdminWhereUniqueInput
+    update?: XOR<XOR<AdminUpdateToOneWithWhereWithoutAuditLogInput, AdminUpdateWithoutAuditLogInput>, AdminUncheckedUpdateWithoutAuditLogInput>
   }
 
   export type FloatFieldUpdateOperationsInput = {
@@ -8946,7 +8945,7 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type AuditLogCreateWithoutUserInput = {
+  export type AuditLogCreateWithoutAdminInput = {
     id?: string
     action: string
     entity: string
@@ -8955,7 +8954,7 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
-  export type AuditLogUncheckedCreateWithoutUserInput = {
+  export type AuditLogUncheckedCreateWithoutAdminInput = {
     id?: string
     action: string
     entity: string
@@ -8964,17 +8963,17 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
-  export type AuditLogCreateOrConnectWithoutUserInput = {
+  export type AuditLogCreateOrConnectWithoutAdminInput = {
     where: AuditLogWhereUniqueInput
-    create: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput>
+    create: XOR<AuditLogCreateWithoutAdminInput, AuditLogUncheckedCreateWithoutAdminInput>
   }
 
-  export type AuditLogCreateManyUserInputEnvelope = {
-    data: AuditLogCreateManyUserInput | AuditLogCreateManyUserInput[]
+  export type AuditLogCreateManyAdminInputEnvelope = {
+    data: AuditLogCreateManyAdminInput | AuditLogCreateManyAdminInput[]
     skipDuplicates?: boolean
   }
 
-  export type PasskeyCreateWithoutUserInput = {
+  export type PasskeyCreateWithoutAdminInput = {
     id?: string
     credentialID: Bytes
     credentialPublicKey: Bytes
@@ -8983,7 +8982,7 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
-  export type PasskeyUncheckedCreateWithoutUserInput = {
+  export type PasskeyUncheckedCreateWithoutAdminInput = {
     id?: string
     credentialID: Bytes
     credentialPublicKey: Bytes
@@ -8992,30 +8991,30 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
-  export type PasskeyCreateOrConnectWithoutUserInput = {
+  export type PasskeyCreateOrConnectWithoutAdminInput = {
     where: PasskeyWhereUniqueInput
-    create: XOR<PasskeyCreateWithoutUserInput, PasskeyUncheckedCreateWithoutUserInput>
+    create: XOR<PasskeyCreateWithoutAdminInput, PasskeyUncheckedCreateWithoutAdminInput>
   }
 
-  export type PasskeyCreateManyUserInputEnvelope = {
-    data: PasskeyCreateManyUserInput | PasskeyCreateManyUserInput[]
+  export type PasskeyCreateManyAdminInputEnvelope = {
+    data: PasskeyCreateManyAdminInput | PasskeyCreateManyAdminInput[]
     skipDuplicates?: boolean
   }
 
-  export type AuditLogUpsertWithWhereUniqueWithoutUserInput = {
+  export type AuditLogUpsertWithWhereUniqueWithoutAdminInput = {
     where: AuditLogWhereUniqueInput
-    update: XOR<AuditLogUpdateWithoutUserInput, AuditLogUncheckedUpdateWithoutUserInput>
-    create: XOR<AuditLogCreateWithoutUserInput, AuditLogUncheckedCreateWithoutUserInput>
+    update: XOR<AuditLogUpdateWithoutAdminInput, AuditLogUncheckedUpdateWithoutAdminInput>
+    create: XOR<AuditLogCreateWithoutAdminInput, AuditLogUncheckedCreateWithoutAdminInput>
   }
 
-  export type AuditLogUpdateWithWhereUniqueWithoutUserInput = {
+  export type AuditLogUpdateWithWhereUniqueWithoutAdminInput = {
     where: AuditLogWhereUniqueInput
-    data: XOR<AuditLogUpdateWithoutUserInput, AuditLogUncheckedUpdateWithoutUserInput>
+    data: XOR<AuditLogUpdateWithoutAdminInput, AuditLogUncheckedUpdateWithoutAdminInput>
   }
 
-  export type AuditLogUpdateManyWithWhereWithoutUserInput = {
+  export type AuditLogUpdateManyWithWhereWithoutAdminInput = {
     where: AuditLogScalarWhereInput
-    data: XOR<AuditLogUpdateManyMutationInput, AuditLogUncheckedUpdateManyWithoutUserInput>
+    data: XOR<AuditLogUpdateManyMutationInput, AuditLogUncheckedUpdateManyWithoutAdminInput>
   }
 
   export type AuditLogScalarWhereInput = {
@@ -9028,23 +9027,23 @@ export namespace Prisma {
     entityId?: StringFilter<"AuditLog"> | string
     details?: JsonNullableFilter<"AuditLog">
     createdAt?: DateTimeFilter<"AuditLog"> | Date | string
-    userId?: StringFilter<"AuditLog"> | string
+    adminId?: StringFilter<"AuditLog"> | string
   }
 
-  export type PasskeyUpsertWithWhereUniqueWithoutUserInput = {
+  export type PasskeyUpsertWithWhereUniqueWithoutAdminInput = {
     where: PasskeyWhereUniqueInput
-    update: XOR<PasskeyUpdateWithoutUserInput, PasskeyUncheckedUpdateWithoutUserInput>
-    create: XOR<PasskeyCreateWithoutUserInput, PasskeyUncheckedCreateWithoutUserInput>
+    update: XOR<PasskeyUpdateWithoutAdminInput, PasskeyUncheckedUpdateWithoutAdminInput>
+    create: XOR<PasskeyCreateWithoutAdminInput, PasskeyUncheckedCreateWithoutAdminInput>
   }
 
-  export type PasskeyUpdateWithWhereUniqueWithoutUserInput = {
+  export type PasskeyUpdateWithWhereUniqueWithoutAdminInput = {
     where: PasskeyWhereUniqueInput
-    data: XOR<PasskeyUpdateWithoutUserInput, PasskeyUncheckedUpdateWithoutUserInput>
+    data: XOR<PasskeyUpdateWithoutAdminInput, PasskeyUncheckedUpdateWithoutAdminInput>
   }
 
-  export type PasskeyUpdateManyWithWhereWithoutUserInput = {
+  export type PasskeyUpdateManyWithWhereWithoutAdminInput = {
     where: PasskeyScalarWhereInput
-    data: XOR<PasskeyUpdateManyMutationInput, PasskeyUncheckedUpdateManyWithoutUserInput>
+    data: XOR<PasskeyUpdateManyMutationInput, PasskeyUncheckedUpdateManyWithoutAdminInput>
   }
 
   export type PasskeyScalarWhereInput = {
@@ -9056,11 +9055,11 @@ export namespace Prisma {
     credentialPublicKey?: BytesFilter<"Passkey"> | Bytes
     counter?: BigIntFilter<"Passkey"> | bigint | number
     transports?: StringNullableListFilter<"Passkey">
-    userId?: StringFilter<"Passkey"> | string
+    adminId?: StringFilter<"Passkey"> | string
     createdAt?: DateTimeFilter<"Passkey"> | Date | string
   }
 
-  export type UserCreateWithoutPasskeysInput = {
+  export type AdminCreateWithoutPasskeysInput = {
     id?: string
     name: string
     email: string
@@ -9076,10 +9075,10 @@ export namespace Prisma {
     currentChallenge?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    auditLog?: AuditLogCreateNestedManyWithoutUserInput
+    auditLog?: AuditLogCreateNestedManyWithoutAdminInput
   }
 
-  export type UserUncheckedCreateWithoutPasskeysInput = {
+  export type AdminUncheckedCreateWithoutPasskeysInput = {
     id?: string
     name: string
     email: string
@@ -9095,26 +9094,26 @@ export namespace Prisma {
     currentChallenge?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    auditLog?: AuditLogUncheckedCreateNestedManyWithoutUserInput
+    auditLog?: AuditLogUncheckedCreateNestedManyWithoutAdminInput
   }
 
-  export type UserCreateOrConnectWithoutPasskeysInput = {
-    where: UserWhereUniqueInput
-    create: XOR<UserCreateWithoutPasskeysInput, UserUncheckedCreateWithoutPasskeysInput>
+  export type AdminCreateOrConnectWithoutPasskeysInput = {
+    where: AdminWhereUniqueInput
+    create: XOR<AdminCreateWithoutPasskeysInput, AdminUncheckedCreateWithoutPasskeysInput>
   }
 
-  export type UserUpsertWithoutPasskeysInput = {
-    update: XOR<UserUpdateWithoutPasskeysInput, UserUncheckedUpdateWithoutPasskeysInput>
-    create: XOR<UserCreateWithoutPasskeysInput, UserUncheckedCreateWithoutPasskeysInput>
-    where?: UserWhereInput
+  export type AdminUpsertWithoutPasskeysInput = {
+    update: XOR<AdminUpdateWithoutPasskeysInput, AdminUncheckedUpdateWithoutPasskeysInput>
+    create: XOR<AdminCreateWithoutPasskeysInput, AdminUncheckedCreateWithoutPasskeysInput>
+    where?: AdminWhereInput
   }
 
-  export type UserUpdateToOneWithWhereWithoutPasskeysInput = {
-    where?: UserWhereInput
-    data: XOR<UserUpdateWithoutPasskeysInput, UserUncheckedUpdateWithoutPasskeysInput>
+  export type AdminUpdateToOneWithWhereWithoutPasskeysInput = {
+    where?: AdminWhereInput
+    data: XOR<AdminUpdateWithoutPasskeysInput, AdminUncheckedUpdateWithoutPasskeysInput>
   }
 
-  export type UserUpdateWithoutPasskeysInput = {
+  export type AdminUpdateWithoutPasskeysInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -9130,10 +9129,10 @@ export namespace Prisma {
     currentChallenge?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    auditLog?: AuditLogUpdateManyWithoutUserNestedInput
+    auditLog?: AuditLogUpdateManyWithoutAdminNestedInput
   }
 
-  export type UserUncheckedUpdateWithoutPasskeysInput = {
+  export type AdminUncheckedUpdateWithoutPasskeysInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -9149,10 +9148,10 @@ export namespace Prisma {
     currentChallenge?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    auditLog?: AuditLogUncheckedUpdateManyWithoutUserNestedInput
+    auditLog?: AuditLogUncheckedUpdateManyWithoutAdminNestedInput
   }
 
-  export type UserCreateWithoutAuditLogInput = {
+  export type AdminCreateWithoutAuditLogInput = {
     id?: string
     name: string
     email: string
@@ -9168,10 +9167,10 @@ export namespace Prisma {
     currentChallenge?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    passkeys?: PasskeyCreateNestedManyWithoutUserInput
+    passkeys?: PasskeyCreateNestedManyWithoutAdminInput
   }
 
-  export type UserUncheckedCreateWithoutAuditLogInput = {
+  export type AdminUncheckedCreateWithoutAuditLogInput = {
     id?: string
     name: string
     email: string
@@ -9187,26 +9186,26 @@ export namespace Prisma {
     currentChallenge?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    passkeys?: PasskeyUncheckedCreateNestedManyWithoutUserInput
+    passkeys?: PasskeyUncheckedCreateNestedManyWithoutAdminInput
   }
 
-  export type UserCreateOrConnectWithoutAuditLogInput = {
-    where: UserWhereUniqueInput
-    create: XOR<UserCreateWithoutAuditLogInput, UserUncheckedCreateWithoutAuditLogInput>
+  export type AdminCreateOrConnectWithoutAuditLogInput = {
+    where: AdminWhereUniqueInput
+    create: XOR<AdminCreateWithoutAuditLogInput, AdminUncheckedCreateWithoutAuditLogInput>
   }
 
-  export type UserUpsertWithoutAuditLogInput = {
-    update: XOR<UserUpdateWithoutAuditLogInput, UserUncheckedUpdateWithoutAuditLogInput>
-    create: XOR<UserCreateWithoutAuditLogInput, UserUncheckedCreateWithoutAuditLogInput>
-    where?: UserWhereInput
+  export type AdminUpsertWithoutAuditLogInput = {
+    update: XOR<AdminUpdateWithoutAuditLogInput, AdminUncheckedUpdateWithoutAuditLogInput>
+    create: XOR<AdminCreateWithoutAuditLogInput, AdminUncheckedCreateWithoutAuditLogInput>
+    where?: AdminWhereInput
   }
 
-  export type UserUpdateToOneWithWhereWithoutAuditLogInput = {
-    where?: UserWhereInput
-    data: XOR<UserUpdateWithoutAuditLogInput, UserUncheckedUpdateWithoutAuditLogInput>
+  export type AdminUpdateToOneWithWhereWithoutAuditLogInput = {
+    where?: AdminWhereInput
+    data: XOR<AdminUpdateWithoutAuditLogInput, AdminUncheckedUpdateWithoutAuditLogInput>
   }
 
-  export type UserUpdateWithoutAuditLogInput = {
+  export type AdminUpdateWithoutAuditLogInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -9222,10 +9221,10 @@ export namespace Prisma {
     currentChallenge?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    passkeys?: PasskeyUpdateManyWithoutUserNestedInput
+    passkeys?: PasskeyUpdateManyWithoutAdminNestedInput
   }
 
-  export type UserUncheckedUpdateWithoutAuditLogInput = {
+  export type AdminUncheckedUpdateWithoutAuditLogInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -9241,10 +9240,10 @@ export namespace Prisma {
     currentChallenge?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    passkeys?: PasskeyUncheckedUpdateManyWithoutUserNestedInput
+    passkeys?: PasskeyUncheckedUpdateManyWithoutAdminNestedInput
   }
 
-  export type AuditLogCreateManyUserInput = {
+  export type AuditLogCreateManyAdminInput = {
     id?: string
     action: string
     entity: string
@@ -9253,7 +9252,7 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
-  export type PasskeyCreateManyUserInput = {
+  export type PasskeyCreateManyAdminInput = {
     id?: string
     credentialID: Bytes
     credentialPublicKey: Bytes
@@ -9262,7 +9261,7 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
-  export type AuditLogUpdateWithoutUserInput = {
+  export type AuditLogUpdateWithoutAdminInput = {
     id?: StringFieldUpdateOperationsInput | string
     action?: StringFieldUpdateOperationsInput | string
     entity?: StringFieldUpdateOperationsInput | string
@@ -9271,7 +9270,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type AuditLogUncheckedUpdateWithoutUserInput = {
+  export type AuditLogUncheckedUpdateWithoutAdminInput = {
     id?: StringFieldUpdateOperationsInput | string
     action?: StringFieldUpdateOperationsInput | string
     entity?: StringFieldUpdateOperationsInput | string
@@ -9280,7 +9279,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type AuditLogUncheckedUpdateManyWithoutUserInput = {
+  export type AuditLogUncheckedUpdateManyWithoutAdminInput = {
     id?: StringFieldUpdateOperationsInput | string
     action?: StringFieldUpdateOperationsInput | string
     entity?: StringFieldUpdateOperationsInput | string
@@ -9289,7 +9288,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type PasskeyUpdateWithoutUserInput = {
+  export type PasskeyUpdateWithoutAdminInput = {
     id?: StringFieldUpdateOperationsInput | string
     credentialID?: BytesFieldUpdateOperationsInput | Bytes
     credentialPublicKey?: BytesFieldUpdateOperationsInput | Bytes
@@ -9298,7 +9297,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type PasskeyUncheckedUpdateWithoutUserInput = {
+  export type PasskeyUncheckedUpdateWithoutAdminInput = {
     id?: StringFieldUpdateOperationsInput | string
     credentialID?: BytesFieldUpdateOperationsInput | Bytes
     credentialPublicKey?: BytesFieldUpdateOperationsInput | Bytes
@@ -9307,7 +9306,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type PasskeyUncheckedUpdateManyWithoutUserInput = {
+  export type PasskeyUncheckedUpdateManyWithoutAdminInput = {
     id?: StringFieldUpdateOperationsInput | string
     credentialID?: BytesFieldUpdateOperationsInput | Bytes
     credentialPublicKey?: BytesFieldUpdateOperationsInput | Bytes

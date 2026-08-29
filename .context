@@ -70,6 +70,16 @@
 - **SuperAdmin → Admin Promotion (#6)**:
   - Verified `updateRole` endpoint uses `requireSuperAdmin` correctly.
 
+### Phase 3.5: Architectural Refactoring ✅
+- **Backend Domain-Driven Refactoring**: 
+  - Migrated from a monolithic layered controller/route structure to a modular, feature-wise (domain-driven) design.
+  - Isolated features into independent modules (`auth`, `catalog`, `orders`, `reviews`, `settings`, `system`, `users`) inside `backend/src/modules/` for better maintainability and separation of concerns.
+- **Database Architecture Split**:
+  - Split the monolithic database into two independent databases: **Admin Database** (for users, audit logs, settings) and **Application Database** (for catalog, orders, customer data).
+  - Maintained shared authentication (JWT) while creating dual, independently connected Prisma clients (`prisma.admin.config.ts`, `prisma.app.config.ts`).
+
+---
+
 ## Phase 4 Implementation
 
 - **Review Management:**

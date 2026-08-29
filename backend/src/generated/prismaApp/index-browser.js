@@ -134,6 +134,13 @@ exports.Prisma.UserScalarFieldEnum = {
   totpSecret: 'totpSecret',
   isTotpEnabled: 'isTotpEnabled',
   currentChallenge: 'currentChallenge',
+  birthday: 'birthday',
+  visits: 'visits',
+  reward_points: 'reward_points',
+  total_spend: 'total_spend',
+  favourite_item: 'favourite_item',
+  saved_address: 'saved_address',
+  last_visit: 'last_visit',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -229,27 +236,13 @@ exports.Prisma.RestaurantTableScalarFieldEnum = {
   is_active: 'is_active'
 };
 
-exports.Prisma.CustomerScalarFieldEnum = {
-  id: 'id',
-  user_id: 'user_id',
-  name: 'name',
-  phone: 'phone',
-  birthday: 'birthday',
-  visits: 'visits',
-  reward_points: 'reward_points',
-  total_spend: 'total_spend',
-  favourite_item: 'favourite_item',
-  saved_address: 'saved_address',
-  last_visit: 'last_visit'
-};
-
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
   order_number: 'order_number',
   bill_id: 'bill_id',
   session_token: 'session_token',
   table_number: 'table_number',
-  customer_id: 'customer_id',
+  user_id: 'user_id',
   customer_name: 'customer_name',
   customer_phone: 'customer_phone',
   status: 'status',
@@ -357,7 +350,6 @@ exports.Prisma.ModelName = {
   LoyaltyRule: 'LoyaltyRule',
   InventoryItem: 'InventoryItem',
   RestaurantTable: 'RestaurantTable',
-  Customer: 'Customer',
   Order: 'Order',
   OrderItem: 'OrderItem',
   Review: 'Review',

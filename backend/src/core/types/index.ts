@@ -71,9 +71,10 @@ export interface AuditLogEntry {
   action: string;
   entity: string;
   entityId: string;
-  userId: string;
+  userId?: string;
+  adminId?: string;
   details?: Record<string, any>;
 }
 
-export type { TestUser } from "./testUser";
-export { testUser } from "./testUser";
+export interface TestUser { id: string; email: string; role: string; name?: string; }
+export const testUser: TestUser = { id: "test-user-id", email: "test@example.com", role: "USER", name: "Test User" };

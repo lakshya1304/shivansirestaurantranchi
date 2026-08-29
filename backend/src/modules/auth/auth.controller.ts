@@ -1,7 +1,7 @@
 // import { Request, Response } from "express";
 
 import { FastifyReply, FastifyRequest } from "fastify";
-import prisma from "../../core/config/databaseConfig";
+import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 
 import AuthService from "./auth.service";
 import asyncHandler from "../../core/utils/common/asyncHandler";
@@ -189,7 +189,7 @@ export const login = asyncHandler(async (req: LoginRequest, res: FastifyReply) =
 export const logout = asyncHandler(async (req: FastifyRequest, res: FastifyReply) => {
   const token =
     req.headers.authorization?.split(" ")[1] || req.cookies.refreshToken || "";
-  await authService.logout(req.user!.id, token);
+  await authService.logout(req.user!.id, token, req.user!.role);
 
   // Must pass matching options used at set-time so the browser actually deletes the cookie.
   const clearOpts = {
@@ -232,6 +232,7 @@ export const changePassword = asyncHandler(
       req.body.currentPassword,
       req.body.newPassword,
       token,
+      req.user!.role
     );
     res.clearCookie("refreshToken");
     sendSuccess(res, "Password changed successfully", STATUS_CODES.OK, null);
@@ -316,9 +317,12 @@ export const getMe = asyncHandler(async (req: FastifyRequest, res: FastifyReply)
     throw new UnauthorizedError("Not authenticated");
   }
 
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id }
-  });
+  let dbUser: any;
+  if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
+    dbUser = await prismaAdmin.admin.findUnique({ where: { id: user.id } });
+  } else {
+    dbUser = await prismaApp.user.findUnique({ where: { id: user.id } });
+  }
 
   sendSuccess(res, "Session details", STATUS_CODES.OK, {
     user: dbUser,

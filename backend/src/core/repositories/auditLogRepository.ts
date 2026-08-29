@@ -1,10 +1,11 @@
-import { AuditLog } from "../../generated/prisma";
+import { prismaAdmin } from "../config/databaseConfig";
+import { AuditLog } from "../../generated/prismaAdmin";
 import { AuditLogEntry } from "../types";
 import BaseRepository from "./baseRepository";
 
 export default class AuditLogRepository extends BaseRepository<AuditLog> {
   constructor() {
-    super("auditLog");
+    super("auditLog", prismaAdmin);
   }
 
   async logAction(entry: AuditLogEntry): Promise<AuditLog> {
@@ -12,7 +13,7 @@ export default class AuditLogRepository extends BaseRepository<AuditLog> {
       action: entry.action,
       entity: entry.entity,
       entityId: entry.entityId,
-      userId: entry.userId,
+      adminId: entry.adminId ?? entry.userId,
       details: entry.details || {},
     });
   }

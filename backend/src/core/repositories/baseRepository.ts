@@ -1,5 +1,5 @@
-import prisma from "../config/databaseConfig";
-import { Prisma } from "../../generated/prisma";
+import { prismaApp, prismaAdmin } from "../config/databaseConfig";
+import { Prisma } from "../../generated/prismaApp";
 import {
   AppError,
   ConflictError,
@@ -31,14 +31,14 @@ function handlePrismaError(error: any, modelName: string, operation: string): ne
 export default class BaseRepository<T = any> {
   protected modelName: string;
   protected model: any;
-  constructor(modelName: string) {
+  constructor(modelName: string, prismaClient: any) {
     if (!modelName || typeof modelName !== "string") {
       throw new AppError(
         `A ${modelName} model name(string) is required for BaseRepository. `,
       );
     }
     this.modelName = modelName;
-    this.model = (prisma as any)[modelName];
+    this.model = prismaClient[modelName];
 
     if (!this.model || typeof this.model.findUnique !== "function") {
       throw new NotFoundError(`${modelName} not found or is invalid in Prisma Client.`);

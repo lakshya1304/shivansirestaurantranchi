@@ -120,7 +120,7 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.UserScalarFieldEnum = {
+exports.Prisma.AdminScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
@@ -144,7 +144,7 @@ exports.Prisma.PasskeyScalarFieldEnum = {
   credentialPublicKey: 'credentialPublicKey',
   counter: 'counter',
   transports: 'transports',
-  userId: 'userId',
+  adminId: 'adminId',
   createdAt: 'createdAt'
 };
 
@@ -155,7 +155,7 @@ exports.Prisma.AuditLogScalarFieldEnum = {
   entityId: 'entityId',
   details: 'details',
   createdAt: 'createdAt',
-  userId: 'userId'
+  adminId: 'adminId'
 };
 
 exports.Prisma.RestaurantSettingsScalarFieldEnum = {
@@ -212,13 +212,12 @@ exports.Prisma.JsonNullValueFilter = {
   AnyNull: Prisma.AnyNull
 };
 exports.Role = exports.$Enums.Role = {
-  USER: 'USER',
   ADMIN: 'ADMIN',
   SUPERADMIN: 'SUPERADMIN'
 };
 
 exports.Prisma.ModelName = {
-  User: 'User',
+  Admin: 'Admin',
   Passkey: 'Passkey',
   AuditLog: 'AuditLog',
   RestaurantSettings: 'RestaurantSettings',

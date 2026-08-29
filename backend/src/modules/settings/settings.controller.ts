@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import prisma from "../../core/config/databaseConfig";
+import { prismaAdmin } from "../../core/config/databaseConfig";
 import logger from "../../core/config/loggerConfig";
 import env from "../../core/config/envConfig";
 
@@ -14,7 +14,7 @@ export const getSettings = async (req: FastifyRequest, res: FastifyReply) => {
       currency: true, theme: true, is_suspended: true
     };
     const settings = await fetchWithCache("data:settings", 60, () => 
-      prisma.restaurantSettings.findFirst({ select: PUBLIC_SETTINGS_COLUMNS })
+      prismaAdmin.restaurantSettings.findFirst({ select: PUBLIC_SETTINGS_COLUMNS })
     );
     return res.send(settings || null);
   } catch (error: any) {
@@ -25,8 +25,8 @@ export const getSettings = async (req: FastifyRequest, res: FastifyReply) => {
 
 export const getOwnerSettings = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const settings = await prisma.restaurantSettings.findFirst();
-    const config = await prisma.appConfig.findFirst();
+    const settings = await prismaAdmin.restaurantSettings.findFirst();
+    const config = await prismaAdmin.appConfig.findFirst();
 
     return res.send({
       ownerEmail: config?.owner_email ?? "",
@@ -43,14 +43,14 @@ export const saveOwnerSettings = async (req: FastifyRequest, res: FastifyReply) 
   try {
     const { ownerEmail, whatsappPhoneNumberId, whatsappToken } = req.body as any;
 
-    const settings = await prisma.restaurantSettings.findFirst();
+    const settings = await prismaAdmin.restaurantSettings.findFirst();
     if (!settings) {
-      await prisma.restaurantSettings.create({
+      await prismaAdmin.restaurantSettings.create({
         data: { name: env.BUSINESS_NAME }
       });
     }
 
-    const config = await prisma.appConfig.findFirst();
+    const config = await prismaAdmin.appConfig.findFirst();
     const configData: any = {
       whatsapp_phone_number_id: whatsappPhoneNumberId
     };
@@ -59,12 +59,12 @@ export const saveOwnerSettings = async (req: FastifyRequest, res: FastifyReply) 
     }
 
     if (config) {
-      await prisma.appConfig.update({
+      await prismaAdmin.appConfig.update({
         where: { id: config.id },
         data: configData
       });
     } else {
-      await prisma.appConfig.create({
+      await prismaAdmin.appConfig.create({
         data: configData
       });
     }

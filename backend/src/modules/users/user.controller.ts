@@ -1,7 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
-import prisma from "../../core/config/databaseConfig";
+import { prismaAdmin } from "../../core/config/databaseConfig";
 import { NotFoundError, ForbiddenError, BadRequestError } from "../../core/utils/errors/error";
+import { $Enums } from "../../generated/prismaAdmin";
 
 const ROOT_EMAIL = "nishanrajak01@gmail.com";
 
@@ -23,7 +24,7 @@ function assertCanModify(
 // ─── GET /data/users ─────────────────────────────────────────────────────────
 
 export const getAllUsers = async (req: FastifyRequest, reply: FastifyReply) => {
-  const users = await prisma.user.findMany({
+  const users = await prismaAdmin.admin.findMany({
     select: {
       id: true,
       name: true,
@@ -55,14 +56,14 @@ export const createUser = async (
   if (requestor.role === "ADMIN" && role === "SUPERADMIN")
     throw new ForbiddenError("Admins cannot create SUPERADMIN accounts");
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const existing = await prismaAdmin.admin.findUnique({ where: { email } });
   if (existing) throw new BadRequestError("A user with this email already exists");
 
   const salt = await bcrypt.genSalt(12);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  const user = await prisma.user.create({
-    data: { name: name || "", email, password: passwordHash, role },
+  const user = await prismaAdmin.admin.create({
+    data: { name: name || "", email, password: passwordHash, role: role as $Enums.Role },
     select: { id: true, name: true, email: true, role: true, createdAt: true, isActive: true },
   });
 
@@ -82,18 +83,18 @@ export const updateUser = async (
   const { name, email, isActive } = req.body;
   const requestor = req.user!;
 
-  const targetUser = await prisma.user.findUnique({ where: { id } });
+  const targetUser = await prismaAdmin.admin.findUnique({ where: { id } });
   if (!targetUser) throw new NotFoundError("User not found");
 
   assertCanModify(requestor.role, targetUser.role, targetUser.id, requestor.id);
 
   // If changing email, make sure it's not taken
   if (email && email !== targetUser.email) {
-    const clash = await prisma.user.findUnique({ where: { email } });
+    const clash = await prismaAdmin.admin.findUnique({ where: { email } });
     if (clash) throw new BadRequestError("Email already in use by another account");
   }
 
-  const updated = await prisma.user.update({
+  const updated = await prismaAdmin.admin.update({
     where: { id },
     data: {
       ...(name !== undefined && { name }),
@@ -121,17 +122,17 @@ export const updateRole = async (
 
   if (!["USER", "ADMIN", "SUPERADMIN"].includes(role)) throw new BadRequestError("Invalid role");
 
-  const targetUser = await prisma.user.findUnique({ where: { id } });
+  const targetUser = await prismaAdmin.admin.findUnique({ where: { id } });
   if (!targetUser) throw new NotFoundError("User not found");
 
   // Protect root superadmin
   if (targetUser.email === ROOT_EMAIL && role !== "SUPERADMIN")
     throw new ForbiddenError("The root SUPERADMIN cannot be demoted.");
 
-  const updated = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.update({
+  const updated = await prismaAdmin.$transaction(async (tx) => {
+    const user = await tx.admin.update({
       where: { id },
-      data: { role },
+      data: { role: role as $Enums.Role },
       select: { id: true, name: true, email: true, role: true, createdAt: true, isActive: true },
     });
 
@@ -141,7 +142,7 @@ export const updateRole = async (
         entity: "USER",
         entityId: id,
         details: { oldRole: targetUser.role, newRole: role },
-        userId: requestor.id
+        adminId: requestor.id
       }
     });
 
@@ -160,21 +161,21 @@ export const deleteUser = async (
   const { id } = req.params;
   const requestor = req.user!;
 
-  const targetUser = await prisma.user.findUnique({ where: { id } });
+  const targetUser = await prismaAdmin.admin.findUnique({ where: { id } });
   if (!targetUser) throw new NotFoundError("User not found");
 
   if (targetUser.id === requestor.id) throw new ForbiddenError("You cannot delete your own account");
   if (targetUser.email === ROOT_EMAIL) throw new ForbiddenError("The root SUPERADMIN cannot be deleted");
 
-  await prisma.$transaction(async (tx) => {
-    await tx.user.delete({ where: { id } });
+  await prismaAdmin.$transaction(async (tx) => {
+    await tx.admin.delete({ where: { id } });
     await tx.auditLog.create({
       data: {
         action: "DELETE_USER",
         entity: "USER",
         entityId: id,
         details: { deletedEmail: targetUser.email, deletedRole: targetUser.role },
-        userId: requestor.id
+        adminId: requestor.id
       }
     });
   });

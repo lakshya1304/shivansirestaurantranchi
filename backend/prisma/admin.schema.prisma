@@ -9,12 +9,11 @@ datasource db {
 }
 
 enum Role {
-  USER
   ADMIN
   SUPERADMIN
 }
 
-model User {
+model Admin {
   id       String  @id @default(uuid())
   name     String
   email    String  @unique
@@ -41,7 +40,7 @@ model User {
 
   @@index([email])
   @@index([role])
-  @@map("users")
+  @@map("admins")
 }
 
 model Passkey {
@@ -51,12 +50,12 @@ model Passkey {
   counter        BigInt
   transports     String[]
   
-  userId         String
-  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminId        String
+  admin          Admin   @relation(fields: [adminId], references: [id], onDelete: Cascade)
   
   createdAt      DateTime @default(now())
 
-  @@index([userId])
+  @@index([adminId])
   @@index([credentialID])
   @@map("passkeys")
 }
@@ -70,10 +69,10 @@ model AuditLog {
 
   createdAt DateTime @default(now())
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminId String
+  admin   Admin   @relation(fields: [adminId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([adminId])
   @@index([entity])
   @@index([createdAt])
   @@map("audit_logs")

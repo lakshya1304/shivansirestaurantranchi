@@ -1,4 +1,4 @@
-import redis from "../../config/redisConfig";
+import { cache as redis } from "../../config/redisConfig";
 import {
   JWT_ACCESS_EXPIRY,
   JWT_ACCESS_SECRET,

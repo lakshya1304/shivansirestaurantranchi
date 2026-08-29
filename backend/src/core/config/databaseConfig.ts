@@ -10,11 +10,11 @@ const connectionStringAdmin = env.ADMIN_DATABASE_URL;
 const connectionStringApp = env.APP_DATABASE_URL;
 
 const poolAdmin = new Pool({ connectionString: connectionStringAdmin, max: 20, idleTimeoutMillis: 30000 });
-const adapterAdmin = new PrismaPg(poolAdmin);
+const adapterAdmin = new PrismaPg(poolAdmin as any);
 const basePrismaAdmin = new PrismaAdminClient({ adapter: adapterAdmin });
 
 const poolApp = new Pool({ connectionString: connectionStringApp, max: 20, idleTimeoutMillis: 30000 });
-const adapterApp = new PrismaPg(poolApp);
+const adapterApp = new PrismaPg(poolApp as any);
 const basePrismaApp = new PrismaAppClient({ adapter: adapterApp });
 
 interface UserData {
@@ -22,7 +22,7 @@ interface UserData {
   [key: string]: any;
 }
 
-const SALT_ROUNDS = env.SALT_ROUNDS || 10;
+const SALT_ROUNDS = env.SALT_ROUND || 10;
 
 async function hashUserPassword(data: UserData): Promise<void> {
   if (data && data.password) {
@@ -33,7 +33,7 @@ async function hashUserPassword(data: UserData): Promise<void> {
 
 export const prismaAdmin = basePrismaAdmin.$extends({
   query: {
-    user: {
+    admin: {
       async create({ args, query }: any) {
         await hashUserPassword(args.data);
         return query(args);

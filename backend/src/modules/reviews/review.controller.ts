@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import prisma from "../../core/config/databaseConfig";
+import { prismaApp } from "../../core/config/databaseConfig";
 import logger from "../../core/config/loggerConfig";
 import { fetchWithCache } from "../../core/config/redisConfig";
 
@@ -11,7 +11,7 @@ export const getReviews = async (req: FastifyRequest, res: FastifyReply) => {
     const take = Math.min(Number(limit) || 6, 50);
     const cacheKey = `data:reviews:all=${showAll}:limit=${take}`;
     const reviews = await fetchWithCache(cacheKey, 30, () =>
-      prisma.review.findMany({
+      prismaApp.review.findMany({
         where: showAll ? undefined : { is_published: true },
         orderBy: { created_at: "desc" },
         take,
@@ -70,7 +70,7 @@ export const updateReviewPublished = async (req: FastifyRequest, res: FastifyRep
     if (typeof is_published !== "boolean") {
       return res.status(400).send({ error: "is_published must be a boolean" });
     }
-    const review = await prisma.review.update({
+    const review = await prismaApp.review.update({
       where: { id },
       data: { is_published },
     });

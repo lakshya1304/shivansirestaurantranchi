@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import prisma from "../../core/config/databaseConfig";
+import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 import logger from "../../core/config/loggerConfig";
 
 // Map frontend table names to Prisma model names
@@ -29,7 +29,8 @@ export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
       return res.status(400).send({ error: `Invalid table: ${table}` });
     }
 
-    const delegate = (prisma as any)[modelName];
+    let delegate = (prismaApp as any)[modelName];
+    if (!delegate) delegate = (prismaAdmin as any)[modelName];
     
     if (data.id) {
       // Update
@@ -60,7 +61,8 @@ export const deleteRow = async (req: FastifyRequest, res: FastifyReply) => {
       return res.status(400).send({ error: `Invalid table: ${table}` });
     }
 
-    const delegate = (prisma as any)[modelName];
+    let delegate = (prismaApp as any)[modelName];
+    if (!delegate) delegate = (prismaAdmin as any)[modelName];
     
     await delegate.delete({
       where: { id }

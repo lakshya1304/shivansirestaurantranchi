@@ -28,7 +28,7 @@ model User {
   id       String  @id @default(uuid())
   name     String
   email    String  @unique
-  phone    String?
+  phone    String? @unique
   password String  @map("hashed_password")
   role     Role
 
@@ -43,8 +43,18 @@ model User {
 
   currentChallenge String?
 
+  birthday       DateTime?
+  visits         Int       @default(0)
+  reward_points  Int       @default(0)
+  total_spend    Float     @default(0)
+  favourite_item String?
+  saved_address  String?
+  last_visit     DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  orders Order[]
 
   @@index([email])
   @@index([role])
@@ -161,23 +171,7 @@ model RestaurantTable {
   @@map("restaurant_tables")
 }
 
-model Customer {
-  id             String    @id @default(uuid())
-  user_id        String?   @unique
-  name           String
-  phone          String    @unique
-  birthday       DateTime?
-  visits         Int       @default(0)
-  reward_points  Int       @default(0)
-  total_spend    Float     @default(0)
-  favourite_item String?
-  saved_address  String?
-  last_visit     DateTime?
 
-  orders Order[]
-
-  @@map("customers")
-}
 
 model Order {
   id              String  @id @default(uuid())
@@ -185,8 +179,8 @@ model Order {
   bill_id         String? @unique
   session_token   String
   table_number    Int?
-  customer_id     String?
-  customer        Customer? @relation(fields: [customer_id], references: [id], onDelete: SetNull)
+  user_id         String?
+  user            User? @relation(fields: [user_id], references: [id], onDelete: SetNull)
   customer_name   String?
   customer_phone  String?
   status          OrderStatus @default(PENDING)

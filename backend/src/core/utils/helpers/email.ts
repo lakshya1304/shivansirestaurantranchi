@@ -9,9 +9,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     logger.info(`Email sent to ${options.to}: ${options.subject}`);
     return true;
   } catch (error: any) {
-    logger.error(`Failed to send email to ${options.to}`, {
-      error: error.message,
-    });
+    logger.error(`Failed to send email to ${options.to}: ${options.subject} — ${error.message}`);
     return false;
   }
 }

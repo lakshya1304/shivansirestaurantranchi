@@ -53,7 +53,7 @@ export default async function uploadToSupabase(
             "x-upsert": "false",
         },
 
-        body: buffer,
+        body: new Uint8Array(buffer),
     });
 
     if (!response.ok) {

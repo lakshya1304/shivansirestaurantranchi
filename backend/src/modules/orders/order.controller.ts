@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import prisma from "../../core/config/databaseConfig";
+import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 import logger from "../../core/config/loggerConfig";
 import crypto from "crypto";
 import { sendWhatsAppMessage } from "../../core/utils/whatsapp";
@@ -34,10 +34,10 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
     // 1. Fetch related data
     const productIds = [...new Set(data.lines.map((l: any) => l.productId))];
-    const products = await prisma.product.findMany({ where: { id: { in: productIds as string[] } } });
-    const settings = await prisma.restaurantSettings.findFirst();
-    const discounts = await prisma.discount.findMany({ where: { is_active: true } });
-    const loyaltyRules = await prisma.loyaltyRule.findMany({ where: { is_active: true } });
+    const products = await prismaApp.product.findMany({ where: { id: { in: productIds as string[] } } });
+    const settings = await prismaAdmin.restaurantSettings.findFirst();
+    const discounts = await prismaApp.discount.findMany({ where: { is_active: true } });
+    const loyaltyRules = await prismaApp.loyaltyRule.findMany({ where: { is_active: true } });
 
     if (!settings) return res.status(400).send({ error: "Restaurant is not configured yet" });
 
@@ -67,7 +67,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
     const subtotal = items.reduce((s: number, i: any) => s + i.line_total, 0);
 
     // 3. Customer lookup
-    const existingCustomer = await prisma.customer.findUnique({
+    const existingCustomer = await prismaApp.user.findUnique({
       where: { phone: data.customerPhone }
     });
 
@@ -126,11 +126,11 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
     const orderNumber = `SHV-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
     const billId = `BILL-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await prismaApp.$transaction(async (tx) => {
       // Upsert customer
       let customer;
       if (existingCustomer) {
-        customer = await tx.customer.update({
+        customer = await tx.user.update({
           where: { id: existingCustomer.id },
           data: {
             name: data.customerName,
@@ -142,9 +142,12 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
           }
         });
       } else {
-        customer = await tx.customer.create({
+        customer = await tx.user.create({
           data: {
             name: data.customerName,
+            email: `${data.customerPhone}@guest.maatarasweets.com`,
+            password: crypto.randomBytes(16).toString("hex"),
+            role: "USER",
             phone: data.customerPhone,
             visits: 1,
             reward_points: earnedPoints,
@@ -170,7 +173,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
           order_number: orderNumber,
           bill_id: billId,
           table_number: data.tableNumber,
-          customer_id: customer.id,
+          user_id: customer.id,
           customer_name: data.customerName,
           customer_phone: data.customerPhone,
           payment_method: data.paymentMethod,
@@ -255,7 +258,7 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
     }
 
     // Fetch current order to validate the transition is forward (or cancellation)
-    const current = await prisma.order.findUnique({ where: { id }, select: { status: true, customer_phone: true, customer_name: true, order_number: true, table_number: true } });
+    const current = await prismaApp.order.findUnique({ where: { id }, select: { status: true, customer_phone: true, customer_name: true, order_number: true, table_number: true } });
     if (!current) return res.status(404).send({ error: "Order not found" });
 
     const STATUS_ORDER = ["PENDING", "CONFIRMED", "PREPARING", "PREPARED", "SERVED", "COMPLETED"];
@@ -269,7 +272,7 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
       return res.status(400).send({ error: `Order is already ${current.status} and cannot be changed` });
     }
 
-    const order = await prisma.order.update({
+    const order = await prismaApp.order.update({
       where: { id },
       data: { status }
     });
@@ -301,7 +304,7 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
 export const updatePaymentStatus = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { id } = req.params as any;
-    const order = await prisma.order.update({
+    const order = await prismaApp.order.update({
       where: { id },
       data: { payment_status: "paid" }
     });
@@ -315,12 +318,12 @@ export const updatePaymentStatus = async (req: FastifyRequest, res: FastifyReply
 export const getPublicOrder = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { id, token } = req.query as any;
-    const order = await prisma.order.findFirst({
+    const order = await prismaApp.order.findFirst({
       where: { id, session_token: token },
       include: { order_items: true }
     });
     if (!order) return res.send(null);
-    const settings = await prisma.restaurantSettings.findFirst();
+    const settings = await prismaAdmin.restaurantSettings.findFirst();
     return res.send({ order, settings });
   } catch (error: any) {
     logger.error(`Error in getPublicOrder: ${error.message}`);
@@ -334,7 +337,7 @@ export const requestOrderHistoryCode = async (req: FastifyRequest, res: FastifyR
     const code = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 1000000).padStart(6, "0");
     const hash = await hashCode(phone, code);
 
-    await prisma.phoneVerification.create({
+    await prismaApp.phoneVerification.create({
       data: {
         phone,
         code_hash: hash,
@@ -358,7 +361,7 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
   try {
     const { phone, code } = req.body as any;
 
-    const challenge = await prisma.phoneVerification.findFirst({
+    const challenge = await prismaApp.phoneVerification.findFirst({
       where: {
         phone,
         used: false,
@@ -372,26 +375,29 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
 
     const hash = await hashCode(phone, code);
     if (challenge.code_hash !== hash) {
-      await prisma.phoneVerification.update({
+      await prismaApp.phoneVerification.update({
         where: { id: challenge.id },
         data: { attempts: { increment: 1 } }
       });
       throw invalid;
     }
 
-    await prisma.phoneVerification.update({
+    await prismaApp.phoneVerification.update({
       where: { id: challenge.id },
       data: { used: true }
     });
 
-    let customer = await prisma.customer.findUnique({
+    let customer = await prismaApp.user.findUnique({
       where: { phone },
     });
 
     if (!customer) {
-      customer = await prisma.customer.create({
+      customer = await prismaApp.user.create({
         data: {
           name: phone, // Provide a default name since it's required
+          email: `${phone}@guest.maatarasweets.com`,
+          password: crypto.randomBytes(16).toString("hex"),
+          role: "USER",
           phone,
           visits: 0,
           reward_points: 0,
@@ -400,8 +406,8 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
       });
     }
 
-    const orders = await prisma.order.findMany({
-      where: { customer_id: customer.id },
+    const orders = await prismaApp.order.findMany({
+      where: { user_id: customer.id },
       include: { order_items: true },
       orderBy: { created_at: "desc" },
       take: 50
@@ -428,11 +434,11 @@ export const getCustomerProfile = async (req: FastifyRequest, res: FastifyReply)
     const payload = verifyProfileToken(token);
     if (payload.phone !== phone) return res.status(401).send({ error: "Token does not match phone" });
 
-    const customer = await prisma.customer.findUnique({ where: { phone } });
+    const customer = await prismaApp.user.findUnique({ where: { phone } });
     if (!customer) return res.status(404).send({ error: "No profile found for this number" });
 
-    const orders = await prisma.order.findMany({
-      where: { customer_id: customer.id },
+    const orders = await prismaApp.order.findMany({
+      where: { user_id: customer.id },
       include: { order_items: true },
       orderBy: { created_at: "desc" },
       take: 50,
@@ -455,10 +461,10 @@ export const updateCustomerProfile = async (req: FastifyRequest, res: FastifyRep
     const payload = verifyProfileToken(token);
     if (payload.phone !== phone) return res.status(401).send({ error: "Token does not match phone" });
 
-    const customer = await prisma.customer.findUnique({ where: { phone } });
+    const customer = await prismaApp.user.findUnique({ where: { phone } });
     if (!customer) return res.status(404).send({ error: "No profile found for this number" });
 
-    const updated = await prisma.customer.update({
+    const updated = await prismaApp.user.update({
       where: { phone },
       data: {
         ...(name !== undefined && { name: String(name).trim().slice(0, 80) }),
@@ -482,19 +488,19 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
     }
 
     // Verify order belongs to phone and contains the product
-    const order = await prisma.order.findFirst({
+    const order = await prismaApp.order.findFirst({
       where: { id: orderId, customer_phone: phone, order_items: { some: { product_id: menuItemId } } }
     });
 
     if (!order) return res.status(404).send({ error: "Order or item not found for this user" });
 
     // Check if already rated
-    const existing = await prisma.rating.findFirst({
+    const existing = await prismaApp.rating.findFirst({
       where: { orderId, menuItemId, phone }
     });
     if (existing) return res.status(400).send({ error: "You already rated this item for this order" });
 
-    const rating = await prisma.rating.create({
+    const rating = await prismaApp.rating.create({
       data: {
         orderId,
         menuItemId,
@@ -505,10 +511,10 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
     });
 
     // Update product rating aggregate
-    const allRatings = await prisma.rating.findMany({ where: { menuItemId } });
+    const allRatings = await prismaApp.rating.findMany({ where: { menuItemId } });
     const avg = allRatings.reduce((acc: number, r: any) => acc + r.stars, 0) / allRatings.length;
 
-    await prisma.product.update({
+    await prismaApp.product.update({
       where: { id: menuItemId },
       data: {
         rating: avg,
