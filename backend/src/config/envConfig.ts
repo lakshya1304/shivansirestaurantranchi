@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Load .env from CWD, backend/.env, or relative to src/config
+// Load .env from CWD, root/.env, or relative to src/config
 dotenv.config();
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-dotenv.config({ path: path.resolve(process.cwd(), "backend/.env") });
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 import { z } from "zod";
 
 const envSchema = z.object({

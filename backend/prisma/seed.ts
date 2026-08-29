@@ -57,7 +57,7 @@ async function main() {
       name: 'Super Admin',
       email: 'superadmin@shivansi.in',
       password: hashedPassword,
-      role: Role.SUPERADMIN,
+      role: 'SUPERADMIN',
       phone: '+919999999999'
     }
   });
@@ -69,7 +69,7 @@ async function main() {
       name: 'Riya Sharma',
       email: 'riya@shivansi.in',
       password: hashedPassword,
-      role: Role.ADMIN,
+      role: 'ADMIN',
       phone: '+919999999998'
     }
   });
@@ -81,7 +81,7 @@ async function main() {
       name: 'Aman Verma',
       email: 'aman@shivansi.in',
       password: hashedPassword,
-      role: Role.ADMIN,
+      role: 'ADMIN',
       phone: '+919999999997'
     }
   });

@@ -20,6 +20,7 @@ import { Route as OwnerRouteImport } from './routes/owner'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ScannerRouteImport } from './routes/scanner'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
@@ -85,6 +86,11 @@ const ScannerRoute = ScannerRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/scanner': typeof ScannerRoute
   '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/scanner': typeof ScannerRoute
   '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/scanner': typeof ScannerRoute
   '/settings': typeof SettingsRoute
+  '/signup': typeof SignupRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/scanner'
     | '/settings'
+    | '/signup'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/scanner'
     | '/settings'
+    | '/signup'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -276,6 +287,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/scanner'
     | '/settings'
+    | '/signup'
     | '/admin/customers'
     | '/admin/inventory'
     | '/admin/menu'
@@ -301,6 +313,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ScannerRoute: typeof ScannerRoute
   SettingsRoute: typeof SettingsRoute
+  SignupRoute: typeof SignupRoute
   OrderOrderIdRoute: typeof OrderOrderIdRoute
   TableTableNumberRoute: typeof TableTableNumberRoute
 }
@@ -382,6 +395,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -502,6 +522,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ScannerRoute: ScannerRoute,
   SettingsRoute: SettingsRoute,
+  SignupRoute: SignupRoute,
   OrderOrderIdRoute: OrderOrderIdRoute,
   TableTableNumberRoute: TableTableNumberRoute,
 }
