@@ -1,7 +1,6 @@
-import { PrismaClient, Role } from '../src/generated/prisma/client';
+import { Role } from '../src/generated/prisma/client';
 import bcrypt from 'bcrypt';
-
-const prisma = PrismaClient;
+import prisma from '../src/config/databaseConfig';
 
 async function main() {
   console.log('Starting seed...');
@@ -39,7 +38,7 @@ async function main() {
       name: 'Super Admin',
       email: 'superadmin@shivansi.in',
       password: hashedPassword,
-      role: Role.SUPERADMIN,
+      role: 'SUPERADMIN',
       phone: '+919999999999'
     }
   });
@@ -51,7 +50,7 @@ async function main() {
       name: 'Riya Sharma',
       email: 'riya@shivansi.in',
       password: hashedPassword,
-      role: Role.ADMIN,
+      role: 'ADMIN',
       phone: '+919999999998'
     }
   });
@@ -63,7 +62,7 @@ async function main() {
       name: 'Aman Verma',
       email: 'aman@shivansi.in',
       password: hashedPassword,
-      role: Role.ADMIN,
+      role: 'ADMIN',
       phone: '+919999999997'
     }
   });
