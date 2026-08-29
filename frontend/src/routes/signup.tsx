@@ -37,19 +37,27 @@ const emailSignupSchema = z.object({
 });
 
 const waPhoneSchema = z.object({
-  phone: z.string().regex(/^(?:\+?91[\-\s]?)?[6-9]\d{9}$/, "Enter a valid 10-digit Indian phone number."),
+  phone: z
+    .string()
+    .regex(
+      /^(?:\+?91[\-\s]?)?[6-9]\d{9}$/,
+      "Enter a valid 10-digit Indian phone number.",
+    ),
 });
 
 const waOtpSchema = z.object({
-  code: z.string().length(6, "Code must be 6 digits").regex(/^\d+$/, "Code must be numeric"),
+  code: z
+    .string()
+    .length(6, "Code must be 6 digits")
+    .regex(/^\d+$/, "Code must be numeric"),
 });
 
-export function SignupForm({ 
-  redir = "", 
-  onSuccessProp 
-}: { 
-  redir?: string; 
-  onSuccessProp?: (data: { customer: any; profileToken: string; phone: string }) => void 
+export function SignupForm({
+  redir = "",
+  onSuccessProp,
+}: {
+  redir?: string;
+  onSuccessProp?: (data: { customer: any; profileToken: string; phone: string }) => void;
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -57,7 +65,7 @@ export function SignupForm({
   const [tab, setTab] = useState<Tab>("whatsapp");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  
+
   // WhatsApp Auth State
   const [waStage, setWaStage] = useState<WaStage>("phone");
   const [confirmedPhone, setConfirmedPhone] = useState("");
@@ -84,29 +92,36 @@ export function SignupForm({
     try {
       await fetchAPI<any>("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ 
-          email: data.email.trim().toLowerCase(), 
+        body: JSON.stringify({
+          email: data.email.trim().toLowerCase(),
           password: data.password,
-          name: data.name.trim()
+          name: data.name.trim(),
         }),
         headers: { "Content-Type": "application/json" },
       });
       toast.success("Account created! Logging you in...");
-      
+
       // Auto-login after signup
       const res = await fetchAPI<any>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email: data.email.trim().toLowerCase(), password: data.password }),
+        body: JSON.stringify({
+          email: data.email.trim().toLowerCase(),
+          password: data.password,
+        }),
         headers: { "Content-Type": "application/json" },
       });
       const payload = res?.data ?? res;
       await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
-      
+
       if (onSuccessProp) {
         const userObj = payload;
         const phoneNum = userObj?.phone ?? data.email;
         const profToken = userObj?.profileToken ?? userObj?.token ?? "";
-        onSuccessProp({ customer: { ...userObj }, profileToken: profToken, phone: phoneNum });
+        onSuccessProp({
+          customer: { ...userObj },
+          profileToken: profToken,
+          phone: phoneNum,
+        });
         return;
       }
       navigate({ to: redir || "/my-orders", replace: true });
@@ -128,10 +143,12 @@ export function SignupForm({
       toast.success(
         res?.delivered
           ? "A 6-digit code has been sent to your WhatsApp."
-          : "If that number is on WhatsApp, a code is on its way."
+          : "If that number is on WhatsApp, a code is on its way.",
       );
     } catch (error: any) {
-      toast.error(error?.message ?? error?.toString() ?? "Failed to send code. Please try again.");
+      toast.error(
+        error?.message ?? error?.toString() ?? "Failed to send code. Please try again.",
+      );
     } finally {
       setBusy(false);
     }
@@ -141,29 +158,40 @@ export function SignupForm({
     setBusy(true);
     try {
       // For WhatsApp, login and signup are functionally the same API
-      const result = await getOrdersByPhone({ phone: confirmedPhone, code: data.code.trim() });
+      const result = await getOrdersByPhone({
+        phone: confirmedPhone,
+        code: data.code.trim(),
+      });
       if (!result) {
         toast.error("No profile found. Place an order first to create your account.");
         return;
       }
       const customer = (result as any).customer;
       const profileToken = (result as any).profileToken;
-      
+
       if (onSuccessProp) {
         onSuccessProp({ customer, profileToken, phone: confirmedPhone });
         return;
       }
-      saveCustomerSession({ phone: confirmedPhone, name: customer.name ?? confirmedPhone, profileToken });
+      saveCustomerSession({
+        phone: confirmedPhone,
+        name: customer.name ?? confirmedPhone,
+        profileToken,
+      });
       toast.success(`Welcome, ${customer.name ?? ""}!`);
       navigate({ to: redir || "/my-orders", replace: true });
     } catch (error: any) {
-      toast.error(error?.message ?? error?.toString() ?? "That code is invalid or expired. Try again.");
+      toast.error(
+        error?.message ??
+          error?.toString() ??
+          "That code is invalid or expired. Try again.",
+      );
     } finally {
       setBusy(false);
     }
   }
 
-  const showSharedFooter = (tab === "email") || (tab === "whatsapp" && waStage === "phone");
+  const showSharedFooter = tab === "email" || (tab === "whatsapp" && waStage === "phone");
 
   return (
     <div className="mx-auto max-w-md w-full space-y-8">
@@ -211,7 +239,10 @@ export function SignupForm({
         {tab === "whatsapp" && (
           <div className="space-y-4">
             {waStage === "phone" ? (
-              <form onSubmit={waPhoneForm.handleSubmit(onWaPhoneSubmit)} className="space-y-4">
+              <form
+                onSubmit={waPhoneForm.handleSubmit(onWaPhoneSubmit)}
+                className="space-y-4"
+              >
                 <div>
                   <Label htmlFor="wa-phone">WhatsApp phone number</Label>
                   <Input
@@ -224,11 +255,22 @@ export function SignupForm({
                     {...waPhoneForm.register("phone")}
                   />
                   {waPhoneForm.formState.errors.phone && (
-                    <p className="text-xs text-destructive mt-1">{waPhoneForm.formState.errors.phone.message}</p>
+                    <p className="text-xs text-destructive mt-1">
+                      {waPhoneForm.formState.errors.phone.message}
+                    </p>
                   )}
                 </div>
-                <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
-                  {busy ? <Loader2 className="size-4 animate-spin" /> : <MessageCircle className="size-4" />}
+                <Button
+                  type="submit"
+                  variant="hero"
+                  className="w-full rounded-full"
+                  disabled={busy}
+                >
+                  {busy ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <MessageCircle className="size-4" />
+                  )}
                   Send WhatsApp code
                 </Button>
                 <p className="text-center text-xs text-muted-foreground">
@@ -236,9 +278,14 @@ export function SignupForm({
                 </p>
               </form>
             ) : (
-              <form onSubmit={waOtpForm.handleSubmit(onWaOtpSubmit)} className="space-y-4">
+              <form
+                onSubmit={waOtpForm.handleSubmit(onWaOtpSubmit)}
+                className="space-y-4"
+              >
                 <p className="text-center text-sm text-muted-foreground">
-                  Enter the 6-digit code sent to <span className="font-medium text-foreground">{confirmedPhone}</span> on WhatsApp.
+                  Enter the 6-digit code sent to{" "}
+                  <span className="font-medium text-foreground">{confirmedPhone}</span> on
+                  WhatsApp.
                 </p>
                 <div>
                   <Label htmlFor="wa-otp">6-digit code</Label>
@@ -248,22 +295,34 @@ export function SignupForm({
                     autoComplete="one-time-code"
                     maxLength={6}
                     {...waOtpForm.register("code", {
-                      onChange: (e) => e.target.value = e.target.value.replace(/\D/g, "")
+                      onChange: (e) =>
+                        (e.target.value = e.target.value.replace(/\D/g, "")),
                     })}
                     autoFocus
                   />
                   {waOtpForm.formState.errors.code && (
-                    <p className="text-xs text-destructive mt-1">{waOtpForm.formState.errors.code.message}</p>
+                    <p className="text-xs text-destructive mt-1">
+                      {waOtpForm.formState.errors.code.message}
+                    </p>
                   )}
                 </div>
-                <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
-                  {busy ? <Loader2 className="size-4 animate-spin" /> : null} Verify & sign up
+                <Button
+                  type="submit"
+                  variant="hero"
+                  className="w-full rounded-full"
+                  disabled={busy}
+                >
+                  {busy ? <Loader2 className="size-4 animate-spin" /> : null} Verify &
+                  sign up
                 </Button>
                 <Button
                   type="button"
                   variant="glass"
                   className="w-full rounded-full"
-                  onClick={() => { setWaStage("phone"); waOtpForm.reset(); }}
+                  onClick={() => {
+                    setWaStage("phone");
+                    waOtpForm.reset();
+                  }}
                 >
                   Use a different number
                 </Button>
@@ -285,7 +344,9 @@ export function SignupForm({
                   {...emailForm.register("name")}
                 />
                 {emailForm.formState.errors.name && (
-                  <p className="text-xs text-destructive mt-1">{emailForm.formState.errors.name.message}</p>
+                  <p className="text-xs text-destructive mt-1">
+                    {emailForm.formState.errors.name.message}
+                  </p>
                 )}
               </div>
               <div>
@@ -298,7 +359,9 @@ export function SignupForm({
                   {...emailForm.register("email")}
                 />
                 {emailForm.formState.errors.email && (
-                  <p className="text-xs text-destructive mt-1">{emailForm.formState.errors.email.message}</p>
+                  <p className="text-xs text-destructive mt-1">
+                    {emailForm.formState.errors.email.message}
+                  </p>
                 )}
               </div>
               <div>
@@ -319,15 +382,26 @@ export function SignupForm({
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
                   </button>
                 </div>
                 {emailForm.formState.errors.password && (
-                  <p className="text-xs text-destructive mt-1">{emailForm.formState.errors.password.message}</p>
+                  <p className="text-xs text-destructive mt-1">
+                    {emailForm.formState.errors.password.message}
+                  </p>
                 )}
               </div>
 
-              <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
+              <Button
+                type="submit"
+                variant="hero"
+                className="w-full rounded-full"
+                disabled={busy}
+              >
                 {busy ? <Loader2 className="size-4 animate-spin" /> : null} Sign up
               </Button>
             </form>
@@ -342,7 +416,9 @@ export function SignupForm({
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
 
@@ -350,24 +426,47 @@ export function SignupForm({
               type="button"
               variant="outline"
               className="w-full rounded-full flex items-center justify-center gap-2"
-              onClick={() => window.location.href = `${API_BASE_URL}/auth/google/login`}
+              onClick={() => (window.location.href = `${API_BASE_URL}/auth/google/login`)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                <path d="M1 1h22v22H1z" fill="none"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+              >
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+                <path d="M1 1h22v22H1z" fill="none" />
               </svg>
               Sign up with Google
             </Button>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
-              Already have an account? <Link to="/login" search={{ redir }} className="text-primary hover:underline font-medium">Log in</Link>
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                search={{ redir }}
+                className="text-primary hover:underline font-medium"
+              >
+                Log in
+              </Link>
             </p>
           </div>
         )}
-
       </div>
     </div>
   );

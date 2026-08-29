@@ -35,7 +35,9 @@ function LiveOrders() {
 
   const currency = settings?.currency ?? "₹";
   const todays = orders.filter((o) => isToday(o.created_at));
-  const revenue = todays.filter((o) => o.status !== "CANCELLED").reduce((sum, o) => sum + Number(o.total), 0);
+  const revenue = todays
+    .filter((o) => o.status !== "CANCELLED")
+    .reduce((sum, o) => sum + Number(o.total), 0);
   const live = orders.filter((o) => !["COMPLETED", "CANCELLED"].includes(o.status));
 
   async function setStatus(order: Order, status: OrderStatus) {
@@ -45,7 +47,9 @@ function LiveOrders() {
       toast.error(error instanceof Error ? error.message : "Could not update status");
       return;
     }
-    toast.success(`${order.order_number} → ${STATUS_LABEL[status]} · WhatsApp update sent`);
+    toast.success(
+      `${order.order_number} → ${STATUS_LABEL[status]} · WhatsApp update sent`,
+    );
     void qc.invalidateQueries({ queryKey: ["orders"] });
   }
 
@@ -90,13 +94,17 @@ function LiveOrders() {
                       {STATUS_LABEL[order.status]}
                     </Badge>
                     <Badge variant="glass">
-                      {order.table_number == null ? "Takeaway" : `Table ${order.table_number}`}
+                      {order.table_number == null
+                        ? "Takeaway"
+                        : `Table ${order.table_number}`}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">{formatTime(order.created_at)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatTime(order.created_at)}
+                    </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {order.customer_name} • {order.customer_phone} • {order.payment_method} (
-                    {order.payment_status})
+                    {order.customer_name} • {order.customer_phone} •{" "}
+                    {order.payment_method} ({order.payment_status})
                   </p>
                   <ul className="mt-3 space-y-1 text-sm">
                     {(order.order_items ?? []).map((item) => (
@@ -108,7 +116,9 @@ function LiveOrders() {
                             <span className="text-accent"> — {item.instructions}</span>
                           ) : null}
                         </span>
-                        <span className="text-muted-foreground">{money(item.line_total, currency)}</span>
+                        <span className="text-muted-foreground">
+                          {money(item.line_total, currency)}
+                        </span>
                       </li>
                     ))}
                   </ul>
@@ -117,9 +127,16 @@ function LiveOrders() {
                   ) : null}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
-                  <span className="font-display text-xl font-bold">{money(order.total, currency)}</span>
+                  <span className="font-display text-xl font-bold">
+                    {money(order.total, currency)}
+                  </span>
                   {next ? (
-                    <Button size="sm" variant="hero" className="rounded-full" onClick={() => setStatus(order, next)}>
+                    <Button
+                      size="sm"
+                      variant="hero"
+                      className="rounded-full"
+                      onClick={() => setStatus(order, next)}
+                    >
                       Mark {STATUS_LABEL[next].toLowerCase()}
                     </Button>
                   ) : null}
@@ -134,7 +151,12 @@ function LiveOrders() {
                     </Button>
                   ) : null}
                   {order.payment_status !== "paid" ? (
-                    <Button size="sm" variant="glass" className="rounded-full" onClick={() => setPaid(order)}>
+                    <Button
+                      size="sm"
+                      variant="glass"
+                      className="rounded-full"
+                      onClick={() => setPaid(order)}
+                    >
                       Mark paid
                     </Button>
                   ) : null}
@@ -183,7 +205,9 @@ function LiveOrders() {
                 <tr key={order.id} className="border-t border-border/60">
                   <td className="py-2 font-mono text-xs">{order.order_number}</td>
                   <td className="py-2">{order.customer_name}</td>
-                  <td className="py-2 text-muted-foreground">{STATUS_LABEL[order.status]}</td>
+                  <td className="py-2 text-muted-foreground">
+                    {STATUS_LABEL[order.status]}
+                  </td>
                   <td className="py-2 text-right">{money(order.total, currency)}</td>
                 </tr>
               ))}

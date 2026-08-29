@@ -13,8 +13,6 @@ export const requireAdmin = async (req: FastifyRequest, res: FastifyReply) => {
   }
 };
 
-
-
 export const requireUser = async (req: FastifyRequest, res: FastifyReply) => {
   if (!req.user) {
     throw new ForbiddenError("Access denied. Authentication required.");

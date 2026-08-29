@@ -6,7 +6,7 @@ import { fetchWithCache } from "../../core/config/redisConfig";
 export const getCategories = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const categories = await fetchWithCache("data:categories", 60, () =>
-      prismaApp.category.findMany({ orderBy: { sort_order: "asc" } })
+      prismaApp.category.findMany({ orderBy: { sort_order: "asc" } }),
     );
     return res.send(categories);
   } catch (error: any) {
@@ -19,8 +19,8 @@ export const getProducts = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const products = await fetchWithCache("data:products", 60, () =>
       prismaApp.product.findMany({
-        orderBy: [{ sort_order: "asc" }, { name: "asc" }]
-      })
+        orderBy: [{ sort_order: "asc" }, { name: "asc" }],
+      }),
     );
     return res.send(products);
   } catch (error: any) {
@@ -32,7 +32,7 @@ export const getProducts = async (req: FastifyRequest, res: FastifyReply) => {
 export const getOffers = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const offers = await fetchWithCache("data:offers", 60, () =>
-      prismaApp.offer.findMany({ orderBy: { id: "desc" } })
+      prismaApp.offer.findMany({ orderBy: { id: "desc" } }),
     );
     return res.send(offers);
   } catch (error: any) {
@@ -44,7 +44,7 @@ export const getOffers = async (req: FastifyRequest, res: FastifyReply) => {
 export const getDiscounts = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const discounts = await fetchWithCache("data:discounts", 60, () =>
-      prismaApp.discount.findMany({ orderBy: { id: "desc" } })
+      prismaApp.discount.findMany({ orderBy: { id: "desc" } }),
     );
     return res.send(discounts);
   } catch (error: any) {
@@ -56,7 +56,7 @@ export const getDiscounts = async (req: FastifyRequest, res: FastifyReply) => {
 export const getLoyaltyRules = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const rules = await fetchWithCache("data:loyaltyRules", 60, () =>
-      prismaApp.loyaltyRule.findMany({ orderBy: { visits_required: "asc" } })
+      prismaApp.loyaltyRule.findMany({ orderBy: { visits_required: "asc" } }),
     );
     return res.send(rules);
   } catch (error: any) {
@@ -68,7 +68,7 @@ export const getLoyaltyRules = async (req: FastifyRequest, res: FastifyReply) =>
 export const getTables = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const tables = await fetchWithCache("data:tables", 60, () =>
-      prismaApp.restaurantTable.findMany({ orderBy: { table_number: "asc" } })
+      prismaApp.restaurantTable.findMany({ orderBy: { table_number: "asc" } }),
     );
     return res.send(tables);
   } catch (error: any) {
@@ -80,7 +80,7 @@ export const getTables = async (req: FastifyRequest, res: FastifyReply) => {
 export const getInventory = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const inventory = await fetchWithCache("data:inventory", 60, () =>
-      prismaApp.inventoryItem.findMany({ orderBy: { name: "asc" } })
+      prismaApp.inventoryItem.findMany({ orderBy: { name: "asc" } }),
     );
     return res.send(inventory);
   } catch (error: any) {
@@ -92,7 +92,10 @@ export const getInventory = async (req: FastifyRequest, res: FastifyReply) => {
 export const getCustomers = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const customers = await fetchWithCache("data:customers", 60, () =>
-      prismaApp.user.findMany({ where: { role: 'USER' }, orderBy: { total_spend: "desc" } })
+      prismaApp.user.findMany({
+        where: { role: "USER" },
+        orderBy: { total_spend: "desc" },
+      }),
     );
     return res.send(customers);
   } catch (error: any) {
@@ -107,8 +110,8 @@ export const getOrders = async (req: FastifyRequest, res: FastifyReply) => {
       prismaApp.order.findMany({
         include: { order_items: true },
         orderBy: { created_at: "desc" },
-        take: 100
-      })
+        take: 100,
+      }),
     );
     return res.send(orders);
   } catch (error: any) {
@@ -122,8 +125,8 @@ export const getNotifications = async (req: FastifyRequest, res: FastifyReply) =
     const notifications = await fetchWithCache("data:notifications", 15, () =>
       prismaApp.appNotification.findMany({
         orderBy: { created_at: "desc" },
-        take: 60
-      })
+        take: 60,
+      }),
     );
     return res.send(notifications);
   } catch (error: any) {
@@ -131,4 +134,3 @@ export const getNotifications = async (req: FastifyRequest, res: FastifyReply) =
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
-

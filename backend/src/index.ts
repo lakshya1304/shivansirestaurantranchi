@@ -1,7 +1,12 @@
 import app from "./app";
 import { API_PORT, NODE_ENV } from "./core/config/envConfig";
 import logger from "./core/config/loggerConfig";
-import { cache, connectRedisCache, connectRedisRateLimit, rateLimit } from "./core/config/redisConfig";
+import {
+  cache,
+  connectRedisCache,
+  connectRedisRateLimit,
+  rateLimit,
+} from "./core/config/redisConfig";
 
 const startServer = async () => {
   try {
@@ -44,9 +49,12 @@ process.on("unhandledRejection", (reason: any) => {
 });
 
 process.on("uncaughtException", (error: Error) => {
-  logger.error({
-    error: error.message,
-    stack: error.stack,
-  }, "Uncaught Exception");
+  logger.error(
+    {
+      error: error.message,
+      stack: error.stack,
+    },
+    "Uncaught Exception",
+  );
   process.exit(1);
 });

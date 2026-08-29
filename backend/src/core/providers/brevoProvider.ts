@@ -11,7 +11,7 @@ export async function sendViaBrevo(
   to: string,
   subject: string,
   html: string,
-  text?: string
+  text?: string,
 ): Promise<void> {
   if (!brevoConfigured || !brevoClient) {
     throw new Error("Brevo is not configured. Missing BREVO_API_KEY.");

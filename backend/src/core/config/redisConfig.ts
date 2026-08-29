@@ -14,11 +14,7 @@ class MockRedis {
     return this.store.get(key) ?? null;
   }
 
-  async set(
-    key: string,
-    value: string,
-    ..._args: any[]
-  ): Promise<"OK"> {
+  async set(key: string, value: string, ..._args: any[]): Promise<"OK"> {
     const existing = this.timers.get(key);
 
     if (existing) {
@@ -31,11 +27,7 @@ class MockRedis {
     return "OK";
   }
 
-  async setex(
-    key: string,
-    seconds: number,
-    value: string
-  ): Promise<"OK"> {
+  async setex(key: string, seconds: number, value: string): Promise<"OK"> {
     const existing = this.timers.get(key);
 
     if (existing) {
@@ -79,9 +71,7 @@ class MockRedis {
   async keys(pattern: string): Promise<string[]> {
     const result: string[] = [];
 
-    const prefix = pattern.endsWith("*")
-      ? pattern.slice(0, -1)
-      : null;
+    const prefix = pattern.endsWith("*") ? pattern.slice(0, -1) : null;
 
     for (const key of this.store.keys()) {
       if (prefix !== null ? key.startsWith(prefix) : key === pattern) {
@@ -92,10 +82,7 @@ class MockRedis {
     return result;
   }
 
-  on(
-    event: string,
-    callback: (...args: any[]) => void
-  ): this {
+  on(event: string, callback: (...args: any[]) => void): this {
     if (event === "connect" || event === "ready") {
       setTimeout(() => callback(), 0);
     }
@@ -129,48 +116,48 @@ const mockRedis = new MockRedis();
 
 const redisCache = env.REDIS_URL_CACHE
   ? new Redis(env.REDIS_URL_CACHE, {
-    lazyConnect: true,
-    maxRetriesPerRequest: 5,
-    enableReadyCheck: true,
-    enableOfflineQueue: true,
+      lazyConnect: true,
+      maxRetriesPerRequest: 5,
+      enableReadyCheck: true,
+      enableOfflineQueue: true,
 
-    retryStrategy: (times) => {
-      if (times > 3 || redisCacheFatalError) {
-        redisCacheFatalError = true;
+      retryStrategy: (times) => {
+        if (times > 3 || redisCacheFatalError) {
+          redisCacheFatalError = true;
 
-        console.warn(
-          "[Redis Cache] Max retries reached — Redis disabled, falling back to in-memory MockRedis."
-        );
+          console.warn(
+            "[Redis Cache] Max retries reached — Redis disabled, falling back to in-memory MockRedis.",
+          );
 
-        return null;
-      }
+          return null;
+        }
 
-      return Math.min(times * 200, 2000);
-    },
-  })
+        return Math.min(times * 200, 2000);
+      },
+    })
   : null;
 
 const redisRate = env.REDIS_URL_RATELIMIT
   ? new Redis(env.REDIS_URL_RATELIMIT, {
-    lazyConnect: true,
-    maxRetriesPerRequest: 5,
-    enableReadyCheck: true,
-    enableOfflineQueue: true,
+      lazyConnect: true,
+      maxRetriesPerRequest: 5,
+      enableReadyCheck: true,
+      enableOfflineQueue: true,
 
-    retryStrategy: (times) => {
-      if (times > 3 || redisRateFatalError) {
-        redisRateFatalError = true;
+      retryStrategy: (times) => {
+        if (times > 3 || redisRateFatalError) {
+          redisRateFatalError = true;
 
-        console.warn(
-          "[Redis Rate Limit] Max retries reached — Redis disabled, falling back to in-memory MockRedis."
-        );
+          console.warn(
+            "[Redis Rate Limit] Max retries reached — Redis disabled, falling back to in-memory MockRedis.",
+          );
 
-        return null;
-      }
+          return null;
+        }
 
-      return Math.min(times * 200, 2000);
-    },
-  })
+        return Math.min(times * 200, 2000);
+      },
+    })
   : null;
 
 /* -------------------------------------------------------------------------- */
@@ -178,10 +165,7 @@ const redisRate = env.REDIS_URL_RATELIMIT
 /* -------------------------------------------------------------------------- */
 
 const isFatalRedisError = (error: unknown): boolean => {
-  const message =
-    error instanceof Error
-      ? error.message
-      : String(error);
+  const message = error instanceof Error ? error.message : String(error);
 
   return (
     message.includes("NOAUTH") ||
@@ -201,7 +185,7 @@ if (redisCache) {
       redisCacheFatalError = true;
 
       console.warn(
-        "[Redis Cache] Authentication/connection failure — Redis disabled, falling back to in-memory MockRedis."
+        "[Redis Cache] Authentication/connection failure — Redis disabled, falling back to in-memory MockRedis.",
       );
 
       redisCache.disconnect();
@@ -225,7 +209,7 @@ if (redisRate) {
       redisRateFatalError = true;
 
       console.warn(
-        "[Redis Rate Limit] Authentication/connection failure — Redis disabled, falling back to in-memory MockRedis."
+        "[Redis Rate Limit] Authentication/connection failure — Redis disabled, falling back to in-memory MockRedis.",
       );
 
       redisRate.disconnect();
@@ -245,12 +229,9 @@ if (redisRate) {
 
 const cache = new Proxy({} as Redis, {
   get(_target, prop: string | symbol) {
-    const useMock =
-      redisCacheFatalError || !redisCache;
+    const useMock = redisCacheFatalError || !redisCache;
 
-    const activeClient = useMock
-      ? mockRedis
-      : redisCache;
+    const activeClient = useMock ? mockRedis : redisCache;
 
     if (prop === "status") {
       return activeClient.status;
@@ -268,7 +249,7 @@ const cache = new Proxy({} as Redis, {
 
             console.warn(
               "[Redis Cache] Error during execution, falling back to MockRedis:",
-              error
+              error,
             );
 
             const fallback = (mockRedis as any)[prop];
@@ -293,12 +274,9 @@ const cache = new Proxy({} as Redis, {
 
 const rateLimit = new Proxy({} as Redis, {
   get(_target, prop: string | symbol) {
-    const useMock =
-      redisRateFatalError || !redisRate;
+    const useMock = redisRateFatalError || !redisRate;
 
-    const activeClient = useMock
-      ? mockRedis
-      : redisRate;
+    const activeClient = useMock ? mockRedis : redisRate;
 
     if (prop === "status") {
       return activeClient.status;
@@ -316,7 +294,7 @@ const rateLimit = new Proxy({} as Redis, {
 
             console.warn(
               "[Redis Rate Limit] Error during execution, falling back to MockRedis:",
-              error
+              error,
             );
 
             const fallback = (mockRedis as any)[prop];
@@ -356,7 +334,7 @@ export async function connectRedisCache(): Promise<Redis> {
 
     console.warn(
       "[Redis Cache] unavailable, falling back to in-memory MockRedis:",
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : error,
     );
 
     redisCache.disconnect();
@@ -382,7 +360,7 @@ export async function connectRedisRateLimit(): Promise<Redis> {
 
     console.warn(
       "[Redis Rate Limit] unavailable, falling back to in-memory MockRedis:",
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : error,
     );
 
     redisRate.disconnect();
@@ -417,7 +395,7 @@ export { rateLimit, cache };
 export async function fetchWithCache<T>(
   key: string,
   ttlSeconds: number,
-  fetcher: () => Promise<T>
+  fetcher: () => Promise<T>,
 ): Promise<T> {
   try {
     const cached = await cache.get(key);
@@ -428,33 +406,23 @@ export async function fetchWithCache<T>(
       } catch (error) {
         console.warn(
           `[Redis Cache] Invalid JSON for key ${key}, ignoring cached value:`,
-          error
+          error,
         );
 
-        await cache.del(key).catch(() => { });
+        await cache.del(key).catch(() => {});
       }
     }
   } catch (error) {
-    console.warn(
-      `[Redis Cache] Failed to get ${key}:`,
-      error
-    );
+    console.warn(`[Redis Cache] Failed to get ${key}:`, error);
   }
 
   const data = await fetcher();
 
   if (data !== undefined && data !== null) {
     try {
-      await cache.setex(
-        key,
-        ttlSeconds,
-        JSON.stringify(data)
-      );
+      await cache.setex(key, ttlSeconds, JSON.stringify(data));
     } catch (error) {
-      console.warn(
-        `[Redis Cache] Failed to set ${key}:`,
-        error
-      );
+      console.warn(`[Redis Cache] Failed to set ${key}:`, error);
     }
   }
 

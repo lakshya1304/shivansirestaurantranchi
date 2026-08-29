@@ -15,9 +15,14 @@ function Reports() {
 
   const valid = orders.filter((o) => o.status !== "rejected");
   const today = valid.filter((o) => isToday(o.created_at));
-  const revenue = (list: typeof valid) => list.reduce((sum, o) => sum + Number(o.total), 0);
-  const week = valid.filter((o) => Date.now() - new Date(o.created_at).getTime() < 7 * 864e5);
-  const month = valid.filter((o) => Date.now() - new Date(o.created_at).getTime() < 30 * 864e5);
+  const revenue = (list: typeof valid) =>
+    list.reduce((sum, o) => sum + Number(o.total), 0);
+  const week = valid.filter(
+    (o) => Date.now() - new Date(o.created_at).getTime() < 7 * 864e5,
+  );
+  const month = valid.filter(
+    (o) => Date.now() - new Date(o.created_at).getTime() < 30 * 864e5,
+  );
 
   const counts = new Map<string, { name: string; qty: number; total: number }>();
   for (const order of valid) {
@@ -34,13 +39,27 @@ function Reports() {
     <div className="space-y-6">
       <header>
         <h2 className="font-display text-xl font-bold">Reports</h2>
-        <p className="text-sm text-muted-foreground">Sales performance and best sellers.</p>
+        <p className="text-sm text-muted-foreground">
+          Sales performance and best sellers.
+        </p>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card label="Today" value={money(revenue(today), currency)} hint={`${today.length} orders`} />
-        <Card label="Last 7 days" value={money(revenue(week), currency)} hint={`${week.length} orders`} />
-        <Card label="Last 30 days" value={money(revenue(month), currency)} hint={`${month.length} orders`} />
+        <Card
+          label="Today"
+          value={money(revenue(today), currency)}
+          hint={`${today.length} orders`}
+        />
+        <Card
+          label="Last 7 days"
+          value={money(revenue(week), currency)}
+          hint={`${week.length} orders`}
+        />
+        <Card
+          label="Last 30 days"
+          value={money(revenue(month), currency)}
+          hint={`${month.length} orders`}
+        />
         <Card
           label="Average bill"
           value={money(valid.length ? revenue(valid) / valid.length : 0, currency)}

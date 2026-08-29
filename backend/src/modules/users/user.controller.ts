@@ -1,7 +1,11 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import bcrypt from "bcrypt";
 import { prismaAdmin } from "../../core/config/databaseConfig";
-import { NotFoundError, ForbiddenError, BadRequestError } from "../../core/utils/errors/error";
+import {
+  NotFoundError,
+  ForbiddenError,
+  BadRequestError,
+} from "../../core/utils/errors/error";
 import { $Enums } from "../../generated/prismaAdmin";
 
 const ROOT_EMAIL = "nishanrajak01@gmail.com";
@@ -15,7 +19,8 @@ function assertCanModify(
   requestorId: string,
 ) {
   if (requestorRole === "ADMIN") {
-    if (targetRole === "SUPERADMIN") throw new ForbiddenError("Admins cannot modify a SUPERADMIN");
+    if (targetRole === "SUPERADMIN")
+      throw new ForbiddenError("Admins cannot modify a SUPERADMIN");
     if (targetRole === "ADMIN" && targetId !== requestorId)
       throw new ForbiddenError("Admins cannot modify other Admins. Ask a SUPERADMIN.");
   }
@@ -42,14 +47,20 @@ export const getAllUsers = async (req: FastifyRequest, reply: FastifyReply) => {
 
 export const createUser = async (
   req: FastifyRequest<{
-    Body: { name?: string; email: string; password: string; role: "USER" | "ADMIN" | "SUPERADMIN" };
+    Body: {
+      name?: string;
+      email: string;
+      password: string;
+      role: "USER" | "ADMIN" | "SUPERADMIN";
+    };
   }>,
   reply: FastifyReply,
 ) => {
   const { name, email, password, role } = req.body;
   const requestor = req.user!;
 
-  if (!["USER", "ADMIN", "SUPERADMIN"].includes(role)) throw new BadRequestError("Invalid role");
+  if (!["USER", "ADMIN", "SUPERADMIN"].includes(role))
+    throw new BadRequestError("Invalid role");
   if (!email || !password) throw new BadRequestError("Email and password are required");
 
   // Admin cannot create a SUPERADMIN
@@ -64,7 +75,14 @@ export const createUser = async (
 
   const user = await prismaAdmin.admin.create({
     data: { name: name || "", email, password: passwordHash, role: role as $Enums.Role },
-    select: { id: true, name: true, email: true, role: true, createdAt: true, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      isActive: true,
+    },
   });
 
   return reply.status(201).send({ success: true, user });
@@ -101,7 +119,14 @@ export const updateUser = async (
       ...(email !== undefined && { email }),
       ...(isActive !== undefined && { isActive }),
     },
-    select: { id: true, name: true, email: true, role: true, createdAt: true, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      isActive: true,
+    },
   });
 
   return reply.send({ success: true, user: updated });
@@ -120,7 +145,8 @@ export const updateRole = async (
   const { role } = req.body;
   const requestor = req.user!;
 
-  if (!["USER", "ADMIN", "SUPERADMIN"].includes(role)) throw new BadRequestError("Invalid role");
+  if (!["USER", "ADMIN", "SUPERADMIN"].includes(role))
+    throw new BadRequestError("Invalid role");
 
   const targetUser = await prismaAdmin.admin.findUnique({ where: { id } });
   if (!targetUser) throw new NotFoundError("User not found");
@@ -133,7 +159,14 @@ export const updateRole = async (
     const user = await tx.admin.update({
       where: { id },
       data: { role: role as $Enums.Role },
-      select: { id: true, name: true, email: true, role: true, createdAt: true, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        isActive: true,
+      },
     });
 
     await tx.auditLog.create({
@@ -142,8 +175,8 @@ export const updateRole = async (
         entity: "USER",
         entityId: id,
         details: { oldRole: targetUser.role, newRole: role },
-        adminId: requestor.id
-      }
+        adminId: requestor.id,
+      },
     });
 
     return user;
@@ -164,8 +197,10 @@ export const deleteUser = async (
   const targetUser = await prismaAdmin.admin.findUnique({ where: { id } });
   if (!targetUser) throw new NotFoundError("User not found");
 
-  if (targetUser.id === requestor.id) throw new ForbiddenError("You cannot delete your own account");
-  if (targetUser.email === ROOT_EMAIL) throw new ForbiddenError("The root SUPERADMIN cannot be deleted");
+  if (targetUser.id === requestor.id)
+    throw new ForbiddenError("You cannot delete your own account");
+  if (targetUser.email === ROOT_EMAIL)
+    throw new ForbiddenError("The root SUPERADMIN cannot be deleted");
 
   await prismaAdmin.$transaction(async (tx) => {
     await tx.admin.delete({ where: { id } });
@@ -175,8 +210,8 @@ export const deleteUser = async (
         entity: "USER",
         entityId: id,
         details: { deletedEmail: targetUser.email, deletedRole: targetUser.role },
-        adminId: requestor.id
-      }
+        adminId: requestor.id,
+      },
     });
   });
 

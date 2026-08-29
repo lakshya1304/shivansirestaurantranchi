@@ -9,11 +9,19 @@ import logger from "./loggerConfig";
 const connectionStringAdmin = env.ADMIN_DATABASE_URL;
 const connectionStringApp = env.APP_DATABASE_URL;
 
-const poolAdmin = new Pool({ connectionString: connectionStringAdmin, max: 20, idleTimeoutMillis: 30000 });
+const poolAdmin = new Pool({
+  connectionString: connectionStringAdmin,
+  max: 20,
+  idleTimeoutMillis: 30000,
+});
 const adapterAdmin = new PrismaPg(poolAdmin as any);
 const basePrismaAdmin = new PrismaAdminClient({ adapter: adapterAdmin });
 
-const poolApp = new Pool({ connectionString: connectionStringApp, max: 20, idleTimeoutMillis: 30000 });
+const poolApp = new Pool({
+  connectionString: connectionStringApp,
+  max: 20,
+  idleTimeoutMillis: 30000,
+});
 const adapterApp = new PrismaPg(poolApp as any);
 const basePrismaApp = new PrismaAppClient({ adapter: adapterApp });
 

@@ -32,7 +32,7 @@ export function ProductCard({
     !product.sold_by_weight && product.offer_price != null && product.offer_price > 0;
   const savingsPercent =
     hasOffer && product.price > 0
-      ? Math.round((1 - (product.offer_price! / product.price)) * 100)
+      ? Math.round((1 - product.offer_price! / product.price) * 100)
       : 0;
 
   function toggleInstruction(value: string) {
@@ -55,7 +55,9 @@ export function ProductCard({
       instructions,
     });
     toast.success(`${product.name} added to cart`, {
-      description: product.sold_by_weight ? weight.label : instructions.join(", ") || undefined,
+      description: product.sold_by_weight
+        ? weight.label
+        : instructions.join(", ") || undefined,
     });
     setInstructions([]);
     setTimeout(() => setIsAdding(false), 600);
@@ -70,7 +72,10 @@ export function ProductCard({
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px"
-        style={{ background: "linear-gradient(90deg, transparent, oklch(1 0 0 / 20%), transparent)" }}
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, oklch(1 0 0 / 20%), transparent)",
+        }}
       />
 
       {/* ── Image block ── */}
@@ -89,23 +94,38 @@ export function ProductCard({
 
         {/* Badges — veg/spicy/special */}
         <div className="touch-compact absolute left-3 top-3 flex flex-wrap gap-1.5">
-          <Badge variant={product.is_veg ? "veg" : "nonveg"} className="glass animate-scale-in">
+          <Badge
+            variant={product.is_veg ? "veg" : "nonveg"}
+            className="glass animate-scale-in"
+          >
             <Leaf className="mr-1 size-3" aria-hidden="true" />
             {product.is_veg ? "Veg" : "Non-veg"}
           </Badge>
           {product.is_spicy ? (
-            <Badge variant="warning" className="animate-scale-in" style={{ animationDelay: "0.05s" }}>
+            <Badge
+              variant="warning"
+              className="animate-scale-in"
+              style={{ animationDelay: "0.05s" }}
+            >
               <Flame className="mr-1 size-3" aria-hidden="true" />
               Spicy
             </Badge>
           ) : null}
           {product.is_special ? (
-            <Badge variant="gold" className="animate-scale-in" style={{ animationDelay: "0.1s" }}>
+            <Badge
+              variant="gold"
+              className="animate-scale-in"
+              style={{ animationDelay: "0.1s" }}
+            >
               Today's special
             </Badge>
           ) : null}
           {savingsPercent >= 5 ? (
-            <Badge variant="gold" className="animate-scale-in" style={{ animationDelay: "0.15s" }}>
+            <Badge
+              variant="gold"
+              className="animate-scale-in"
+              style={{ animationDelay: "0.15s" }}
+            >
               {savingsPercent}% off
             </Badge>
           ) : null}
@@ -114,7 +134,9 @@ export function ProductCard({
         {/* Sold-out overlay */}
         {!product.is_available ? (
           <div className="absolute inset-0 grid place-items-center bg-background/80 backdrop-blur-sm">
-            <Badge variant="destructive" className="text-sm">Sold out today</Badge>
+            <Badge variant="destructive" className="text-sm">
+              Sold out today
+            </Badge>
           </div>
         ) : null}
       </div>
@@ -204,7 +226,9 @@ export function ProductCard({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="glass-strong w-56 space-y-2.5 rounded-2xl border-border/50 p-4">
-                <p className="text-xs font-semibold text-foreground">Cooking instructions</p>
+                <p className="text-xs font-semibold text-foreground">
+                  Cooking instructions
+                </p>
                 {COOKING_INSTRUCTIONS.map((option) => (
                   <div key={option} className="flex items-center gap-2.5">
                     <Checkbox

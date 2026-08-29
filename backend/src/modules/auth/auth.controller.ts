@@ -71,15 +71,10 @@ export const googleCallback = asyncHandler(
     const result = await authService.loginWithGoogleCode(code);
     res.setCookie("refreshToken", result.tokens.refreshToken, cookieOption("refresh"));
 
-    return sendSuccess(
-      res,
-      "Google login successful",
-      STATUS_CODES.OK,
-      {
-        user: result.user,
-        accessToken: result.tokens.accessToken,
-      },
-    );
+    return sendSuccess(res, "Google login successful", STATUS_CODES.OK, {
+      user: result.user,
+      accessToken: result.tokens.accessToken,
+    });
   },
 );
 
@@ -149,15 +144,10 @@ export const register = asyncHandler(
     res.setCookie("refreshToken", result.tokens.refreshToken, cookieOption("refresh"));
     res.setCookie("accessToken", result.tokens.accessToken, cookieOption("access"));
 
-    sendSuccess(
-      res,
-      "Registration successful",
-      STATUS_CODES.CREATED,
-      {
-        user: result.user,
-        accessToken: result.tokens.accessToken,
-      },
-    );
+    sendSuccess(res, "Registration successful", STATUS_CODES.CREATED, {
+      user: result.user,
+      accessToken: result.tokens.accessToken,
+    });
   },
 );
 
@@ -166,24 +156,20 @@ export const login = asyncHandler(async (req: LoginRequest, res: FastifyReply) =
   const result = await authService.login(email, password, totpToken);
 
   if (result.requireTotp) {
-    sendSuccess(
-      res,
-      "TOTP required",
-      STATUS_CODES.OK,
-      { requireTotp: true, userId: result.user.id },
-    );
+    sendSuccess(res, "TOTP required", STATUS_CODES.OK, {
+      requireTotp: true,
+      userId: result.user.id,
+    });
     return;
   }
 
   res.setCookie("refreshToken", result.tokens.refreshToken, cookieOption("refresh"));
   res.setCookie("accessToken", result.tokens.accessToken, cookieOption("access"));
 
-  sendSuccess(
-    res,
-    "Login successful",
-    STATUS_CODES.OK,
-    { user: result.user, accessToken: result.tokens.accessToken },
-  );
+  sendSuccess(res, "Login successful", STATUS_CODES.OK, {
+    user: result.user,
+    accessToken: result.tokens.accessToken,
+  });
 });
 
 export const logout = asyncHandler(async (req: FastifyRequest, res: FastifyReply) => {
@@ -211,12 +197,9 @@ export const refreshToken = asyncHandler(
     res.setCookie("refreshToken", tokens.refreshToken, cookieOption("refresh"));
     res.setCookie("accessToken", tokens.accessToken, cookieOption("access"));
 
-    sendSuccess(
-      res,
-      "Token refreshed",
-      STATUS_CODES.OK,
-      { accessToken: tokens.accessToken },
-    );
+    sendSuccess(res, "Token refreshed", STATUS_CODES.OK, {
+      accessToken: tokens.accessToken,
+    });
   },
 );
 
@@ -232,7 +215,7 @@ export const changePassword = asyncHandler(
       req.body.currentPassword,
       req.body.newPassword,
       token,
-      req.user!.role
+      req.user!.role,
     );
     res.clearCookie("refreshToken");
     sendSuccess(res, "Password changed successfully", STATUS_CODES.OK, null);
@@ -278,37 +261,46 @@ export const generateWebAuthnRegistration = asyncHandler(
   async (req: FastifyRequest, res: FastifyReply) => {
     const options = await authService.generateWebAuthnRegistration(req.user!.id);
     sendSuccess(res, "WebAuthn registration options generated", STATUS_CODES.OK, options);
-  }
+  },
 );
 
 export const verifyWebAuthnRegistration = asyncHandler(
   async (req: any, res: FastifyReply) => {
     const result = await authService.verifyWebAuthnRegistration(req.user!.id, req.body);
     sendSuccess(res, "WebAuthn registration verified", STATUS_CODES.OK, result);
-  }
+  },
 );
 
 export const generateWebAuthnAuthentication = asyncHandler(
   async (req: FastifyRequest<{ Body: { email: string } }>, res: FastifyReply) => {
     const options = await authService.generateWebAuthnAuthentication(req.body.email);
-    sendSuccess(res, "WebAuthn authentication options generated", STATUS_CODES.OK, options);
-  }
+    sendSuccess(
+      res,
+      "WebAuthn authentication options generated",
+      STATUS_CODES.OK,
+      options,
+    );
+  },
 );
 
 export const verifyWebAuthnAuthentication = asyncHandler(
-  async (req: FastifyRequest<{ Body: { email: string, response: any } }>, res: FastifyReply) => {
-    const result = await authService.verifyWebAuthnAuthentication(req.body.email, req.body.response);
+  async (
+    req: FastifyRequest<{ Body: { email: string; response: any } }>,
+    res: FastifyReply,
+  ) => {
+    const result = await authService.verifyWebAuthnAuthentication(
+      req.body.email,
+      req.body.response,
+    );
 
     res.setCookie("refreshToken", result.tokens.refreshToken, cookieOption("refresh"));
     res.setCookie("accessToken", result.tokens.accessToken, cookieOption("access"));
 
-    sendSuccess(
-      res,
-      "Passkey login successful",
-      STATUS_CODES.OK,
-      { user: result.user, accessToken: result.tokens.accessToken },
-    );
-  }
+    sendSuccess(res, "Passkey login successful", STATUS_CODES.OK, {
+      user: result.user,
+      accessToken: result.tokens.accessToken,
+    });
+  },
 );
 
 export const getMe = asyncHandler(async (req: FastifyRequest, res: FastifyReply) => {
@@ -328,6 +320,6 @@ export const getMe = asyncHandler(async (req: FastifyRequest, res: FastifyReply)
     user: dbUser,
     isAdmin: dbUser?.role === "ADMIN" || dbUser?.role === "SUPERADMIN",
     mfaSatisfied: true,
-    hasMfaEnrolled: dbUser?.isTotpEnabled ?? false
+    hasMfaEnrolled: dbUser?.isTotpEnabled ?? false,
   });
 });

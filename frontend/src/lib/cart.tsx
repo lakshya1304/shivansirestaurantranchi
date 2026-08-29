@@ -11,7 +11,7 @@ import {
   clear,
   setTableNumber,
   CartLine,
-  TableSource
+  TableSource,
 } from "@/store/slices/cartSlice";
 
 export type { CartLine, TableSource };
@@ -41,8 +41,14 @@ export function useCart(): CartStateObj {
   const dispatch = useDispatch();
   const cartState = useSelector((state: RootState) => state.cart);
 
-  const count = useMemo(() => cartState.lines.reduce((sum, l) => sum + l.quantity, 0), [cartState.lines]);
-  const subtotal = useMemo(() => cartState.lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0), [cartState.lines]);
+  const count = useMemo(
+    () => cartState.lines.reduce((sum, l) => sum + l.quantity, 0),
+    [cartState.lines],
+  );
+  const subtotal = useMemo(
+    () => cartState.lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0),
+    [cartState.lines],
+  );
 
   return {
     lines: cartState.lines,
@@ -54,9 +60,9 @@ export function useCart(): CartStateObj {
     increment: (key) => dispatch(increment(key)),
     decrement: (key) => dispatch(decrement(key)),
     remove: (key) => dispatch(remove(key)),
-    setInstructions: (key, instructions) => dispatch(setInstructions({ key, instructions })),
+    setInstructions: (key, instructions) =>
+      dispatch(setInstructions({ key, instructions })),
     setTableNumber: (table, source) => dispatch(setTableNumber({ table, source })),
     clear: () => dispatch(clear()),
   };
 }
-

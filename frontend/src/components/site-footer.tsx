@@ -13,7 +13,8 @@ const BUSINESS_PHONE = import.meta.env["VITE_BUSINESS_PHONE"] ?? "+91 99990 1203
 const PLACEHOLDER_SETTINGS = {
   name: BUSINESS_NAME,
   tagline: "Freshly made sweets & Indian classics, served right at your seat.",
-  address: "Opposite ICFAI University, Near Dhoni Farmhouse, Daladali Chowk, Ranchi – 835 222, Jharkhand",
+  address:
+    "Opposite ICFAI University, Near Dhoni Farmhouse, Daladali Chowk, Ranchi – 835 222, Jharkhand",
   phone: BUSINESS_PHONE,
   opening_time: "07:00 AM",
   closing_time: "09:30 PM",
@@ -29,13 +30,19 @@ export function SiteFooter() {
   // Merge: real data wins, placeholder fills any missing field instantly
   const s = { ...PLACEHOLDER_SETTINGS, ...settings };
 
-  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
   const [isBackendUp, setIsBackendUp] = useState(true);
 
   useEffect(() => {
-    function handleOnline() { setIsOnline(true); }
-    function handleOffline() { setIsOnline(false); }
-    
+    function handleOnline() {
+      setIsOnline(true);
+    }
+    function handleOffline() {
+      setIsOnline(false);
+    }
+
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
     return () => {
@@ -53,7 +60,7 @@ export function SiteFooter() {
         setIsBackendUp(false);
       }
     }
-    
+
     ping();
     const id = setInterval(ping, 30_000);
     return () => clearInterval(id);
@@ -86,7 +93,9 @@ export function SiteFooter() {
 
         {/* Contact column */}
         <div className="space-y-3 text-sm text-muted-foreground">
-          <h3 className="font-display text-base font-bold text-foreground">Contact & Location</h3>
+          <h3 className="font-display text-base font-bold text-foreground">
+            Contact & Location
+          </h3>
           <a
             href="https://maps.app.goo.gl/Wc3uMz7K1z4XcoHL8"
             target="_blank"
@@ -111,30 +120,57 @@ export function SiteFooter() {
 
         {/* Quick links column */}
         <div className="space-y-1">
-          <h3 className="font-display text-base font-bold text-foreground mb-2">Quick Links</h3>
+          <h3 className="font-display text-base font-bold text-foreground mb-2">
+            Quick Links
+          </h3>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <Link to="/menu" search={{ category: undefined }} className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/menu"
+              search={{ category: undefined }}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               Full menu
             </Link>
-            <Link to="/my-orders" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/my-orders"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               My orders &amp; invoices
             </Link>
-            <Link to="/login" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/login"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               User login
             </Link>
-            <Link to="/profile" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/profile"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               My profile
             </Link>
-            <Link to="/settings" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/settings"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               Display settings
             </Link>
-            <Link to="/owner" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/owner"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               About the owner
             </Link>
-            <Link to="/scanner" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/scanner"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               QR scanner
             </Link>
-            <Link to="/admin" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              to="/admin"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               Administration
             </Link>
           </div>
@@ -145,20 +181,33 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
         {/* Left side: Network status */}
         <div className="flex items-center gap-2" title={isOnline ? "Online" : "Offline"}>
-           <span className="relative flex size-2">
-             {isOnline && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>}
-             <span className={`relative inline-flex size-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`}></span>
-           </span>
+          <span className="relative flex size-2">
+            {isOnline && (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+            )}
+            <span
+              className={`relative inline-flex size-2 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`}
+            ></span>
+          </span>
         </div>
 
-        <p className="text-center">© {new Date().getFullYear()} {s.name}. All rights reserved.</p>
+        <p className="text-center">
+          © {new Date().getFullYear()} {s.name}. All rights reserved.
+        </p>
 
         {/* Right side: Backend status */}
-        <div className="flex items-center gap-2" title={isBackendUp ? "Services OK" : "Services degraded"}>
-           <span className="relative flex size-2">
-             {!isBackendUp && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>}
-             <span className={`relative inline-flex size-2 rounded-full ${isBackendUp ? "bg-blue-500" : "bg-orange-500"}`}></span>
-           </span>
+        <div
+          className="flex items-center gap-2"
+          title={isBackendUp ? "Services OK" : "Services degraded"}
+        >
+          <span className="relative flex size-2">
+            {!isBackendUp && (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
+            )}
+            <span
+              className={`relative inline-flex size-2 rounded-full ${isBackendUp ? "bg-blue-500" : "bg-orange-500"}`}
+            ></span>
+          </span>
         </div>
       </div>
     </footer>

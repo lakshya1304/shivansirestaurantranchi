@@ -1,6 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChefHat, Receipt, ShoppingBag, UtensilsCrossed, Settings, User } from "lucide-react";
+import {
+  ChefHat,
+  Receipt,
+  ShoppingBag,
+  UtensilsCrossed,
+  Settings,
+  User,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +17,12 @@ import { useIsAdmin } from "@/lib/auth";
 import { getCustomerSession } from "@/routes/login";
 
 const NAV_LINKS = [
-  { to: "/menu" as const, search: { category: undefined }, label: "Menu", icon: UtensilsCrossed },
+  {
+    to: "/menu" as const,
+    search: { category: undefined },
+    label: "Menu",
+    icon: UtensilsCrossed,
+  },
   { to: "/my-orders" as const, label: "My orders", icon: Receipt },
   { to: "/settings" as const, label: "Settings", icon: Settings },
 ] as const;
@@ -25,12 +37,16 @@ export function SiteHeader() {
   const isLoggedIn = !!user || !!customerSession;
 
   // Close menu on route change
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
   if (pathname.startsWith("/admin")) return null;
@@ -46,7 +62,7 @@ export function SiteHeader() {
           <Link
             to="/"
             className="flex min-w-0 items-center gap-3 rounded-xl transition-opacity duration-200 hover:opacity-80"
-            aria-label={`${import.meta.env['VITE_BUSINESS_NAME'] ?? "Restaurant"} — Home`}
+            aria-label={`${import.meta.env["VITE_BUSINESS_NAME"] ?? "Restaurant"} — Home`}
           >
             <span
               className="grid size-11 shrink-0 place-items-center rounded-2xl shadow-glow pulse-ring"
@@ -56,10 +72,12 @@ export function SiteHeader() {
             </span>
             <span className="min-w-0">
               <span className="block truncate font-display text-base font-bold leading-tight sm:text-lg">
-                {settings?.name ?? import.meta.env['VITE_BUSINESS_NAME'] ?? "Restaurant"}
+                {settings?.name ?? import.meta.env["VITE_BUSINESS_NAME"] ?? "Restaurant"}
               </span>
               <span className="block truncate text-[11px] text-muted-foreground">
-                {tableNumber ? `Table ${tableNumber} • dine-in` : (settings?.tagline ?? "Restaurant & Sweet Shop")}
+                {tableNumber
+                  ? `Table ${tableNumber} • dine-in`
+                  : (settings?.tagline ?? "Restaurant & Sweet Shop")}
               </span>
             </span>
           </Link>
@@ -67,7 +85,10 @@ export function SiteHeader() {
           {/* Right side */}
           <div className="flex items-center gap-2">
             {/* Desktop nav links — hidden on mobile */}
-            <nav className="hidden items-center gap-1.5 sm:flex" aria-label="Site navigation">
+            <nav
+              className="hidden items-center gap-1.5 sm:flex"
+              aria-label="Site navigation"
+            >
               {NAV_LINKS.map(({ to, label, icon: Icon, ...rest }) => (
                 <Button
                   key={to}
@@ -76,7 +97,12 @@ export function SiteHeader() {
                   size="sm"
                   className="rounded-xl transition-all duration-200 hover:bg-primary/10 hover:text-primary"
                 >
-                  <Link to={to} {...("search" in rest ? { search: (rest as { search: { category: undefined } }).search } : {})}>
+                  <Link
+                    to={to}
+                    {...("search" in rest
+                      ? { search: (rest as { search: { category: undefined } }).search }
+                      : {})}
+                  >
                     <Icon className="size-4" aria-hidden="true" />
                     <span>{label}</span>
                   </Link>
@@ -103,7 +129,12 @@ export function SiteHeader() {
               size="sm"
               className="relative rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
             >
-              <Link to="/cart" aria-label={count > 0 ? `Cart — ${count} item${count > 1 ? "s" : ""}` : "Cart"}>
+              <Link
+                to="/cart"
+                aria-label={
+                  count > 0 ? `Cart — ${count} item${count > 1 ? "s" : ""}` : "Cart"
+                }
+              >
                 <ShoppingBag className="size-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Cart</span>
                 {count > 0 ? (
@@ -127,18 +158,33 @@ export function SiteHeader() {
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav"
             >
-              <span className="relative flex size-5 flex-col justify-center" aria-hidden="true">
+              <span
+                className="relative flex size-5 flex-col justify-center"
+                aria-hidden="true"
+              >
                 <span
                   className="absolute h-[2px] w-full rounded-full bg-foreground transition-all duration-300 ease-out"
-                  style={{ top: "5px", transform: mobileOpen ? "translateY(6px) rotate(45deg)" : "none" }}
+                  style={{
+                    top: "5px",
+                    transform: mobileOpen ? "translateY(6px) rotate(45deg)" : "none",
+                  }}
                 />
                 <span
                   className="absolute h-[2px] rounded-full bg-foreground transition-all duration-300 ease-out"
-                  style={{ top: "11px", width: mobileOpen ? "0%" : "100%", left: "50%", transform: "translateX(-50%)", opacity: mobileOpen ? 0 : 1 }}
+                  style={{
+                    top: "11px",
+                    width: mobileOpen ? "0%" : "100%",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    opacity: mobileOpen ? 0 : 1,
+                  }}
                 />
                 <span
                   className="absolute h-[2px] w-full rounded-full bg-foreground transition-all duration-300 ease-out"
-                  style={{ top: "17px", transform: mobileOpen ? "translateY(-6px) rotate(-45deg)" : "none" }}
+                  style={{
+                    top: "17px",
+                    transform: mobileOpen ? "translateY(-6px) rotate(-45deg)" : "none",
+                  }}
                 />
               </span>
             </button>
@@ -163,8 +209,9 @@ export function SiteHeader() {
 
         {/* Slide-down panel */}
         <nav
-          className={`absolute left-0 right-0 top-[60px] glass-strong border-b border-border/40 px-4 pb-5 pt-3 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out ${mobileOpen ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
-            }`}
+          className={`absolute left-0 right-0 top-[60px] glass-strong border-b border-border/40 px-4 pb-5 pt-3 shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-out ${
+            mobileOpen ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+          }`}
         >
           <ul className="flex flex-col gap-1" role="list">
             {NAV_LINKS.map(({ to, label, icon: Icon, ...rest }) => {
@@ -173,15 +220,23 @@ export function SiteHeader() {
                 <li key={to}>
                   <Link
                     to={to}
-                    {...("search" in rest ? { search: (rest as { search: { category: undefined } }).search } : {})}
-                    className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${active
+                    {...("search" in rest
+                      ? { search: (rest as { search: { category: undefined } }).search }
+                      : {})}
+                    className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${
+                      active
                         ? "bg-primary/15 text-primary"
                         : "text-foreground hover:bg-primary/10 hover:text-primary"
-                      }`}
+                    }`}
                   >
                     <Icon className="size-5 shrink-0" aria-hidden="true" />
                     {label}
-                    {active && <span className="ml-auto size-1.5 rounded-full bg-primary" aria-hidden="true" />}
+                    {active && (
+                      <span
+                        className="ml-auto size-1.5 rounded-full bg-primary"
+                        aria-hidden="true"
+                      />
+                    )}
                   </Link>
                 </li>
               );
@@ -190,15 +245,19 @@ export function SiteHeader() {
             <li>
               <Link
                 to={isLoggedIn ? "/profile" : "/login"}
-                className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${pathname === "/profile" || pathname === "/login"
+                className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-medium transition-all duration-150 ${
+                  pathname === "/profile" || pathname === "/login"
                     ? "bg-primary/15 text-primary"
                     : "text-foreground hover:bg-primary/10 hover:text-primary"
-                  }`}
+                }`}
               >
                 <User className="size-5 shrink-0" aria-hidden="true" />
                 {isLoggedIn ? "Profile" : "Login"}
                 {(pathname === "/profile" || pathname === "/login") && (
-                  <span className="ml-auto size-1.5 rounded-full bg-primary" aria-hidden="true" />
+                  <span
+                    className="ml-auto size-1.5 rounded-full bg-primary"
+                    aria-hidden="true"
+                  />
                 )}
               </Link>
             </li>
@@ -208,7 +267,9 @@ export function SiteHeader() {
           {tableNumber && (
             <div className="mt-4 flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-accent">
               <ChefHat className="size-4 shrink-0" aria-hidden="true" />
-              <span>Seated at <strong>Table {tableNumber}</strong> — dine-in</span>
+              <span>
+                Seated at <strong>Table {tableNumber}</strong> — dine-in
+              </span>
             </div>
           )}
         </nav>

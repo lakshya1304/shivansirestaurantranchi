@@ -32,7 +32,10 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
-import type { RegistrationResponseJSON, AuthenticationResponseJSON } from "@simplewebauthn/server";
+import type {
+  RegistrationResponseJSON,
+  AuthenticationResponseJSON,
+} from "@simplewebauthn/server";
 import logger from "../../core/config/loggerConfig";
 import { hash } from "../../core/utils/helpers/hash";
 import { sendError, sendSuccess } from "../../core/utils/common/response";
@@ -194,7 +197,7 @@ export default class AuthService {
     await storeRefreshToken(user.id, tokens.refreshToken);
     await userRepo.updateRefreshToken(user.id, tokens.refreshToken);
 
-    sendWelcomeEmail(user.email, user.name).catch(() => { });
+    sendWelcomeEmail(user.email, user.name).catch(() => {});
 
     await auditLogRepo.logAction({
       action: "REGISTER",
@@ -339,7 +342,8 @@ export default class AuthService {
       throw new UnauthorizedError("Refresh token is invalid or has been revoked.");
     }
 
-    const tokenRepo: any = (decoded.role === "ADMIN" || decoded.role === "SUPERADMIN") ? adminRepo : userRepo;
+    const tokenRepo: any =
+      decoded.role === "ADMIN" || decoded.role === "SUPERADMIN" ? adminRepo : userRepo;
     const user = await tokenRepo.findById(decoded.id);
     if (!user.isActive) throw new UnauthorizedError("Account is deactivated");
 
@@ -361,9 +365,9 @@ export default class AuthService {
     currentPassword: string,
     newPassword: string,
     accessToken: string,
-    role?: string
+    role?: string,
   ): Promise<void> {
-    const repo: any = (role === "ADMIN" || role === "SUPERADMIN") ? adminRepo : userRepo;
+    const repo: any = role === "ADMIN" || role === "SUPERADMIN" ? adminRepo : userRepo;
     const user = await repo.findById(userId);
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);
@@ -540,9 +544,13 @@ export default class AuthService {
     return options;
   }
 
-  async verifyWebAuthnAuthentication(email: string, response: AuthenticationResponseJSON): Promise<{ user: any; tokens: TokenPair }> {
+  async verifyWebAuthnAuthentication(
+    email: string,
+    response: AuthenticationResponseJSON,
+  ): Promise<{ user: any; tokens: TokenPair }> {
     const user = await userRepo.findByEmail(email);
-    if (!user || !user.currentChallenge) throw new UnauthorizedError("Invalid or missing authentication challenge.");
+    if (!user || !user.currentChallenge)
+      throw new UnauthorizedError("Invalid or missing authentication challenge.");
     if (!user.isActive) throw new UnauthorizedError("Account is deactivated.");
 
     const passkeys = await prismaAdmin.passkey.findMany({ where: { adminId: user.id } });
@@ -560,7 +568,7 @@ export default class AuthService {
         : String(passkey.credentialID);
       // credentialPublicKey stored as Buffer; @simplewebauthn needs Uint8Array<ArrayBuffer> (no SharedArrayBuffer)
       const publicKeyBytes = new Uint8Array(
-        Buffer.from(passkey.credentialPublicKey as unknown as Buffer).buffer.slice(0)
+        Buffer.from(passkey.credentialPublicKey as unknown as Buffer).buffer.slice(0),
       ) as Uint8Array<ArrayBuffer>;
 
       verification = await verifyAuthenticationResponse({

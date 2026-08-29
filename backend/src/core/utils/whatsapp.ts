@@ -1,13 +1,19 @@
 import { prismaAdmin } from "../config/databaseConfig";
 import logger from "../config/loggerConfig";
 
-async function loadCredentials(): Promise<{ token: string; phoneNumberId: string } | null> {
+async function loadCredentials(): Promise<{
+  token: string;
+  phoneNumberId: string;
+} | null> {
   try {
     const config = await prismaAdmin.appConfig.findFirst({
-      select: { whatsapp_token: true, whatsapp_phone_number_id: true }
+      select: { whatsapp_token: true, whatsapp_phone_number_id: true },
     });
     if (config?.whatsapp_token && config.whatsapp_phone_number_id) {
-      return { token: config.whatsapp_token, phoneNumberId: config.whatsapp_phone_number_id };
+      return {
+        token: config.whatsapp_token,
+        phoneNumberId: config.whatsapp_phone_number_id,
+      };
     }
   } catch (error) {
     logger.error(`[whatsapp] config read failed: ${error}`);
@@ -17,7 +23,10 @@ async function loadCredentials(): Promise<{ token: string; phoneNumberId: string
   return token && phoneNumberId ? { token, phoneNumberId } : null;
 }
 
-export async function sendWhatsAppMessage(rawPhone: string, message: string): Promise<boolean> {
+export async function sendWhatsAppMessage(
+  rawPhone: string,
+  message: string,
+): Promise<boolean> {
   const creds = await loadCredentials();
   if (!creds) return false;
 
@@ -26,19 +35,22 @@ export async function sendWhatsAppMessage(rawPhone: string, message: string): Pr
   const to = digits.length === 10 ? `91${digits}` : digits;
 
   try {
-    const res = await fetch(`https://graph.facebook.com/v20.0/${creds.phoneNumberId}/messages`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${creds.token}`,
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `https://graph.facebook.com/v20.0/${creds.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${creds.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to,
+          type: "text",
+          text: { preview_url: false, body: message },
+        }),
       },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to,
-        type: "text",
-        text: { preview_url: false, body: message },
-      }),
-    });
+    );
     if (!res.ok) {
       logger.error(`[whatsapp] send failed: ${res.status}`);
       return false;

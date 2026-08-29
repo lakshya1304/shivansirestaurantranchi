@@ -16,9 +16,15 @@ export const Route = createFileRoute("/order/$orderId")({
   head: () => ({
     meta: [
       { title: "Track your order — Maa Tara Sweets" },
-      { name: "description", content: "Live status of your Maa Tara Sweets order, from kitchen to table." },
+      {
+        name: "description",
+        content: "Live status of your Maa Tara Sweets order, from kitchen to table.",
+      },
       { property: "og:title", content: "Track your order — Maa Tara Sweets" },
-      { property: "og:description", content: "Live status of your Maa Tara Sweets order." },
+      {
+        property: "og:description",
+        content: "Live status of your Maa Tara Sweets order.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -56,7 +62,9 @@ function OrderTracking() {
             This tracking link is invalid or has expired.
           </p>
           <Button asChild variant="hero" className="mt-6 rounded-full">
-            <Link to="/menu" search={{ category: undefined }}>Back to the menu</Link>
+            <Link to="/menu" search={{ category: undefined }}>
+              Back to the menu
+            </Link>
           </Button>
         </div>
       </main>
@@ -73,14 +81,18 @@ function OrderTracking() {
     <main className="px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-3xl space-y-8">
         <header className="glass animate-rise rounded-3xl p-6 text-center">
-          <Badge variant={cancelled ? "destructive" : "gold"}>{STATUS_LABEL[status]}</Badge>
+          <Badge variant={cancelled ? "destructive" : "gold"}>
+            {STATUS_LABEL[status]}
+          </Badge>
           <h1 className="mt-3 font-display text-3xl font-bold">{order.order_number}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {takeaway ? "Takeaway order" : `Table ${order.table_number}`} • updated{" "}
             {formatTime(order.updated_at)}
           </p>
           {!cancelled ? (
-            <p className="mt-3 text-sm text-accent">We'll update this page automatically as your food moves along.</p>
+            <p className="mt-3 text-sm text-accent">
+              We'll update this page automatically as your food moves along.
+            </p>
           ) : null}
         </header>
 
@@ -109,7 +121,9 @@ function OrderTracking() {
                       <Check className="size-4" />
                     )}
                   </span>
-                  <p className={`font-semibold ${done ? "text-foreground" : "text-muted-foreground"}`}>
+                  <p
+                    className={`font-semibold ${done ? "text-foreground" : "text-muted-foreground"}`}
+                  >
                     {STATUS_LABEL[step]}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -139,13 +153,14 @@ function OrderTracking() {
 
         <Invoice order={order} settings={payload.settings as never} />
 
-
         <div className="flex flex-wrap justify-center gap-3 print:hidden">
           <Button variant="glass" className="rounded-full" onClick={() => window.print()}>
             <Printer className="size-4" /> Print invoice
           </Button>
           <Button asChild variant="hero" className="rounded-full">
-            <Link to="/menu" search={{ category: undefined }}>Order more</Link>
+            <Link to="/menu" search={{ category: undefined }}>
+              Order more
+            </Link>
           </Button>
         </div>
       </div>

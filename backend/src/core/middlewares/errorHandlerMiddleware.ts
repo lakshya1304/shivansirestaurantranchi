@@ -1,7 +1,4 @@
-import {
-  FastifyReply,
-  FastifyRequest,
-} from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 import { AppError } from "../utils/errors/error.js";
 import { NODE_ENV } from "../../core/config/envConfig.js";
@@ -16,19 +13,11 @@ export default function errorHandler(
     err instanceof AppError
       ? err
       : new AppError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong.",
-        (err as any)?.statusCode ?? 500,
-      );
+          err instanceof Error ? err.message : "Something went wrong.",
+          (err as any)?.statusCode ?? 500,
+        );
 
-  const {
-    message,
-    statusCode,
-    name,
-    stack,
-    details,
-  } = error;
+  const { message, statusCode, name, stack, details } = error;
 
   req.log.error(
     {
@@ -45,16 +34,11 @@ export default function errorHandler(
   const errDetails =
     NODE_ENV === "development"
       ? {
-        name,
-        stack,
-        details,
-      }
+          name,
+          stack,
+          details,
+        }
       : undefined;
 
-  sendError(
-    res,
-    message,
-    statusCode,
-    errDetails,
-  );
+  sendError(res, message, statusCode, errDetails);
 }

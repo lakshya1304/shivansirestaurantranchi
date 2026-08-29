@@ -16,14 +16,14 @@ const modelMap: Record<string, any> = {
   reviews: "review",
   notifications: "appNotification",
   customers: "customer",
-  app_config: "appConfig"
+  app_config: "appConfig",
 };
 
 export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { table } = req.params as any;
     const data = req.body as any;
-    
+
     const modelName = modelMap[table];
     if (!modelName) {
       return res.status(400).send({ error: `Invalid table: ${table}` });
@@ -31,18 +31,18 @@ export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
 
     let delegate = (prismaApp as any)[modelName];
     if (!delegate) delegate = (prismaAdmin as any)[modelName];
-    
+
     if (data.id) {
       // Update
       const updated = await delegate.update({
         where: { id: data.id },
-        data
+        data,
       });
       return res.send(updated);
     } else {
       // Insert
       const inserted = await delegate.create({
-        data
+        data,
       });
       return res.send(inserted);
     }
@@ -55,7 +55,7 @@ export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
 export const deleteRow = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { table, id } = req.params as any;
-    
+
     const modelName = modelMap[table];
     if (!modelName) {
       return res.status(400).send({ error: `Invalid table: ${table}` });
@@ -63,11 +63,11 @@ export const deleteRow = async (req: FastifyRequest, res: FastifyReply) => {
 
     let delegate = (prismaApp as any)[modelName];
     if (!delegate) delegate = (prismaAdmin as any)[modelName];
-    
+
     await delegate.delete({
-      where: { id }
+      where: { id },
     });
-    
+
     return res.send({ ok: true });
   } catch (error: any) {
     logger.error(`Error in deleteRow (${(req.params as any).table}): ${error.message}`);

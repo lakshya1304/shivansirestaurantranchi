@@ -62,9 +62,16 @@ function CustomersManager() {
                 <div className="flex shrink-0 items-center gap-2">
                   <Switch
                     checked={r.is_published}
-                    onCheckedChange={(v) => saveReview.mutate({ id: r.id, is_published: v })}
+                    onCheckedChange={(v) =>
+                      saveReview.mutate({ id: r.id, is_published: v })
+                    }
                   />
-                  <Button size="icon" variant="glass" className="size-8" onClick={() => deleteReview.mutate(r.id)}>
+                  <Button
+                    size="icon"
+                    variant="glass"
+                    className="size-8"
+                    onClick={() => deleteReview.mutate(r.id)}
+                  >
                     <Trash2 className="size-3.5" />
                   </Button>
                 </div>

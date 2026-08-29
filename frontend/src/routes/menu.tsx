@@ -4,7 +4,8 @@ import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/menu")({
   validateSearch: (search: Record<string, unknown>) => ({
-    category: typeof search["category"] === "string" ? (search["category"] as string) : undefined,
+    category:
+      typeof search["category"] === "string" ? (search["category"] as string) : undefined,
   }),
   head: () => ({
     meta: [

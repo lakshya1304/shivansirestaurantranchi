@@ -15,7 +15,7 @@ export const getReviews = async (req: FastifyRequest, res: FastifyReply) => {
         where: showAll ? undefined : { is_published: true },
         orderBy: { created_at: "desc" },
         take,
-      })
+      }),
     );
     return res.send(reviews);
   } catch (error: any) {
@@ -35,13 +35,14 @@ export const getGoogleRatings = async (req: FastifyRequest, res: FastifyReply) =
 
     const data = await fetchWithCache("data:google_ratings", 3600, async () => {
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=rating,user_ratings_total,reviews&key=${apiKey}`
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=rating,user_ratings_total,reviews&key=${apiKey}`,
       );
       if (!response.ok) throw new Error("Failed to fetch Google Places data");
       const result = (await response.json()) as any;
-      
-      if (result.status !== "OK") throw new Error(result.error_message || "Google API error");
-      
+
+      if (result.status !== "OK")
+        throw new Error(result.error_message || "Google API error");
+
       return {
         rating: result.result.rating,
         total_ratings: result.result.user_ratings_total,
@@ -50,7 +51,7 @@ export const getGoogleRatings = async (req: FastifyRequest, res: FastifyReply) =
           rating: r.rating,
           text: r.text,
           time: r.time,
-        }))
+        })),
       };
     });
 
@@ -93,7 +94,9 @@ import {
 
 function getSupabaseAdmin() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env");
+    throw new Error(
+      "Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env",
+    );
   }
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 }
@@ -105,7 +108,9 @@ export const uploadProductImage = async (req: FastifyRequest, res: FastifyReply)
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(data.mimetype)) {
-      return res.status(400).send({ error: "Only JPEG, PNG, WebP, or GIF images are allowed" });
+      return res
+        .status(400)
+        .send({ error: "Only JPEG, PNG, WebP, or GIF images are allowed" });
     }
 
     // Read the raw buffer from the multipart stream
@@ -135,7 +140,9 @@ export const uploadProductImage = async (req: FastifyRequest, res: FastifyReply)
 
     if (uploadError) {
       logger.error(`Supabase upload error: ${uploadError.message}`);
-      return res.status(500).send({ error: `Image upload failed: ${uploadError.message}` });
+      return res
+        .status(500)
+        .send({ error: `Image upload failed: ${uploadError.message}` });
     }
 
     const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -166,11 +173,17 @@ export const deleteProductImage = async (req: FastifyRequest, res: FastifyReply)
     const marker = `/object/public/${bucket}/`;
     const markerIdx = url.indexOf(marker);
     if (markerIdx === -1) {
-      return res.status(400).send({ error: "URL does not appear to be a Supabase storage URL for this bucket" });
+      return res
+        .status(400)
+        .send({
+          error: "URL does not appear to be a Supabase storage URL for this bucket",
+        });
     }
     const storagePath = url.slice(markerIdx + marker.length);
 
-    const { error: deleteError } = await supabase.storage.from(bucket).remove([storagePath]);
+    const { error: deleteError } = await supabase.storage
+      .from(bucket)
+      .remove([storagePath]);
     if (deleteError) {
       return res.status(500).send({ error: `Delete failed: ${deleteError.message}` });
     }
@@ -181,4 +194,3 @@ export const deleteProductImage = async (req: FastifyRequest, res: FastifyReply)
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };
-

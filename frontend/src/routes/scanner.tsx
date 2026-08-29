@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Camera, CameraOff, ScanLine, Loader2, ExternalLink, Copy, CheckCheck, RotateCcw } from "lucide-react";
+import {
+  Camera,
+  CameraOff,
+  ScanLine,
+  Loader2,
+  ExternalLink,
+  Copy,
+  CheckCheck,
+  RotateCcw,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/site-footer";
@@ -9,7 +18,10 @@ export const Route = createFileRoute("/scanner")({
   head: () => ({
     meta: [
       { title: "QR Scanner — Maa Tara Sweets" },
-      { name: "description", content: "Scan a table QR code to open the menu for that table." },
+      {
+        name: "description",
+        content: "Scan a table QR code to open the menu for that table.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -18,8 +30,7 @@ export const Route = createFileRoute("/scanner")({
 
 type ScanState = "idle" | "requesting" | "active" | "denied" | "unsupported";
 
-const INTERNAL_ORIGIN =
-  typeof window !== "undefined" ? window.location.origin : "";
+const INTERNAL_ORIGIN = typeof window !== "undefined" ? window.location.origin : "";
 
 function ScannerPage() {
   const navigate = useNavigate();
@@ -35,8 +46,7 @@ function ScannerPage() {
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
 
   // ── BarcodeDetector setup ──────────────────────────────────────────────────
-  const isSupported =
-    typeof window !== "undefined" && "BarcodeDetector" in window;
+  const isSupported = typeof window !== "undefined" && "BarcodeDetector" in window;
 
   const stopStream = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
@@ -65,7 +75,9 @@ function ScannerPage() {
       }
 
       // @ts-ignore — BarcodeDetector exists in modern browsers
-      detectorRef.current = new BarcodeDetector({ formats: ["qr_code", "ean_13", "code_128", "data_matrix"] });
+      detectorRef.current = new BarcodeDetector({
+        formats: ["qr_code", "ean_13", "code_128", "data_matrix"],
+      });
 
       setScanState("active");
       tick();
@@ -135,12 +147,14 @@ function ScannerPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isInternalLink =
-    lastResult?.startsWith(INTERNAL_ORIGIN + "/") ?? false;
+  const isInternalLink = lastResult?.startsWith(INTERNAL_ORIGIN + "/") ?? false;
 
   return (
     <main className="min-h-screen px-4 py-10 sm:px-6">
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        aria-hidden="true"
+      >
         <div className="absolute -top-32 left-1/2 size-[50rem] -translate-x-1/2 rounded-full bg-primary/8 blur-[140px]" />
       </div>
 
@@ -159,9 +173,13 @@ function ScannerPage() {
           onClick={scanState !== "active" ? startScan : undefined}
           disabled={scanState === "requesting" || scanState === "unsupported"}
           className={`relative overflow-hidden rounded-3xl aspect-[4/3] flex items-center justify-center w-full transition-all duration-300 ${
-            scanState === "active" ? "glass bg-black/20 cursor-default" : "glass-strong hover:bg-primary/5 cursor-pointer ring-1 ring-border/50 hover:ring-primary/50"
+            scanState === "active"
+              ? "glass bg-black/20 cursor-default"
+              : "glass-strong hover:bg-primary/5 cursor-pointer ring-1 ring-border/50 hover:ring-primary/50"
           }`}
-          aria-label={scanState !== "active" ? "Click to start camera" : "Camera preview active"}
+          aria-label={
+            scanState !== "active" ? "Click to start camera" : "Camera preview active"
+          }
         >
           {/* Live video */}
           <video
@@ -178,7 +196,10 @@ function ScannerPage() {
 
           {/* Scanning reticle overlay */}
           {scanState === "active" && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+            <div
+              className="pointer-events-none absolute inset-0 flex items-center justify-center"
+              aria-hidden="true"
+            >
               {/* Corner brackets */}
               <div className="relative size-52">
                 {/* TL */}
@@ -206,7 +227,9 @@ function ScannerPage() {
               {scanState === "requesting" ? (
                 <>
                   <Loader2 className="size-10 animate-spin text-primary" />
-                  <p className="text-sm text-muted-foreground">Requesting camera access…</p>
+                  <p className="text-sm text-muted-foreground">
+                    Requesting camera access…
+                  </p>
                 </>
               ) : scanState === "denied" ? (
                 <>
@@ -214,7 +237,8 @@ function ScannerPage() {
                   <div>
                     <p className="font-semibold text-foreground">Camera access denied</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Allow camera access in your browser settings, then click to try again.
+                      Allow camera access in your browser settings, then click to try
+                      again.
                     </p>
                   </div>
                 </>
@@ -265,7 +289,10 @@ function ScannerPage() {
             <Button
               variant="glass"
               className="rounded-full"
-              onClick={() => { stopStream(); setScanState("idle"); }}
+              onClick={() => {
+                stopStream();
+                setScanState("idle");
+              }}
             >
               <CameraOff className="size-4" /> Stop camera
             </Button>
@@ -275,11 +302,24 @@ function ScannerPage() {
         {/* Last scan result */}
         {lastResult && (
           <div className="glass animate-rise rounded-3xl p-5 space-y-3">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">Last scan</p>
-            <p className="break-all font-mono text-sm text-foreground leading-relaxed">{lastResult}</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">
+              Last scan
+            </p>
+            <p className="break-all font-mono text-sm text-foreground leading-relaxed">
+              {lastResult}
+            </p>
             <div className="flex flex-wrap gap-2">
-              <Button variant="glass" size="sm" className="rounded-full" onClick={copyResult}>
-                {copied ? <CheckCheck className="size-3.5" /> : <Copy className="size-3.5" />}
+              <Button
+                variant="glass"
+                size="sm"
+                className="rounded-full"
+                onClick={copyResult}
+              >
+                {copied ? (
+                  <CheckCheck className="size-3.5" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )}
                 {copied ? "Copied!" : "Copy"}
               </Button>
               {isInternalLink && (
@@ -320,9 +360,16 @@ function ScannerPage() {
         <div className="glass rounded-3xl p-5 text-sm text-muted-foreground space-y-1">
           <p className="font-semibold text-foreground">How to use</p>
           <ol className="list-decimal list-inside space-y-1 text-xs">
-            <li><strong>Tap the camera screen</strong> — the browser will request camera access.</li>
-            <li>Point at a table QR code — the app navigates to the menu automatically.</li>
-            <li>For other QR codes, the decoded text appears below with copy/open options.</li>
+            <li>
+              <strong>Tap the camera screen</strong> — the browser will request camera
+              access.
+            </li>
+            <li>
+              Point at a table QR code — the app navigates to the menu automatically.
+            </li>
+            <li>
+              For other QR codes, the decoded text appears below with copy/open options.
+            </li>
           </ol>
         </div>
       </div>

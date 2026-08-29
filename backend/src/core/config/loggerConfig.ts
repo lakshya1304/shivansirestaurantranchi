@@ -69,35 +69,31 @@
 
 import pino from "pino";
 
-import {
-  LOG_LEVEL,
-  NODE_ENV,
-} from "./envConfig.js";
+import { LOG_LEVEL, NODE_ENV } from "./envConfig.js";
 
 const isDev = NODE_ENV === "development";
 
-const logger = pino(
-  {
-    level: LOG_LEVEL,
+const logger = pino({
+  level: LOG_LEVEL,
 
-    base: {
-      service: "ranchikart-api",
-    },
+  base: {
+    service: "ranchikart-api",
+  },
 
-    timestamp: pino.stdTimeFunctions.isoTime,
+  timestamp: pino.stdTimeFunctions.isoTime,
 
-    serializers: {
-      err: pino.stdSerializers.err,
-    },
+  serializers: {
+    err: pino.stdSerializers.err,
+  },
 
-    formatters: {
-      level: (label) => ({
-        level: label,
-      }),
-    },
+  formatters: {
+    level: (label) => ({
+      level: label,
+    }),
+  },
 
-    ...(isDev
-      ? {
+  ...(isDev
+    ? {
         transport: {
           target: "pino-pretty",
           options: {
@@ -108,8 +104,7 @@ const logger = pino(
           },
         },
       }
-      : {}),
-  },
-);
+    : {}),
+});
 
 export default logger;

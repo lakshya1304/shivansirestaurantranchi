@@ -8,11 +8,11 @@ export default async function settingsRoutes(app: FastifyInstance) {
   app.get(
     "/owner",
     { preHandler: [authenticate as any, requireSuperAdmin as any] },
-    settingsController.getOwnerSettings
+    settingsController.getOwnerSettings,
   );
   app.post(
     "/owner",
     { preHandler: [authenticate as any, requireSuperAdmin as any] },
-    settingsController.saveOwnerSettings
+    settingsController.saveOwnerSettings,
   );
 }

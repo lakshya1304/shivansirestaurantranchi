@@ -14,7 +14,6 @@ export interface User {
   id: string;
   email: string;
   role: string;
-
 }
 
 export type MailTemplate = Record<
@@ -24,7 +23,6 @@ export type MailTemplate = Record<
     html: string;
   }
 >;
-
 
 export type RegisterRequest = FastifyRequest<{
   Body: RegisterBody;
@@ -76,5 +74,15 @@ export interface AuditLogEntry {
   details?: Record<string, any>;
 }
 
-export interface TestUser { id: string; email: string; role: string; name?: string; }
-export const testUser: TestUser = { id: "test-user-id", email: "test@example.com", role: "USER", name: "Test User" };
+export interface TestUser {
+  id: string;
+  email: string;
+  role: string;
+  name?: string;
+}
+export const testUser: TestUser = {
+  id: "test-user-id",
+  email: "test@example.com",
+  role: "USER",
+  name: "Test User",
+};

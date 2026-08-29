@@ -48,11 +48,14 @@ const emptyProduct = {
 async function uploadImage(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`${import.meta.env["VITE_API_BASE_URL"] || "/api/v1"}/data/upload-image`, {
-    method: "POST",
-    body: form,
-    credentials: "include",
-  });
+  const res = await fetch(
+    `${import.meta.env["VITE_API_BASE_URL"] || "/api/v1"}/data/upload-image`,
+    {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    },
+  );
   const json = await res.json();
   if (!res.ok || !json.url) throw new Error(json.error || "Upload failed");
   return json.url as string;
@@ -79,11 +82,26 @@ function MenuManager() {
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-xl font-bold">Categories</h2>
-            <p className="text-sm text-muted-foreground">Sections shown on the customer menu.</p>
+            <p className="text-sm text-muted-foreground">
+              Sections shown on the customer menu.
+            </p>
           </div>
           <Dialog
             open={category !== null}
-            onOpenChange={(open) => setCategory(open ? (category ?? { name: "", slug: "", description: "", image_url: "", sort_order: categories.length + 1, is_active: true }) : null)}
+            onOpenChange={(open) =>
+              setCategory(
+                open
+                  ? (category ?? {
+                      name: "",
+                      slug: "",
+                      description: "",
+                      image_url: "",
+                      sort_order: categories.length + 1,
+                      is_active: true,
+                    })
+                  : null,
+              )
+            }
           >
             <DialogTrigger asChild>
               <Button variant="hero" className="rounded-full">
@@ -92,7 +110,9 @@ function MenuManager() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{category?.["id"] ? "Edit category" : "New category"}</DialogTitle>
+                <DialogTitle>
+                  {category?.["id"] ? "Edit category" : "New category"}
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
                 <Field label="Name">
@@ -118,7 +138,9 @@ function MenuManager() {
                 <Field label="Description">
                   <Input
                     value={String(category?.["description"] ?? "")}
-                    onChange={(e) => setCategory({ ...category, description: e.target.value })}
+                    onChange={(e) =>
+                      setCategory({ ...category, description: e.target.value })
+                    }
                   />
                 </Field>
                 <ImageUpload
@@ -143,7 +165,9 @@ function MenuManager() {
                   <Input
                     type="number"
                     value={Number(category?.["sort_order"] ?? 0)}
-                    onChange={(e) => setCategory({ ...category, sort_order: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setCategory({ ...category, sort_order: Number(e.target.value) })
+                    }
                   />
                 </Field>
                 <Toggle
@@ -167,7 +191,10 @@ function MenuManager() {
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((c: Category) => (
-            <div key={c.id} className="glass flex items-center justify-between gap-3 rounded-2xl p-4">
+            <div
+              key={c.id}
+              className="glass flex items-center justify-between gap-3 rounded-2xl p-4"
+            >
               <div className="min-w-0">
                 <p className="truncate font-semibold">{c.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -176,7 +203,12 @@ function MenuManager() {
                 </p>
               </div>
               <div className="flex shrink-0 gap-1">
-                <Button size="icon" variant="glass" className="size-8" onClick={() => setCategory({ ...c })}>
+                <Button
+                  size="icon"
+                  variant="glass"
+                  className="size-8"
+                  onClick={() => setCategory({ ...c })}
+                >
                   <Pencil className="size-3.5" />
                 </Button>
                 <Button
@@ -203,7 +235,9 @@ function MenuManager() {
           </div>
           <Dialog
             open={product !== null}
-            onOpenChange={(open) => setProduct(open ? (product ?? { ...emptyProduct }) : null)}
+            onOpenChange={(open) =>
+              setProduct(open ? (product ?? { ...emptyProduct }) : null)
+            }
           >
             <DialogTrigger asChild>
               <Button variant="hero" className="rounded-full">
@@ -225,14 +259,18 @@ function MenuManager() {
                   <Textarea
                     rows={2}
                     value={String(product?.["description"] ?? "")}
-                    onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                    onChange={(e) =>
+                      setProduct({ ...product, description: e.target.value })
+                    }
                   />
                 </Field>
                 <Field label="Category">
                   <select
                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={String(product?.["category_id"] ?? "")}
-                    onChange={(e) => setProduct({ ...product, category_id: e.target.value || null })}
+                    onChange={(e) =>
+                      setProduct({ ...product, category_id: e.target.value || null })
+                    }
                   >
                     <option value="">Uncategorised</option>
                     {categories.map((c) => (
@@ -265,7 +303,9 @@ function MenuManager() {
                     <Input
                       type="number"
                       value={Number(product?.["price"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, price: Number(e.target.value) })
+                      }
                     />
                   </Field>
                   <Field label="Offer price">
@@ -284,14 +324,18 @@ function MenuManager() {
                     <Input
                       type="number"
                       value={Number(product?.["prep_time_mins"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, prep_time_mins: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, prep_time_mins: Number(e.target.value) })
+                      }
                     />
                   </Field>
                   <Field label="Calories">
                     <Input
                       type="number"
                       value={Number(product?.["calories"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, calories: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, calories: Number(e.target.value) })
+                      }
                     />
                   </Field>
                 </div>
@@ -305,7 +349,9 @@ function MenuManager() {
                     <Input
                       type="number"
                       value={Number(product?.["price_per_kg"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, price_per_kg: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, price_per_kg: Number(e.target.value) })
+                      }
                     />
                   </Field>
                 ) : null}
@@ -344,7 +390,9 @@ function MenuManager() {
                 <Button
                   variant="hero"
                   className="w-full rounded-full"
-                  onClick={() => saveProduct.mutate(product!, { onSuccess: () => setProduct(null) })}
+                  onClick={() =>
+                    saveProduct.mutate(product!, { onSuccess: () => setProduct(null) })
+                  }
                 >
                   Save item
                 </Button>
@@ -385,7 +433,9 @@ function MenuManager() {
                   <td className="py-2 text-center">
                     <Switch
                       checked={p.is_available}
-                      onCheckedChange={(v) => saveProduct.mutate({ id: p.id, is_available: v })}
+                      onCheckedChange={(v) =>
+                        saveProduct.mutate({ id: p.id, is_available: v })
+                      }
                     />
                   </td>
                   <td className="py-2">
@@ -478,7 +528,11 @@ function ImageUpload({
           onClick={() => fileRef.current?.click()}
           title="Upload image"
         >
-          {uploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+          {uploading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ImagePlus className="size-4" />
+          )}
         </Button>
         <input
           ref={fileRef}

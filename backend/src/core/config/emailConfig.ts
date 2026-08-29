@@ -10,7 +10,7 @@ export async function sendMailProvider(
   to: string,
   subject: string,
   html: string,
-  text?: string
+  text?: string,
 ): Promise<void> {
   const transport = env.EMAIL_TRANSPORT;
 
@@ -43,6 +43,8 @@ export async function sendMailProvider(
     logger.debug(`Sending email to ${to} via SMTP (fallback)`);
     await sendViaSmtp(to, subject, html);
   } else {
-    throw new Error("No email providers are configured. Please configure Brevo, Gmail API, or SMTP.");
+    throw new Error(
+      "No email providers are configured. Please configure Brevo, Gmail API, or SMTP.",
+    );
   }
 }

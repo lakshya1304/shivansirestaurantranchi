@@ -7,7 +7,7 @@
 import { IMGBB_API_KEY, IMGBB_API_URL } from "../../config/envConfig";
 
 export interface ImgBBResult {
-  url: string;      // direct image URL (e.g. https://i.ibb.co/…/name.webp)
+  url: string; // direct image URL (e.g. https://i.ibb.co/…/name.webp)
   displayUrl: string;
   deleteUrl: string;
   size: number;

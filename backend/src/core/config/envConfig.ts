@@ -26,7 +26,10 @@ const envSchema = z.object({
 
   // Auth
   JWT_ACCESS_SECRET: z.string().min(16).default("dev-access-secret-change-in-production"),
-  JWT_REFRESH_SECRET: z.string().min(16).default("dev-refresh-secret-change-in-production"),
+  JWT_REFRESH_SECRET: z
+    .string()
+    .min(16)
+    .default("dev-refresh-secret-change-in-production"),
   JWT_EXPIRES_IN_ACCESS: z.string().default("15m"),
   JWT_EXPIRES_IN_REFRESH: z.string().default("7d"),
   BCRYPT_SALT_ROUND: z.coerce.number().int().positive().default(10),
@@ -54,7 +57,9 @@ const envSchema = z.object({
   SMTP_PASS: z.string().optional().or(z.literal("")),
   SMTP_FROM: z
     .string()
-    .default(`${process.env.BUSINESS_NAME || "MaaTaraSweets"} <${process.env.SMTP_USER || process.env.GMAIL_USER || ""}>`),
+    .default(
+      `${process.env.BUSINESS_NAME || "MaaTaraSweets"} <${process.env.SMTP_USER || process.env.GMAIL_USER || ""}>`,
+    ),
 
   // Email Sending Provider Preference ("auto" | "gmail" | "smtp" | "brevo")
   EMAIL_TRANSPORT: z.enum(["auto", "gmail", "smtp", "brevo"]).default("auto"),
@@ -98,7 +103,8 @@ export const {
   LOG_LEVEL,
   ADMIN_DATABASE_URL,
   ADMIN_DIRECT_URL,
-  APP_DATABASE_URL, SALT_ROUND,
+  APP_DATABASE_URL,
+  SALT_ROUND,
   APP_DIRECT_URL,
   JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET,

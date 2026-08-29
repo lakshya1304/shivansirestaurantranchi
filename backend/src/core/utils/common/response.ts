@@ -28,14 +28,13 @@ export function sendError(
     .send({ success: false, message, ...(errors && { errors }) });
 }
 
-
 export function sendNotFoundError(
   res: FastifyReply,
   message: String = "Resource not found",
   statusCode: number = 404,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendConflictError(
@@ -44,7 +43,7 @@ export function sendConflictError(
   statusCode: number = 409,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendBadRequestError(
@@ -53,7 +52,7 @@ export function sendBadRequestError(
   statusCode: number = 400,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendUnauthorizedError(
@@ -62,7 +61,7 @@ export function sendUnauthorizedError(
   statusCode: number = 401,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendPaymentRequiredError(
@@ -71,7 +70,7 @@ export function sendPaymentRequiredError(
   statusCode: number = 402,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendRedirectionError(
@@ -80,7 +79,7 @@ export function sendRedirectionError(
   statusCode: number = 302,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendRateLimitError(
@@ -89,7 +88,7 @@ export function sendRateLimitError(
   statusCode: number = 429,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendInternalServerError(
@@ -98,7 +97,7 @@ export function sendInternalServerError(
   statusCode: number = 500,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendMethodNotAllowedError(
@@ -107,7 +106,7 @@ export function sendMethodNotAllowedError(
   statusCode: number = 405,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }
 
 export function sendValidationError(
@@ -116,5 +115,5 @@ export function sendValidationError(
   statusCode: number = 400,
   details?: Record<string, any>,
 ) {
-  return sendError(res, message, statusCode, details)
+  return sendError(res, message, statusCode, details);
 }

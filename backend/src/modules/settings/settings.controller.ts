@@ -8,13 +8,24 @@ import { fetchWithCache } from "../../core/config/redisConfig";
 export const getSettings = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const PUBLIC_SETTINGS_COLUMNS = {
-      id: true, name: true, tagline: true, logo_url: true, banner_url: true, 
-      address: true, phone: true, opening_time: true, closing_time: true, 
-      tax_percent: true, packing_charge: true, delivery_charge: true, 
-      currency: true, theme: true, is_suspended: true
+      id: true,
+      name: true,
+      tagline: true,
+      logo_url: true,
+      banner_url: true,
+      address: true,
+      phone: true,
+      opening_time: true,
+      closing_time: true,
+      tax_percent: true,
+      packing_charge: true,
+      delivery_charge: true,
+      currency: true,
+      theme: true,
+      is_suspended: true,
     };
-    const settings = await fetchWithCache("data:settings", 60, () => 
-      prismaAdmin.restaurantSettings.findFirst({ select: PUBLIC_SETTINGS_COLUMNS })
+    const settings = await fetchWithCache("data:settings", 60, () =>
+      prismaAdmin.restaurantSettings.findFirst({ select: PUBLIC_SETTINGS_COLUMNS }),
     );
     return res.send(settings || null);
   } catch (error: any) {
@@ -46,13 +57,13 @@ export const saveOwnerSettings = async (req: FastifyRequest, res: FastifyReply) 
     const settings = await prismaAdmin.restaurantSettings.findFirst();
     if (!settings) {
       await prismaAdmin.restaurantSettings.create({
-        data: { name: env.BUSINESS_NAME }
+        data: { name: env.BUSINESS_NAME },
       });
     }
 
     const config = await prismaAdmin.appConfig.findFirst();
     const configData: any = {
-      whatsapp_phone_number_id: whatsappPhoneNumberId
+      whatsapp_phone_number_id: whatsappPhoneNumberId,
     };
     if (whatsappToken) {
       configData.whatsapp_token = whatsappToken;
@@ -61,11 +72,11 @@ export const saveOwnerSettings = async (req: FastifyRequest, res: FastifyReply) 
     if (config) {
       await prismaAdmin.appConfig.update({
         where: { id: config.id },
-        data: configData
+        data: configData,
       });
     } else {
       await prismaAdmin.appConfig.create({
-        data: configData
+        data: configData,
       });
     }
 

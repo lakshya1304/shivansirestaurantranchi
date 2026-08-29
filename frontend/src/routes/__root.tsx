@@ -19,8 +19,6 @@ import { useQuery } from "@tanstack/react-query";
 import { settingsQuery } from "@/lib/db";
 import { useIsAdmin } from "@/lib/auth";
 
-
-
 /** 🍬 Not Found — sweet-themed, auto-redirects after 10 s */
 function NotFoundComponent() {
   const router = useRouter();
@@ -47,14 +45,20 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
       {/* Decorative blur blobs */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        aria-hidden="true"
+      >
         <div className="absolute -top-32 left-1/2 size-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
         <div className="absolute bottom-0 right-0 size-72 rounded-full bg-accent/10 blur-[80px]" />
       </div>
 
       <div className="animate-rise max-w-md space-y-6">
         {/* Animated sweet icon */}
-        <div className="mx-auto flex size-24 items-center justify-center rounded-3xl shadow-glow pulse-ring" style={{ background: "var(--gradient-primary)" }}>
+        <div
+          className="mx-auto flex size-24 items-center justify-center rounded-3xl shadow-glow pulse-ring"
+          style={{ background: "var(--gradient-primary)" }}
+        >
           <ChefHat className="size-12 text-primary-foreground" aria-hidden="true" />
         </div>
 
@@ -63,26 +67,47 @@ function NotFoundComponent() {
             Our sweets are getting ready!
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            This page is still in the kitchen. Our chefs are working on it —
-            we'll take you back to the menu shortly.
+            This page is still in the kitchen. Our chefs are working on it — we'll take
+            you back to the menu shortly.
           </p>
         </div>
 
         {/* Countdown ring */}
         <div className="flex flex-col items-center gap-2">
           <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
-            <circle cx="28" cy="28" r="20" fill="none" stroke="currentColor" strokeWidth="3"
-              className="text-border" />
             <circle
-              cx="28" cy="28" r="20" fill="none" stroke="currentColor" strokeWidth="3"
+              cx="28"
+              cy="28"
+              r="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              className="text-border"
+            />
+            <circle
+              cx="28"
+              cy="28"
+              r="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
               className="text-primary transition-all duration-1000"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
               transform="rotate(-90 28 28)"
             />
-            <text x="28" y="33" textAnchor="middle" fontSize="14" fontWeight="700"
-              fill="currentColor" className="fill-foreground">{countdown}</text>
+            <text
+              x="28"
+              y="33"
+              textAnchor="middle"
+              fontSize="14"
+              fontWeight="700"
+              fill="currentColor"
+              className="fill-foreground"
+            >
+              {countdown}
+            </text>
           </svg>
           <p className="text-xs text-muted-foreground">Redirecting in {countdown}s…</p>
         </div>
@@ -127,13 +152,18 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     };
 
     if ("caches" in window) {
-      void caches.keys().then((keys) => {
-        const appKeys = keys.filter(k => k.includes("maatara") || k.includes("vite") || k.includes("workbox"));
-        return Promise.all(appKeys.map((k) => caches.delete(k)));
-      }).then(() => {
-        clearStorage();
-        window.location.reload();
-      });
+      void caches
+        .keys()
+        .then((keys) => {
+          const appKeys = keys.filter(
+            (k) => k.includes("maatara") || k.includes("vite") || k.includes("workbox"),
+          );
+          return Promise.all(appKeys.map((k) => caches.delete(k)));
+        })
+        .then(() => {
+          clearStorage();
+          window.location.reload();
+        });
     } else {
       clearStorage();
       window.location.reload();
@@ -142,7 +172,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        aria-hidden="true"
+      >
         <div className="absolute -top-32 left-1/2 size-[40rem] -translate-x-1/2 rounded-full bg-destructive/8 blur-[120px]" />
       </div>
 
@@ -164,7 +197,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
         <div className="flex flex-wrap justify-center gap-3">
           <button
-            onClick={isChunkError ? hardReload : () => { router.invalidate(); reset(); }}
+            onClick={
+              isChunkError
+                ? hardReload
+                : () => {
+                    router.invalidate();
+                    reset();
+                  }
+            }
             className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-glow transition-all hover:scale-105"
           >
             <RefreshCw className="size-4" aria-hidden="true" />
@@ -225,7 +265,12 @@ function ThemeSync() {
     }
 
     // Remove previous bases
-    root.classList.remove("base-default", "base-minimalist", "base-liquid-glass", "base-claymorphism");
+    root.classList.remove(
+      "base-default",
+      "base-minimalist",
+      "base-liquid-glass",
+      "base-claymorphism",
+    );
     root.classList.add(`base-${base}`);
   }, [mode, base]);
   return null;
@@ -248,7 +293,10 @@ function SuspensionGuard({ children }: { children: ReactNode }) {
   if (settings?.is_suspended && !isAdmin && !isSuperAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
-        <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <div
+          className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+          aria-hidden="true"
+        >
           <div className="absolute -top-32 left-1/2 size-[40rem] -translate-x-1/2 rounded-full bg-destructive/10 blur-[120px]" />
         </div>
         <div className="animate-rise max-w-md space-y-6">
@@ -256,7 +304,9 @@ function SuspensionGuard({ children }: { children: ReactNode }) {
             <AlertTriangle className="size-10 text-destructive" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="font-display text-3xl font-bold text-foreground">Temporarily Unavailable</h1>
+            <h1 className="font-display text-3xl font-bold text-foreground">
+              Temporarily Unavailable
+            </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               Our website is currently down for maintenance. Please check back later.
             </p>

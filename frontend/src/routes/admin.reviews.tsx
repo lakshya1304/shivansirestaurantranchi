@@ -26,7 +26,11 @@ function ReviewsManager() {
         body: JSON.stringify({ is_published: !review.is_published }),
         headers: { "Content-Type": "application/json" },
       });
-      toast.success(review.is_published ? "Review hidden from homepage" : "Review published to homepage ✓");
+      toast.success(
+        review.is_published
+          ? "Review hidden from homepage"
+          : "Review published to homepage ✓",
+      );
       void qc.invalidateQueries({ queryKey: ["reviews"] });
     } catch (err: any) {
       toast.error(err?.message ?? "Could not update review");
@@ -36,7 +40,10 @@ function ReviewsManager() {
   }
 
   async function deleteReview(review: Review) {
-    if (!confirm(`Delete this review by "${review.customer_name}"? This cannot be undone.`)) return;
+    if (
+      !confirm(`Delete this review by "${review.customer_name}"? This cannot be undone.`)
+    )
+      return;
     setBusy(review.id);
     try {
       await fetchAPI(`/crud/reviews/${review.id}`, { method: "DELETE" });
@@ -58,7 +65,8 @@ function ReviewsManager() {
       <header className="space-y-1">
         <h2 className="font-display text-xl font-bold">Customer Reviews</h2>
         <p className="text-sm text-muted-foreground">
-          Published reviews appear on the homepage. Toggle visibility or delete reviews below.
+          Published reviews appear on the homepage. Toggle visibility or delete reviews
+          below.
         </p>
         <div className="flex flex-wrap gap-3 pt-2">
           <Badge variant="gold">{published.length} published</Badge>
@@ -95,21 +103,33 @@ function ReviewsManager() {
                         />
                       ))}
                     </div>
-                    <span className="text-xs font-semibold text-foreground">{review.customer_name}</span>
+                    <span className="text-xs font-semibold text-foreground">
+                      {review.customer_name}
+                    </span>
                     <span className="text-xs text-muted-foreground">•</span>
-                    <span className="text-xs text-muted-foreground">{formatDateTime(review.created_at)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDateTime(review.created_at)}
+                    </span>
                     {review.is_published ? (
-                      <Badge variant="gold" className="ml-1 text-[10px] px-1.5 py-0">Live</Badge>
+                      <Badge variant="gold" className="ml-1 text-[10px] px-1.5 py-0">
+                        Live
+                      </Badge>
                     ) : (
-                      <Badge variant="glass" className="ml-1 text-[10px] px-1.5 py-0">Hidden</Badge>
+                      <Badge variant="glass" className="ml-1 text-[10px] px-1.5 py-0">
+                        Hidden
+                      </Badge>
                     )}
                   </div>
 
                   {/* Comment */}
                   {review.comment ? (
-                    <p className="mt-2 text-sm text-foreground leading-relaxed">"{review.comment}"</p>
+                    <p className="mt-2 text-sm text-foreground leading-relaxed">
+                      "{review.comment}"
+                    </p>
                   ) : (
-                    <p className="mt-2 text-xs italic text-muted-foreground">No written comment.</p>
+                    <p className="mt-2 text-xs italic text-muted-foreground">
+                      No written comment.
+                    </p>
                   )}
                 </div>
 

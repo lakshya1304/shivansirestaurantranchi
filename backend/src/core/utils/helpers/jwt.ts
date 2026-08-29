@@ -72,7 +72,7 @@ export async function blacklistToken(token: string): Promise<void> {
     if (ttl > 0) {
       await redis.setex(`${JWT_BLACKLIST_PREFIX}${token}`, ttl, "1");
     }
-  } catch { }
+  } catch {}
 }
 
 export async function blacklistTokens(
@@ -90,7 +90,7 @@ export async function blacklistTokens(
     if (ttl > 0) {
       await redis.setex(`${JWT_BLACKLIST_PREFIX}${token}`, ttl, "1");
     }
-  } catch { }
+  } catch {}
 }
 
 export async function removeRefreshToken(userId: string): Promise<void> {

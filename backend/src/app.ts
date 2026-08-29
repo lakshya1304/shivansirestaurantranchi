@@ -10,10 +10,13 @@ import fastifyApp from "./core/config/serverConfig";
 import { FastifyReply, FastifyRequest } from "fastify";
 const app = fastifyApp;
 
-app.addHook("onRequest", async (req: FastifyRequest, res: FastifyReply) => { req.signal.addEventListener("abort", () => { return sendError(res, `Request to ${req.url} was aborted`) }) })
+app.addHook("onRequest", async (req: FastifyRequest, res: FastifyReply) => {
+  req.signal.addEventListener("abort", () => {
+    return sendError(res, `Request to ${req.url} was aborted`);
+  });
+});
 
 app.register(moduleRoutes, { prefix: "/api/v1" });
-
 
 app.setNotFoundHandler((req: FastifyRequest, res: FastifyReply) => {
   return sendError(res, "Route not found", STATUS_CODES.NOT_FOUND);

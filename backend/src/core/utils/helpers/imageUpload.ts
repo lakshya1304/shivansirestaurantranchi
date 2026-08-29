@@ -23,9 +23,7 @@ export interface OptimizedImageResult {
  *
  * @param buffer Raw image buffer
  */
-export async function optimizeImage(
-  buffer: Buffer,
-): Promise<OptimizedImageResult> {
+export async function optimizeImage(buffer: Buffer): Promise<OptimizedImageResult> {
   if (!buffer || buffer.length === 0) {
     throw new Error("Image buffer is empty");
   }

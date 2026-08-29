@@ -15,12 +15,20 @@ export const nodemailerTransporter = smtpConfigured
     })
   : null;
 
-export async function sendViaSmtp(to: string, subject: string, html: string): Promise<void> {
+export async function sendViaSmtp(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<void> {
   if (!smtpConfigured || !nodemailerTransporter) {
-    throw new Error("SMTP transporter is not configured. Missing SMTP_HOST, SMTP_USER, or SMTP_PASS.");
+    throw new Error(
+      "SMTP transporter is not configured. Missing SMTP_HOST, SMTP_USER, or SMTP_PASS.",
+    );
   }
   await nodemailerTransporter.sendMail({
-    from: env.SMTP_FROM || (env.SMTP_USER ? `${env.BUSINESS_NAME} <${env.SMTP_USER}>` : undefined),
+    from:
+      env.SMTP_FROM ||
+      (env.SMTP_USER ? `${env.BUSINESS_NAME} <${env.SMTP_USER}>` : undefined),
     to,
     subject,
     html,

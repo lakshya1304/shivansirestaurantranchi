@@ -5,12 +5,16 @@ const opts = { $refStrategy: "none" } as const;
 
 // ─── Zod definitions ────────────────────────────────────────────────────────
 
-const passwordSchema = z.string()
+const passwordSchema = z
+  .string()
   .min(8, "Password must be at least 8 characters long.")
   .regex(/[a-z]/, "Password must contain at least one lowercase letter.")
   .regex(/[A-Z]/, "Password must contain at least one uppercase letter.")
   .regex(/[0-9]/, "Password must contain at least one number.")
-  .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain at least one special character.");
+  .regex(
+    /[!@#$%^&*(),.?":{}|<>]/,
+    "Password must contain at least one special character.",
+  );
 
 const _registerZod = z.object({
   name: z.string().min(1),
@@ -86,7 +90,19 @@ export const passlessVerifySchema = zodToJsonSchema(_passlessVerifyZod as any, o
 export const enableTotpSchema = zodToJsonSchema(_enableTotpZod as any, opts);
 export const verifyTotpSchema = zodToJsonSchema(_verifyTotpZod as any, opts);
 export const disableTotpSchema = zodToJsonSchema(_disableTotpZod as any, opts);
-export const webAuthnGenerateRegistrationSchema = zodToJsonSchema(_webAuthnGenerateRegistrationZod as any, opts);
-export const webAuthnVerifyRegistrationSchema = zodToJsonSchema(_webAuthnVerifyRegistrationZod as any, opts);
-export const webAuthnGenerateAuthSchema = zodToJsonSchema(_webAuthnGenerateAuthZod as any, opts);
-export const webAuthnVerifyAuthSchema = zodToJsonSchema(_webAuthnVerifyAuthZod as any, opts);
+export const webAuthnGenerateRegistrationSchema = zodToJsonSchema(
+  _webAuthnGenerateRegistrationZod as any,
+  opts,
+);
+export const webAuthnVerifyRegistrationSchema = zodToJsonSchema(
+  _webAuthnVerifyRegistrationZod as any,
+  opts,
+);
+export const webAuthnGenerateAuthSchema = zodToJsonSchema(
+  _webAuthnGenerateAuthZod as any,
+  opts,
+);
+export const webAuthnVerifyAuthSchema = zodToJsonSchema(
+  _webAuthnVerifyAuthZod as any,
+  opts,
+);

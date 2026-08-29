@@ -16,10 +16,7 @@ export const gmailApiConfigured = !!(
 );
 
 // ── Google OAuth2 Transporter Client ──
-export const oauth2Client = new google.auth.OAuth2(
-  gmailClientId,
-  gmailClientSecret
-);
+export const oauth2Client = new google.auth.OAuth2(gmailClientId, gmailClientSecret);
 
 if (gmailRefreshToken) {
   oauth2Client.setCredentials({
@@ -43,7 +40,9 @@ export async function getGmailAccessToken(): Promise<string> {
   }
 
   if (tokenFetchFailedUntil > now) {
-    throw new Error("Gmail API OAuth token refresh previously failed (suppressing retries).");
+    throw new Error(
+      "Gmail API OAuth token refresh previously failed (suppressing retries).",
+    );
   }
 
   if (!gmailClientId || !gmailClientSecret || !gmailRefreshToken) {
@@ -76,7 +75,7 @@ export async function getGmailAccessToken(): Promise<string> {
     tokenFetchFailedUntil = now + 5 * 60 * 1000; // Suppress retries for 5 minutes
     const errorDetail = err instanceof Error ? err.message : String(err);
     throw new Error(
-      `Failed to refresh Gmail API access token (${errorDetail}). GMAIL_REFRESH_TOKEN may be expired or invalid.`
+      `Failed to refresh Gmail API access token (${errorDetail}). GMAIL_REFRESH_TOKEN may be expired or invalid.`,
     );
   }
 }
@@ -91,7 +90,11 @@ const streamTransporter = nodemailer.createTransport({
 /**
  * Send email via Gmail REST API (HTTPS Port 443)
  */
-export async function sendViaGmailApi(to: string, subject: string, html: string): Promise<void> {
+export async function sendViaGmailApi(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<void> {
   await getGmailAccessToken();
 
   const fromSender =

@@ -4,11 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 
 export default defineConfig({
-  plugins: [
-    TanStackRouterVite(),
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [TanStackRouterVite(), react(), tailwindcss()],
   resolve: {
     dedupe: ["react", "react-dom"],
     tsconfigPaths: true,
@@ -32,9 +28,11 @@ export default defineConfig({
         manualChunks(id) {
           // ── React core ──────────────────────────────────────────────────
           // Tiny, changes rarely → long-lived cache hit on every deploy.
-          if (id.includes("node_modules/react/") ||
-              id.includes("node_modules/react-dom/") ||
-              id.includes("node_modules/scheduler/")) {
+          if (
+            id.includes("node_modules/react/") ||
+            id.includes("node_modules/react-dom/") ||
+            id.includes("node_modules/scheduler/")
+          ) {
             return "vendor-react";
           }
 
@@ -49,9 +47,11 @@ export default defineConfig({
           }
 
           // ── Charts (Recharts + D3 internals) — only used on admin pages ──
-          if (id.includes("node_modules/recharts") ||
-              id.includes("node_modules/d3-") ||
-              id.includes("node_modules/victory-vendor")) {
+          if (
+            id.includes("node_modules/recharts") ||
+            id.includes("node_modules/d3-") ||
+            id.includes("node_modules/victory-vendor")
+          ) {
             return "vendor-charts";
           }
 
@@ -61,10 +61,12 @@ export default defineConfig({
           }
 
           // ── Redux ────────────────────────────────────────────────────────
-          if (id.includes("node_modules/@reduxjs/") ||
-              id.includes("node_modules/react-redux/") ||
-              id.includes("node_modules/redux/") ||
-              id.includes("node_modules/immer/")) {
+          if (
+            id.includes("node_modules/@reduxjs/") ||
+            id.includes("node_modules/react-redux/") ||
+            id.includes("node_modules/redux/") ||
+            id.includes("node_modules/immer/")
+          ) {
             return "vendor-redux";
           }
 

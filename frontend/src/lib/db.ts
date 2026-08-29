@@ -36,25 +36,28 @@ apiClient.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
+        await axios.post(
+          `${API_BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true },
+        );
         return apiClient(originalRequest);
       } catch (refreshError) {
         return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
-
-
 
 export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
   const isPost = options?.method && options.method !== "GET";
   // Auth endpoints live at /api/v1/auth/*, not under /data.
   // All other endpoints (categories, products, etc.) live under /api/v1/data/*.
-  const url = endpoint.startsWith("/auth") || endpoint.startsWith("/data")
-    ? endpoint
-    : `/data${endpoint}`;
+  const url =
+    endpoint.startsWith("/auth") || endpoint.startsWith("/data")
+      ? endpoint
+      : `/data${endpoint}`;
   try {
     const response = await apiClient({
       url,
@@ -68,13 +71,18 @@ export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
     // { error: "msg" } | { message: "msg" } | { error: { message: "msg" } }
     const raw = error.response?.data?.error ?? error.response?.data?.message ?? null;
     const msg: string | null =
-      raw == null ? null
-      : typeof raw === "string" ? raw
-      : typeof raw?.message === "string" ? raw.message
-      : null;
+      raw == null
+        ? null
+        : typeof raw === "string"
+          ? raw
+          : typeof raw?.message === "string"
+            ? raw.message
+            : null;
     if (msg) throw new Error(msg);
     if (error.code === "ERR_NETWORK") {
-      throw new Error("Unable to connect to the server. Please check your internet connection.");
+      throw new Error(
+        "Unable to connect to the server. Please check your internet connection.",
+      );
     }
     throw new Error(error?.message ?? "Something went wrong. Please try again later.");
   }
@@ -154,7 +162,10 @@ export const notificationsQuery = queryOptions({
 export function activeOffers(offers: Offer[]) {
   const today = new Date().toISOString().slice(0, 10);
   return offers.filter(
-    (o) => o.is_active && (!o.starts_at || o.starts_at <= today) && (!o.ends_at || o.ends_at >= today),
+    (o) =>
+      o.is_active &&
+      (!o.starts_at || o.starts_at <= today) &&
+      (!o.ends_at || o.ends_at >= today),
   );
 }
 

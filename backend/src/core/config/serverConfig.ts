@@ -11,7 +11,7 @@ import { WEB_ORIGIN } from "./envConfig";
 import { env } from "node:process";
 
 let fastifyApp = fastify({ logger: true, exposeHeadRoutes: true });
-parseFloat
+parseFloat;
 await fastifyApp.register(cors, {
   origin: process.env.NODE_ENV === "production" ? WEB_ORIGIN : true,
   credentials: true,
@@ -19,7 +19,7 @@ await fastifyApp.register(cors, {
 await fastifyApp.register(cookie);
 await fastifyApp.register(rateLimiter);
 await fastifyApp.register(compress, {
-  encodings: ['gzip', 'deflate', 'br'],
+  encodings: ["gzip", "deflate", "br"],
 });
 await fastifyApp.register(multipart, {
   limits: {
@@ -36,7 +36,9 @@ await fastifyApp.register(swagger, {
       version: "1.0.0",
     },
     components: {
-      securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } },
+      securitySchemes: {
+        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+      },
     },
   },
 });
@@ -48,7 +50,9 @@ await fastifyApp.register(swaggerUi, {
 });
 
 fastifyApp.get("/", (req: FastifyRequest, res: FastifyReply) => {
-  res.code(200).send({ message: "Server fired up", version: version, mode: env.NODE_ENV });
+  res
+    .code(200)
+    .send({ message: "Server fired up", version: version, mode: env.NODE_ENV });
 });
 
 export default fastifyApp;

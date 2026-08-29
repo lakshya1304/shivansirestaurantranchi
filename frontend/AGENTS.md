@@ -27,12 +27,12 @@ public/
 
 ## Dev Commands
 
-| Command | Purpose |
-|---------|---------|
-| `bun dev` | Start dev server (port 3000) |
-| `bun build` | Production build (Cloudflare target) |
-| `bun lint` | ESLint |
-| `bun format` | Prettier |
+| Command      | Purpose                              |
+| ------------ | ------------------------------------ |
+| `bun dev`    | Start dev server (port 3000)         |
+| `bun build`  | Production build (Cloudflare target) |
+| `bun lint`   | ESLint                               |
+| `bun format` | Prettier                             |
 
 ## Key Conventions
 

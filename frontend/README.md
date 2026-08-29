@@ -1,4 +1,4 @@
-# Shivansi Order 
+# Shivansi Order
 
 "Shivansi Restaurant & Sweet Shop"
 
@@ -1111,7 +1111,6 @@ Do not add TODO comments.
 Build a fully functional MVP.
 
 imp- i dont know anything
-
 
 ## Development
 

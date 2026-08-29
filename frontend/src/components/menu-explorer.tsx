@@ -37,7 +37,8 @@ export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorer
       if (category !== "all" && cat?.slug !== category) return false;
       if (diet === "veg" && !p.is_veg) return false;
       if (diet === "nonveg" && p.is_veg) return false;
-      if (term && !`${p.name} ${p.description}`.toLowerCase().includes(term)) return false;
+      if (term && !`${p.name} ${p.description}`.toLowerCase().includes(term))
+        return false;
       return true;
     });
   }, [products, categories, category, diet, search]);
@@ -61,8 +62,11 @@ export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorer
               key={d}
               type="button"
               onClick={() => setDiet(d)}
-              className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${diet === d ? "border-primary bg-primary/20 text-primary" : "border-border text-muted-foreground hover:border-primary/40"
-                }`}
+              className={`rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+                diet === d
+                  ? "border-primary bg-primary/20 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/40"
+              }`}
             >
               {d === "all" ? "All" : d === "veg" ? "Veg" : "Non-veg"}
             </button>
@@ -71,14 +75,19 @@ export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorer
       </div>
 
       {/* Category filter bar — horizontal scrollable */}
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Filter by category">
+      <div
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0"
+        role="group"
+        aria-label="Filter by category"
+      >
         <button
           type="button"
           onClick={() => handleCategoryChange("all")}
-          className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-all duration-150 ${category === "all"
+          className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-all duration-150 ${
+            category === "all"
               ? "border-primary bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary-rgb,124,58,237),0.2)]"
               : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-            }`}
+          }`}
         >
           Everything
         </button>
@@ -89,10 +98,11 @@ export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorer
               key={c.id}
               type="button"
               onClick={() => handleCategoryChange(c.slug)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-all duration-150 ${category === c.slug
+              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-all duration-150 ${
+                category === c.slug
                   ? "border-primary bg-primary/20 text-primary shadow-[0_0_10px_rgba(var(--primary-rgb,124,58,237),0.2)]"
                   : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                }`}
+              }`}
             >
               {c.name}
             </button>

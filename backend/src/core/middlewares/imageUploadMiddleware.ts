@@ -48,12 +48,7 @@ export interface ImageUploadMiddlewareOptions {
  * Attach it to any route that may receive an "image" file field.
  */
 export function createImageUploadMiddleware(opts: ImageUploadMiddlewareOptions = {}) {
-  const {
-    maxWidth = 1200,
-    maxHeight = 1200,
-    quality = 82,
-    namePrefix = "upload",
-  } = opts;
+  const { maxWidth = 1200, maxHeight = 1200, quality = 82, namePrefix = "upload" } = opts;
 
   return async function imageUploadMiddleware(
     req: FastifyRequest,
@@ -90,14 +85,16 @@ export function createImageUploadMiddleware(opts: ImageUploadMiddlewareOptions =
           const rawBuffer = await part.toBuffer();
 
           if (rawBuffer.length === 0) {
-            res.status(400).send({ success: false, message: "Uploaded image file is empty" });
+            res
+              .status(400)
+              .send({ success: false, message: "Uploaded image file is empty" });
             return;
           }
 
           // ── 3. Optimise with sharp → WebP ─────────────────────────────
           const optimised = await sharp(rawBuffer)
             .resize(maxWidth, maxHeight, {
-              fit: "inside",            // preserve aspect ratio
+              fit: "inside", // preserve aspect ratio
               withoutEnlargement: true, // never upscale small images
             })
             .webp({ quality })
@@ -105,7 +102,7 @@ export function createImageUploadMiddleware(opts: ImageUploadMiddlewareOptions =
 
           // Build a clean filename for imgbb
           const baseName = (part.filename ?? "image")
-            .replace(/\.[^.]+$/, "")          // strip extension
+            .replace(/\.[^.]+$/, "") // strip extension
             .replace(/[^a-zA-Z0-9_-]/g, "_") // sanitise
             .slice(0, 50);
           const filename = `${namePrefix}_${baseName}_${Date.now()}.webp`;

@@ -79,7 +79,7 @@ async function migrateData() {
       // Prisma arrays don't accept null. Supabase might send null for array columns.
       if (!discount.category_ids) discount.category_ids = [];
       if (!discount.product_ids) discount.product_ids = [];
-      
+
       await prisma.discount.upsert({
         where: { id: discount.id },
         update: discount,
@@ -156,8 +156,10 @@ async function migrateData() {
     // 12. Seed Root SUPERADMIN
     console.log("Seeding root SUPERADMIN...");
     const rootAdminEmail = "nishanrajak01@gmail.com";
-    const existingRoot = await prisma.user.findUnique({ where: { email: rootAdminEmail } });
-    
+    const existingRoot = await prisma.user.findUnique({
+      where: { email: rootAdminEmail },
+    });
+
     if (!existingRoot) {
       await prisma.user.create({
         data: {
@@ -165,7 +167,7 @@ async function migrateData() {
           email: rootAdminEmail,
           password: "Nishur31@", // NOTE: ensure your prisma middleware hashes this!
           role: "SUPERADMIN",
-        }
+        },
       });
       console.log(`Created root SUPERADMIN: ${rootAdminEmail}`);
     } else {
