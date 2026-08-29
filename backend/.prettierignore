@@ -1,6 +1,10 @@
 node_modules
 dist
 build
+generated/
+.*
+logs/
+*.prisma
 coverage
 .next
 .out
