@@ -17,7 +17,6 @@ const _registerZod = z.object({
   email: z.string().email(),
   password: passwordSchema,
   phone: z.string().optional(),
-  gender: z.string().min(1),
 });
 
 const _loginZod = z.object({

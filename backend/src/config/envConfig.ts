@@ -75,6 +75,12 @@ const envSchema = z.object({
   // Image hosting (imgbb)
   IMGBB_API_KEY: z.string().min(1).optional(),
   IMGBB_API_URL: z.string().url().default("https://api.imgbb.com/1/upload"),
+
+  // Supabase (image storage)
+  SUPABASE_URL: z.string().url().optional().or(z.literal("")),
+  SUPABASE_ANON_KEY: z.string().optional().or(z.literal("")),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional().or(z.literal("")),
+  SUPABASE_STORAGE_BUCKET: z.string().default("product-images"),
 });
 
 const env = envSchema.parse(process.env);
@@ -119,6 +125,10 @@ export const {
   IMGBB_API_URL,
   BCRYPT_SALT_ROUND,
   TOTP_ISSUER,
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
+  SUPABASE_SERVICE_ROLE_KEY,
+  SUPABASE_STORAGE_BUCKET,
 } = env;
 
 // Export legacy aliases for other files

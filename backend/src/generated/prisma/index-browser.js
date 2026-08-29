@@ -286,6 +286,7 @@ exports.Prisma.CustomerScalarFieldEnum = {
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
   order_number: 'order_number',
+  bill_id: 'bill_id',
   session_token: 'session_token',
   table_number: 'table_number',
   customer_id: 'customer_id',
@@ -325,6 +326,17 @@ exports.Prisma.ReviewScalarFieldEnum = {
   comment: 'comment',
   is_published: 'is_published',
   created_at: 'created_at'
+};
+
+exports.Prisma.RatingScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  menuItemId: 'menuItemId',
+  userId: 'userId',
+  phone: 'phone',
+  stars: 'stars',
+  comment: 'comment',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.AppNotificationScalarFieldEnum = {
@@ -385,6 +397,16 @@ exports.Role = exports.$Enums.Role = {
   SUPERADMIN: 'SUPERADMIN'
 };
 
+exports.OrderStatus = exports.$Enums.OrderStatus = {
+  PENDING: 'PENDING',
+  CONFIRMED: 'CONFIRMED',
+  PREPARING: 'PREPARING',
+  PREPARED: 'PREPARED',
+  SERVED: 'SERVED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Passkey: 'Passkey',
@@ -401,6 +423,7 @@ exports.Prisma.ModelName = {
   Order: 'Order',
   OrderItem: 'OrderItem',
   Review: 'Review',
+  Rating: 'Rating',
   AppNotification: 'AppNotification',
   AppConfig: 'AppConfig',
   PhoneVerification: 'PhoneVerification'

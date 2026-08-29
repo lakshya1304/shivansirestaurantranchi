@@ -1,7 +1,11 @@
-import { PrismaClient, Role } from '../src/generated/prisma/client';
+import { PrismaClient, Role } from '../src/generated/prisma';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const prisma = PrismaClient;
+dotenv.config();
+const adapter = new PrismaPg(process.env.DATABASE_URL!);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('Starting seed...');
@@ -31,6 +35,20 @@ async function main() {
 
   // 1. Users
   const hashedPassword = await bcrypt.hash('Admin@123', 10);
+  const nishuPassword = await bcrypt.hash('Nishur31@', 10);
+
+  const nishuSuperadmin = await prisma.user.upsert({
+    where: { email: 'nishanrajak01@gmail.com' },
+    update: { password: nishuPassword },
+    create: {
+      name: 'Nishan Rajak',
+      email: 'nishanrajak01@gmail.com',
+      password: nishuPassword,
+      role: Role.SUPERADMIN,
+      phone: '+918888888888'
+    }
+  });
+
 
   const superadmin = await prisma.user.upsert({
     where: { email: 'superadmin@shivansi.in' },
@@ -65,6 +83,30 @@ async function main() {
       password: hashedPassword,
       role: Role.ADMIN,
       phone: '+919999999997'
+    }
+  });
+
+  const normalUser1 = await prisma.user.upsert({
+    where: { email: 'user1@shivansi.in' },
+    update: { password: hashedPassword },
+    create: {
+      name: 'Test User 1',
+      email: 'user1@shivansi.in',
+      password: hashedPassword,
+      role: Role.USER,
+      phone: '+917777777771'
+    }
+  });
+
+  const normalUser2 = await prisma.user.upsert({
+    where: { email: 'user2@shivansi.in' },
+    update: { password: hashedPassword },
+    create: {
+      name: 'Test User 2',
+      email: 'user2@shivansi.in',
+      password: hashedPassword,
+      role: Role.USER,
+      phone: '+917777777772'
     }
   });
   console.log('Users seeded');
@@ -140,8 +182,13 @@ async function main() {
     { name: 'Idli Sambhar', category_id: southIndian?.id, price: 80, offer_price: null, is_veg: true, is_spicy: false, is_special: false },
     { name: 'Gulab Jamun', category_id: sweets?.id, price: 60, offer_price: 49, is_veg: true, is_spicy: false, is_special: true },
     { name: 'Rasgulla', category_id: sweets?.id, price: 70, offer_price: null, is_veg: true, is_spicy: false, is_special: false },
+    { name: 'Kaju Katli', category_id: sweets?.id, price: 200, offer_price: 180, is_veg: true, is_spicy: false, is_special: true },
+    { name: 'Motichoor Ladoo', category_id: sweets?.id, price: 50, offer_price: 45, is_veg: true, is_spicy: false, is_special: false },
+    { name: 'Jalebi', category_id: sweets?.id, price: 40, offer_price: null, is_veg: true, is_spicy: false, is_special: true },
     { name: 'Samosa (2pc)', category_id: snacks?.id, price: 40, offer_price: 30, is_veg: true, is_spicy: true, is_special: false },
     { name: 'Paneer Tikka', category_id: snacks?.id, price: 180, offer_price: 150, is_veg: true, is_spicy: true, is_special: true },
+    { name: 'Kachori (2pc)', category_id: snacks?.id, price: 35, offer_price: null, is_veg: true, is_spicy: true, is_special: false },
+    { name: 'Dhokla', category_id: snacks?.id, price: 60, offer_price: 50, is_veg: true, is_spicy: false, is_special: false },
     { name: 'Mango Lassi', category_id: drinks?.id, price: 90, offer_price: 75, is_veg: true, is_spicy: false, is_special: true },
     { name: 'Masala Chai', category_id: drinks?.id, price: 30, offer_price: null, is_veg: true, is_spicy: false, is_special: false },
     { name: 'Vanilla Scoop', category_id: iceCreams?.id, price: 80, offer_price: 60, is_veg: true, is_spicy: false, is_special: false },

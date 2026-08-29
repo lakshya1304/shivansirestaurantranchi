@@ -66,7 +66,7 @@ function OrderTracking() {
   const order = payload.order as unknown as Order & { updated_at: string };
   const takeaway = order.table_number == null;
   const status = order.status;
-  const cancelled = status === "rejected";
+  const cancelled = status === "CANCELLED";
   const activeIndex = ORDER_FLOW.indexOf(status);
 
   return (

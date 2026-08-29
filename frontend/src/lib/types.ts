@@ -178,31 +178,31 @@ export interface AppNotification {
 }
 
 export type OrderStatus =
-  | "pending"
-  | "accepted"
-  | "rejected"
-  | "preparing"
-  | "ready"
-  | "served"
-  | "completed";
+  | "PENDING"
+  | "CONFIRMED"
+  | "PREPARING"
+  | "PREPARED"
+  | "SERVED"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export const ORDER_FLOW: OrderStatus[] = [
-  "pending",
-  "accepted",
-  "preparing",
-  "ready",
-  "served",
-  "completed",
+  "PENDING",
+  "CONFIRMED",
+  "PREPARING",
+  "PREPARED",
+  "SERVED",
+  "COMPLETED",
 ];
 
 export const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: "Waiting for confirmation",
-  accepted: "Order accepted",
-  rejected: "Order rejected",
-  preparing: "Preparing your food",
-  ready: "Ready to serve",
-  served: "Served at your table",
-  completed: "Completed",
+  PENDING: "Waiting for confirmation",
+  CONFIRMED: "Order accepted",
+  CANCELLED: "Order rejected",
+  PREPARING: "Preparing your food",
+  PREPARED: "Ready to serve",
+  SERVED: "Served at your table",
+  COMPLETED: "Completed",
 };
 
 export const WEIGHT_OPTIONS = [

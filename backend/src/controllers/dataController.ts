@@ -97,8 +97,16 @@ export const getTables = async (req: FastifyRequest, res: FastifyReply) => {
 
 export const getReviews = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const reviews = await fetchWithCache("data:reviews", 60, () =>
-      prisma.review.findMany({ orderBy: { created_at: "desc" } })
+    const { published, limit } = (req.query as any) ?? {};
+    const onlyPublished = published !== "false"; // default: only show published
+    const take = Math.min(Number(limit) || 6, 20);
+    const cacheKey = `data:reviews:pub=${onlyPublished}:limit=${take}`;
+    const reviews = await fetchWithCache(cacheKey, 30, () =>
+      prisma.review.findMany({
+        where: onlyPublished ? { is_published: true } : undefined,
+        orderBy: { created_at: "desc" },
+        take,
+      })
     );
     return res.send(reviews);
   } catch (error: any) {
