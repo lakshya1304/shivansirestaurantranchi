@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,10 +15,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { categoriesQuery, productsQuery, settingsQuery } from "@/lib/db";
+import { categoriesQuery, productsQuery, settingsQuery, fetchAPI } from "@/lib/db";
 import { useDeleteRow, useSaveRow } from "@/lib/admin";
 import { money } from "@/lib/format";
 import type { Category, Product } from "@/lib/types";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/menu")({
   component: MenuManager,
@@ -44,6 +45,19 @@ const emptyProduct = {
   category_id: null as string | null,
 };
 
+async function uploadImage(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${import.meta.env["VITE_API_BASE_URL"] || "/api/v1"}/data/upload-image`, {
+    method: "POST",
+    body: form,
+    credentials: "include",
+  });
+  const json = await res.json();
+  if (!res.ok || !json.url) throw new Error(json.error || "Upload failed");
+  return json.url as string;
+}
+
 function MenuManager() {
   const { data: categories = [] } = useQuery(categoriesQuery);
   const { data: products = [] } = useQuery(productsQuery);
@@ -57,6 +71,7 @@ function MenuManager() {
 
   const [product, setProduct] = useState<Record<string, unknown> | null>(null);
   const [category, setCategory] = useState<Record<string, unknown> | null>(null);
+  const [uploadingFor, setUploadingFor] = useState<"product" | "category" | null>(null);
 
   return (
     <div className="space-y-8">
@@ -106,12 +121,24 @@ function MenuManager() {
                     onChange={(e) => setCategory({ ...category, description: e.target.value })}
                   />
                 </Field>
-                <Field label="Image URL">
-                  <Input
-                    value={String(category?.["image_url"] ?? "")}
-                    onChange={(e) => setCategory({ ...category, image_url: e.target.value })}
-                  />
-                </Field>
+                <ImageUpload
+                  label="Category Image"
+                  currentUrl={String(category?.["image_url"] ?? "")}
+                  uploading={uploadingFor === "category"}
+                  onUrlChange={(url) => setCategory({ ...category, image_url: url })}
+                  onFileSelect={async (file) => {
+                    setUploadingFor("category");
+                    try {
+                      const url = await uploadImage(file);
+                      setCategory((prev) => ({ ...prev, image_url: url }));
+                      toast.success("Image uploaded!");
+                    } catch (e: any) {
+                      toast.error(e.message);
+                    } finally {
+                      setUploadingFor(null);
+                    }
+                  }}
+                />
                 <Field label="Sort order">
                   <Input
                     type="number"
@@ -215,12 +242,24 @@ function MenuManager() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Image URL">
-                  <Input
-                    value={String(product?.["image_url"] ?? "")}
-                    onChange={(e) => setProduct({ ...product, image_url: e.target.value })}
-                  />
-                </Field>
+                <ImageUpload
+                  label="Product Image"
+                  currentUrl={String(product?.["image_url"] ?? "")}
+                  uploading={uploadingFor === "product"}
+                  onUrlChange={(url) => setProduct({ ...product, image_url: url })}
+                  onFileSelect={async (file) => {
+                    setUploadingFor("product");
+                    try {
+                      const url = await uploadImage(file);
+                      setProduct((prev) => ({ ...prev, image_url: url }));
+                      toast.success("Image uploaded!");
+                    } catch (e: any) {
+                      toast.error(e.message);
+                    } finally {
+                      setUploadingFor(null);
+                    }
+                  }}
+                />
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Price">
                     <Input
@@ -401,6 +440,66 @@ function Toggle({
     <div className="flex items-center justify-between rounded-xl border border-border px-3 py-2">
       <span className="text-sm">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+// ─── Image Upload Component ───────────────────────────────────────────────────
+function ImageUpload({
+  label,
+  currentUrl,
+  uploading,
+  onUrlChange,
+  onFileSelect,
+}: {
+  label: string;
+  currentUrl: string;
+  uploading: boolean;
+  onUrlChange: (url: string) => void;
+  onFileSelect: (file: File) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  return (
+    <div className="space-y-1.5">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          placeholder="Paste URL or upload a file →"
+          value={currentUrl}
+          onChange={(e) => onUrlChange(e.target.value)}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          variant="glass"
+          size="icon"
+          className="shrink-0"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+          title="Upload image"
+        >
+          {uploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+        </Button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onFileSelect(file);
+            e.target.value = "";
+          }}
+        />
+      </div>
+      {currentUrl ? (
+        <img
+          src={currentUrl}
+          alt="preview"
+          className="mt-1 h-20 w-full rounded-xl object-cover border border-border/60"
+          onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+        />
+      ) : null}
     </div>
   );
 }

@@ -120,8 +120,15 @@ export const tablesQuery = queryOptions({
 });
 
 export const reviewsQuery = queryOptions({
-  queryKey: ["reviews"],
-  queryFn: () => fetchAPI<Review[]>("/reviews"),
+  queryKey: ["reviews", "published"],
+  queryFn: () => fetchAPI<Review[]>("/reviews?published=true&limit=6"),
+  staleTime: 30_000,
+});
+
+export const allReviewsQuery = queryOptions({
+  queryKey: ["reviews", "all"],
+  queryFn: () => fetchAPI<Review[]>("/reviews?published=false&limit=50"),
+  staleTime: 15_000,
 });
 
 export const inventoryQuery = queryOptions({

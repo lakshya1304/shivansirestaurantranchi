@@ -542,3 +542,68 @@
 .base-claymorphism .card-3d-hover {
   transform: translateY(-4px) scale(1.02);
 }
+
+/* ════════════════════════════════════════════════════
+   PRINT STYLES — Bill / Invoice
+   ════════════════════════════════════════════════════ */
+
+@media print {
+  /* Hide all non-bill UI chrome */
+  header,
+  nav,
+  footer,
+  .site-header,
+  .site-footer,
+  [data-radix-toast-viewport],
+  .print-hidden,
+  [class*="print\\:hidden"] {
+    display: none !important;
+  }
+
+  /* Reset backgrounds — printers skip CSS bg by default */
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: "Georgia", serif;
+    font-size: 11pt;
+  }
+
+  /* The invoice should take up the full page */
+  #invoice {
+    width: 100%;
+    max-width: 100%;
+    background: white !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Page: A4 portrait, minimal margins */
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  /* Prevent ugly page breaks inside an order item row */
+  tr,
+  li,
+  blockquote {
+    break-inside: avoid;
+  }
+
+  /* Remove glassmorphism on all elements */
+  .glass,
+  .glass-strong {
+    background: white !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Keep the invoice total prominent */
+  #invoice .font-display {
+    font-size: 14pt;
+  }
+}
+

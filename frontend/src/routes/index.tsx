@@ -33,7 +33,7 @@ function Home() {
   const { data: products = [] } = useQuery(productsQuery);
   const { data: categories = [] } = useQuery(categoriesQuery);
   const { data: offers = [] } = useQuery(offersQuery);
-  const { data: reviews = [] } = useQuery(reviewsQuery);
+  const { data: reviews = [], isLoading: reviewsLoading } = useQuery(reviewsQuery);
   const { data: settings } = useQuery(settingsQuery);
   const { tableNumber } = useCart();
 
@@ -189,14 +189,32 @@ function Home() {
         <MenuExplorer />
       </Section>
 
-      {reviews.length > 0 ? (
+      {reviewsLoading ? (
+        <Section title="Guest reviews" subtitle="Straight from our tables">
+          <div className="grid gap-5 md:grid-cols-3 stagger-children">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="glass-strong rounded-3xl p-7 space-y-3 animate-pulse">
+                <div className="flex gap-1">
+                  {Array.from({ length: 5 }).map((__, j) => (
+                    <div key={j} className="size-4 rounded-full shimmer" />
+                  ))}
+                </div>
+                <div className="h-4 w-3/4 rounded shimmer" />
+                <div className="h-3 w-full rounded shimmer" />
+                <div className="h-3 w-5/6 rounded shimmer" />
+                <div className="h-3 w-1/3 rounded shimmer mt-3" />
+              </div>
+            ))}
+          </div>
+        </Section>
+      ) : reviews.length > 0 ? (
         <Section title="Guest reviews" subtitle="Straight from our tables">
           <div className="grid gap-5 md:grid-cols-3 stagger-children">
             {reviews.slice(0, 6).map((r) => (
               <blockquote key={r.id} className="glass-strong rounded-3xl p-7 relative">
                 <div className="absolute top-0 right-8 -translate-y-1/2 text-[80px] leading-none text-accent/10 font-serif font-bold">"</div>
                 <div className="flex gap-1 text-accent">
-                  {Array.from({ length: r.rating }).map((_, i) => (
+                  {Array.from({ length: Math.round(r.rating) }).map((_, i) => (
                     <Star key={i} className="size-4 fill-current" aria-hidden="true" />
                   ))}
                 </div>

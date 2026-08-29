@@ -1,9 +1,7 @@
 import app from "./app";
-import { API_PORT, NODE_ENV } from "./config/envConfig";
-
-import logger from "./config/loggerConfig";
-
-import redis, { connectRedis } from "./config/redisConfig";
+import { API_PORT, NODE_ENV } from "./core/config/envConfig";
+import logger from "./core/config/loggerConfig";
+import redis, { connectRedis } from "./core/config/redisConfig";
 
 const startServer = async () => {
   try {

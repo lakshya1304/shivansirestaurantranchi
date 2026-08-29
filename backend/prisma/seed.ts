@@ -342,23 +342,25 @@ async function main() {
   }
   console.log('Orders seeded');
 
-  // 13. Reviews
+  // 13. Reviews (real-sounding published reviews for homepage)
   const reviewsData = [
-    { product: 'Masala Dosa', rating: 5, comment: 'Crispy and perfect!', is_published: true },
-    { product: 'Gulab Jamun', rating: 4, comment: 'Soft and sweet, loved it.', is_published: true },
-    { product: 'Mango Lassi', rating: 5, comment: 'Best lassi in Ranchi!', is_published: true },
-    { product: 'Paneer Tikka', rating: 4, comment: 'Perfectly spiced.', is_published: true },
-    { product: 'Samosa (2pc)', rating: 2, comment: 'Was cold when served.', is_published: false },
+    { product: 'Masala Dosa', name: 'Priya Singh', rating: 5, comment: 'Best dosa in all of Ranchi! Crispy, perfectly seasoned, and the sambar was divine. We visit every Sunday!', is_published: true },
+    { product: 'Gulab Jamun', name: 'Rahul Gupta', rating: 5, comment: 'Perfectly soft and soaked in rose syrup. These are hands down the best gulab jamun I\'ve ever had outside of Kolkata!', is_published: true },
+    { product: 'Mango Lassi', name: 'Anjali Das', rating: 5, comment: 'Thick, creamy, and full of real mango flavour. I order this every single visit. My kids absolutely love it!', is_published: true },
+    { product: 'Kaju Katli', name: 'Vikram Sharma', rating: 5, comment: 'Fresh, melt-in-the-mouth kaju katli. Bought 500g as a gift and my family devoured it before dinner. Will order again!', is_published: true },
+    { product: 'Paneer Tikka', name: 'Sunita Yadav', rating: 4, comment: 'Beautifully charred and perfectly spiced. Came with a fantastic mint chutney. Only wish the portions were slightly bigger!', is_published: true },
+    { product: 'Jalebi', name: 'Arjun Mehta', rating: 5, comment: 'Hot, syrupy, and crispy jalebis — made fresh right in front of us. This is what weekends in Ranchi should taste like!', is_published: true },
+    { product: 'Samosa (2pc)', name: 'Rekha Agarwal', rating: 2, comment: 'Was cold when served. The filling was good but the dough had gone soggy. Please serve these hot!', is_published: false },
   ];
 
   for (const rev of reviewsData) {
     const prod = await prisma.product.findFirst({ where: { name: rev.product } });
-    const existing = await prisma.review.findFirst({ where: { customer_name: 'Seed User', product_id: prod?.id, comment: rev.comment } });
+    const existing = await prisma.review.findFirst({ where: { customer_name: rev.name, product_id: prod?.id, comment: rev.comment } });
     if (!existing) {
       await prisma.review.create({
         data: {
           product_id: prod?.id,
-          customer_name: 'Seed User',
+          customer_name: rev.name,
           rating: rev.rating,
           comment: rev.comment,
           is_published: rev.is_published
