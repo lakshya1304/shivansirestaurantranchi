@@ -110,12 +110,14 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       }
     }
 
-    discount = Math.round(Math.min(discount, subtotal) * 100) / 100;
-    const taxable = subtotal - discount;
-    const tax = Math.round(((taxable * Number(settings.tax_percent)) / 100) * 100) / 100;
-    const packing = data.isTakeaway ? Number(settings.packing_charge) : 0;
-    const delivery = data.isTakeaway ? Number(settings.delivery_charge) : 0;
-    const total = Math.round((taxable + tax + packing + delivery) * 100) / 100;
+    // Combined discount must never exceed subtotal (prevents negative totals)
+    // Also cap percentage-based discounts so they can't logically exceed 100%
+    discount = Math.max(0, Math.round(Math.min(discount, subtotal) * 100) / 100);
+    const taxable = Math.max(0, subtotal - discount);
+    const tax = Math.max(0, Math.round(((taxable * Number(settings.tax_percent)) / 100) * 100) / 100);
+    const packing = data.isTakeaway ? Math.max(0, Number(settings.packing_charge)) : 0;
+    const delivery = data.isTakeaway ? Math.max(0, Number(settings.delivery_charge)) : 0;
+    const total = Math.max(0, Math.round((taxable + tax + packing + delivery) * 100) / 100);
 
     const earnedPoints = Math.floor(total / 100) * 10;
     let customerId = existingCustomer?.id;
@@ -247,6 +249,26 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
     const { id } = req.params as any;
     const { status } = req.body as any;
 
+    const VALID_STATUSES = ["PENDING", "CONFIRMED", "PREPARING", "PREPARED", "SERVED", "COMPLETED", "CANCELLED"];
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).send({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}` });
+    }
+
+    // Fetch current order to validate the transition is forward (or cancellation)
+    const current = await prisma.order.findUnique({ where: { id }, select: { status: true, customer_phone: true, customer_name: true, order_number: true, table_number: true } });
+    if (!current) return res.status(404).send({ error: "Order not found" });
+
+    const STATUS_ORDER = ["PENDING", "CONFIRMED", "PREPARING", "PREPARED", "SERVED", "COMPLETED"];
+    const currentIdx = STATUS_ORDER.indexOf(current.status);
+    const nextIdx = STATUS_ORDER.indexOf(status);
+    // Allow only forward transitions (or explicit CANCELLED from any non-completed state)
+    if (status !== "CANCELLED" && nextIdx !== -1 && currentIdx !== -1 && nextIdx < currentIdx) {
+      return res.status(400).send({ error: `Cannot move order back from ${current.status} to ${status}` });
+    }
+    if (current.status === "COMPLETED" || current.status === "CANCELLED") {
+      return res.status(400).send({ error: `Order is already ${current.status} and cannot be changed` });
+    }
+
     const order = await prisma.order.update({
       where: { id },
       data: { status }
@@ -262,11 +284,10 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
     };
 
     const line = STATUS_MESSAGE[status];
-    if (line && order.customer_phone) {
+    if (line && current.customer_phone) {
       void sendWhatsAppMessage(
-        order.customer_phone,
-        `🍽 *Shivansi Restaurant & Sweet Shop*\n\nHi ${order.customer_name}, your order *${order.order_number}* ${line}\n${order.table_number ? `Table ${order.table_number}` : "Takeaway"
-        }\n\nAutomated bot update — replies are not monitored.`
+        current.customer_phone,
+        `🍽 *Maa Tara Sweets*\n\nHi ${current.customer_name}, your order *${current.order_number}* ${line}\n${current.table_number ? `Table ${current.table_number}` : "Takeaway"}\n\nAutomated bot update — replies are not monitored.`
       );
     }
 

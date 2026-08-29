@@ -180,7 +180,6 @@ export default class AuthService {
       email: data.email,
       password: data.password,
       phone: data.phone,
-      gender: data.gender,
       role,
     });
 

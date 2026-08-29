@@ -18,11 +18,11 @@ export const Route = createFileRoute("/admin/")({
 });
 
 const NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
-  pending: "accepted",
-  accepted: "preparing",
-  preparing: "ready",
-  ready: "served",
-  served: "completed",
+  PENDING: "CONFIRMED",
+  CONFIRMED: "PREPARING",
+  PREPARING: "PREPARED",
+  PREPARED: "SERVED",
+  SERVED: "COMPLETED",
 };
 
 function LiveOrders() {
@@ -35,8 +35,8 @@ function LiveOrders() {
 
   const currency = settings?.currency ?? "₹";
   const todays = orders.filter((o) => isToday(o.created_at));
-  const revenue = todays.filter((o) => o.status !== "rejected").reduce((sum, o) => sum + Number(o.total), 0);
-  const live = orders.filter((o) => !["completed", "rejected"].includes(o.status));
+  const revenue = todays.filter((o) => o.status !== "CANCELLED").reduce((sum, o) => sum + Number(o.total), 0);
+  const live = orders.filter((o) => !["COMPLETED", "CANCELLED"].includes(o.status));
 
   async function setStatus(order: Order, status: OrderStatus) {
     try {
@@ -86,7 +86,7 @@ function LiveOrders() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-sm">{order.order_number}</span>
-                    <Badge variant={order.status === "pending" ? "gold" : "glass"}>
+                    <Badge variant={order.status === "PENDING" ? "gold" : "glass"}>
                       {STATUS_LABEL[order.status]}
                     </Badge>
                     <Badge variant="glass">
@@ -123,12 +123,12 @@ function LiveOrders() {
                       Mark {STATUS_LABEL[next].toLowerCase()}
                     </Button>
                   ) : null}
-                  {order.status === "pending" ? (
+                  {order.status === "PENDING" ? (
                     <Button
                       size="sm"
                       variant="destructive"
                       className="rounded-full"
-                      onClick={() => setStatus(order, "rejected")}
+                      onClick={() => setStatus(order, "CANCELLED")}
                     >
                       Reject
                     </Button>
