@@ -23,6 +23,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminGovernanceRouteImport } from './routes/admin.governance'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminMenuRouteImport } from './routes/admin.menu'
 import { Route as AdminOffersRouteImport } from './routes/admin.offers'
@@ -104,6 +105,11 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminGovernanceRoute = AdminGovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/governance': typeof AdminGovernanceRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/offers': typeof AdminOffersRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/governance': typeof AdminGovernanceRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/offers': typeof AdminOffersRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/governance': typeof AdminGovernanceRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/menu': typeof AdminMenuRoute
   '/admin/offers': typeof AdminOffersRoute
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/admin/customers'
+    | '/admin/governance'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/offers'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/admin/customers'
+    | '/admin/governance'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/offers'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/admin/customers'
+    | '/admin/governance'
     | '/admin/inventory'
     | '/admin/menu'
     | '/admin/offers'
@@ -430,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/governance': {
+      id: '/admin/governance'
+      path: '/governance'
+      fullPath: '/admin/governance'
+      preLoaderRoute: typeof AdminGovernanceRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/inventory'
@@ -505,6 +524,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminGovernanceRoute: typeof AdminGovernanceRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminMenuRoute: typeof AdminMenuRoute
   AdminOffersRoute: typeof AdminOffersRoute
@@ -518,6 +538,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminGovernanceRoute: AdminGovernanceRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminMenuRoute: AdminMenuRoute,
   AdminOffersRoute: AdminOffersRoute,

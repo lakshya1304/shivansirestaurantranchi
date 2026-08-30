@@ -57,7 +57,7 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<UserRole>(
-    mode?.type === "create" ? "USER" : mode?.type === "role" ? mode.user.role : "USER",
+    mode?.type === "create" ? "ADMIN" : mode?.type === "role" ? mode.user.role : "ADMIN",
   );
   const [isActive, setIsActive] = useState(
     mode?.type === "edit" ? mode.user.isActive : true,
@@ -65,7 +65,7 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
   const [loading, setLoading] = useState(false);
 
   const availableRoles: UserRole[] =
-    callerRole === "SUPERADMIN" ? ["USER", "ADMIN", "SUPERADMIN"] : ["USER", "ADMIN"];
+    callerRole === "SUPERADMIN" ? ["ADMIN", "SUPERADMIN"] : ["ADMIN"];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

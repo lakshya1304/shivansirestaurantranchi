@@ -38,3 +38,25 @@ export function isToday(iso: string) {
     d.getFullYear() === now.getFullYear()
   );
 }
+
+export function isThisMonth(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+export function isThisYear(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear();
+}
+
+export function isSameDay(iso1: string, iso2: string) {
+  const d1 = new Date(iso1);
+  const d2 = new Date(iso2);
+  return (
+    d1.getDate() === d2.getDate() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getFullYear() === d2.getFullYear()
+  );
+}

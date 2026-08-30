@@ -7,10 +7,9 @@ export const getReviews = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { limit } = (req.query as any) ?? {};
     const take = Math.min(Number(limit) || 6, 50);
-    const cacheKey = `data:reviews:all=false:limit=${take}`;
+    const cacheKey = `data:reviews:genuine:limit=${take}`;
     const reviews = await fetchWithCache(cacheKey, 30, () =>
       prismaApp.review.findMany({
-        where: { is_published: true },
         orderBy: { created_at: "desc" },
         take,
       }),

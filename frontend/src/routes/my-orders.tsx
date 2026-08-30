@@ -27,6 +27,7 @@ import {
   LoginForm,
 } from "./login";
 import { fetchAPI } from "@/lib/db";
+import { useIsAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/my-orders")({
   head: () => ({
@@ -55,19 +56,21 @@ function MyOrders() {
   const queryClient = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
 
+  const { user, checking } = useIsAdmin();
   const customerSession = getCustomerSession();
+  const effectiveIdentifier = customerSession?.phone ?? user?.phone ?? user?.email;
 
   const { data: result, isLoading } = useQuery({
-    queryKey: ["customer-profile", customerSession?.phone],
+    queryKey: ["customer-profile", effectiveIdentifier],
     queryFn: async ({ signal }) => {
-      if (!customerSession) return null;
+      if (!effectiveIdentifier) return null;
       const res = await fetchAPI<any>(
-        `/customer-profile?phone=${encodeURIComponent(customerSession.phone)}`,
+        `/customer-profile?phone=${encodeURIComponent(effectiveIdentifier)}`,
         { signal },
       );
       return res as { customer: any; orders: Order[] };
     },
-    enabled: !!customerSession,
+    enabled: !!effectiveIdentifier && !checking,
     retry: false,
   });
 
@@ -100,16 +103,16 @@ function MyOrders() {
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
             <h1 className="font-display text-3xl font-bold sm:text-4xl">My orders</h1>
-            {!customerSession && (
+            {!effectiveIdentifier && (
               <p className="text-sm text-muted-foreground">
                 Sign in to view your order history, invoices and loyalty rewards.
               </p>
             )}
           </div>
-          {customerSession && (
+          {effectiveIdentifier && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                 {customerSession.phone}
+                 {effectiveIdentifier}
               </span>
               <Button
                 variant="glass"
@@ -125,14 +128,14 @@ function MyOrders() {
         </header>
 
         {/* Unauthenticated: WhatsApp / Email tabbed login */}
-        {!customerSession && (
+        {!effectiveIdentifier && (
           <div className="flex justify-center">
             <LoginForm onSuccessProp={handleLoginSuccess} />
           </div>
         )}
 
         {/* Loading state */}
-        {customerSession && isLoading && (
+        {effectiveIdentifier && (isLoading || checking) && (
           <div className="glass flex items-center justify-center gap-3 rounded-3xl p-8">
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
             <p className="text-sm text-muted-foreground">Loading your orders…</p>

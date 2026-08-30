@@ -143,24 +143,6 @@ function MenuManager() {
                     }
                   />
                 </Field>
-                <ImageUpload
-                  label="Category Image"
-                  currentUrl={String(category?.["image_url"] ?? "")}
-                  uploading={uploadingFor === "category"}
-                  onUrlChange={(url) => setCategory({ ...category, image_url: url })}
-                  onFileSelect={async (file) => {
-                    setUploadingFor("category");
-                    try {
-                      const url = await uploadImage(file);
-                      setCategory((prev) => ({ ...prev, image_url: url }));
-                      toast.success("Image uploaded!");
-                    } catch (e: any) {
-                      toast.error(e.message);
-                    } finally {
-                      setUploadingFor(null);
-                    }
-                  }}
-                />
                 <Field label="Sort order">
                   <Input
                     type="number"
@@ -358,31 +340,37 @@ function MenuManager() {
                 <div className="grid grid-cols-2 gap-2">
                   <Toggle
                     label="Available"
+                    description="Hide this item from customers"
                     checked={Boolean(product?.["is_available"])}
                     onChange={(v) => setProduct({ ...product, is_available: v })}
                   />
                   <Toggle
                     label="Vegetarian"
+                    description="Green/red dot indicator"
                     checked={Boolean(product?.["is_veg"])}
                     onChange={(v) => setProduct({ ...product, is_veg: v })}
                   />
                   <Toggle
                     label="Spicy"
+                    description="Shows a chili icon"
                     checked={Boolean(product?.["is_spicy"])}
                     onChange={(v) => setProduct({ ...product, is_spicy: v })}
                   />
                   <Toggle
                     label="Today's special"
+                    description="Highlights with a gold badge"
                     checked={Boolean(product?.["is_special"])}
                     onChange={(v) => setProduct({ ...product, is_special: v })}
                   />
                   <Toggle
                     label="Popular"
+                    description="Shows in 'Popular' section"
                     checked={Boolean(product?.["is_popular"])}
                     onChange={(v) => setProduct({ ...product, is_popular: v })}
                   />
                   <Toggle
                     label="Recommended"
+                    description="Chef's recommendation tag"
                     checked={Boolean(product?.["is_recommended"])}
                     onChange={(v) => setProduct({ ...product, is_recommended: v })}
                   />
@@ -479,10 +467,12 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Toggle({
   label,
+  description,
   checked,
   onChange,
 }: {
   label: string;
+  description?: string;
   checked: boolean;
   onChange: (value: boolean) => void;
 }) {
@@ -492,7 +482,10 @@ function Toggle({
         checked ? "border-primary/40 bg-primary/10" : "border-border bg-transparent"
       }`}
     >
-      <span className="text-sm font-medium">{label}</span>
+      <div>
+        <span className="block text-sm font-medium">{label}</span>
+        {description && <span className="block text-xs text-muted-foreground">{description}</span>}
+      </div>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );

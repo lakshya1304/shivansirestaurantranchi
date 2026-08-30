@@ -15,6 +15,8 @@ export const getSettings = async (req: FastifyRequest, res: FastifyReply) => {
       banner_url: true,
       address: true,
       phone: true,
+      gst_number: true,
+      upi_id: true,
       opening_time: true,
       closing_time: true,
       tax_percent: true,

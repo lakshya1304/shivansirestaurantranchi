@@ -161,9 +161,6 @@ export const updateRole = async (
     if (role === "SUPERADMIN") {
       throw new ForbiddenError("Only SUPERADMIN can assign SUPERADMIN role");
     }
-    if (requestor.id === targetUser.id && role === "SUPERADMIN") {
-      throw new ForbiddenError("Admins cannot promote themselves");
-    }
   }
 
   const updated = await prismaAdmin.$transaction(async (tx) => {
@@ -212,6 +209,34 @@ export const deleteUser = async (
     throw new ForbiddenError("You cannot delete your own account");
   if (targetUser.email === ROOT_EMAIL)
     throw new ForbiddenError("The root SUPERADMIN cannot be deleted");
+
+  if (targetUser.role === "SUPERADMIN") {
+    const superadminsCount = await prismaAdmin.admin.count({ where: { role: "SUPERADMIN" } });
+    const required_approvals = superadminsCount > 1 ? 1 : 0;
+    
+    const expires_at = new Date();
+    expires_at.setHours(expires_at.getHours() + 48);
+
+    const newRequest = await prismaAdmin.adminActionRequest.create({
+      data: {
+        requester_id: requestor.id,
+        action_type: "DELETE_SUPERADMIN",
+        target_id: id,
+        payload: { email: targetUser.email },
+        required_approvals,
+        status: required_approvals === 0 ? "TIME_LOCKED" : "PENDING",
+        expires_at
+      }
+    });
+
+    return reply.send({
+      success: true,
+      message: required_approvals === 0 
+        ? "Deletion queued. Time lock initiated." 
+        : "Governance request created. Deletion requires another SUPERADMIN's approval.",
+      request: newRequest
+    });
+  }
 
   await prismaAdmin.$transaction(async (tx) => {
     await tx.admin.delete({ where: { id } });

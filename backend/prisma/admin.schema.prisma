@@ -35,8 +35,10 @@ model Admin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  auditLog AuditLog[]
-  passkeys Passkey[]
+  auditLog        AuditLog[]
+  passkeys        Passkey[]
+  action_requests AdminActionRequest[] @relation("Requester")
+  action_votes    AdminActionVote[]    @relation("Voter")
 
   @@index([email])
   @@index([role])
@@ -100,6 +102,38 @@ model RestaurantSettings {
   shutdown_message String?
 
   @@map("restaurant_settings")
+}
+
+model AdminActionRequest {
+  id              String   @id @default(uuid())
+  requester_id    String
+  action_type     String
+  target_id       String?
+  payload         Json?
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED, EXECUTED, TIME_LOCKED
+  approvals       Int      @default(0)
+  required_approvals Int   @default(1)
+  created_at      DateTime @default(now())
+  expires_at      DateTime
+
+  requester       Admin    @relation("Requester", fields: [requester_id], references: [id])
+  votes           AdminActionVote[]
+
+  @@map("admin_action_requests")
+}
+
+model AdminActionVote {
+  id              String   @id @default(uuid())
+  request_id      String
+  voter_id        String
+  vote            String   // "APPROVE" or "REJECT"
+  created_at      DateTime @default(now())
+
+  request         AdminActionRequest @relation(fields: [request_id], references: [id], onDelete: Cascade)
+  voter           Admin              @relation("Voter", fields: [voter_id], references: [id])
+
+  @@unique([request_id, voter_id])
+  @@map("admin_action_votes")
 }
 
 model AppConfig {

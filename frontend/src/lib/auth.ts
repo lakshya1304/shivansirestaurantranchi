@@ -17,6 +17,7 @@ type SessionDetails = {
   isAdmin: boolean;
   mfaSatisfied: boolean;
   hasMfaEnrolled: boolean;
+  passkeyCount?: number;
 };
 
 export function useSession() {
@@ -50,6 +51,7 @@ export function useIsAdmin() {
     role,
     mfaSatisfied: session?.mfaSatisfied ?? false,
     hasMfaEnrolled: session?.hasMfaEnrolled ?? false,
+    passkeyCount: session?.passkeyCount ?? 0,
     checking: loading,
     user,
   };

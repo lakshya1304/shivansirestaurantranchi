@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { useCart } from "@/lib/cart";
 import { money } from "@/lib/format";
 import { productImage } from "@/lib/images";
-import { settingsQuery, tablesQuery } from "@/lib/db";
+import { settingsQuery, tablesQuery, discountsQuery } from "@/lib/db";
 import { placeOrder } from "@/lib/orders.functions";
 import { PAYMENT_METHODS } from "@/lib/types";
 
@@ -51,6 +51,7 @@ function CartPage() {
   } = useCart();
   const { data: settings } = useQuery(settingsQuery);
   const { data: tables = [] } = useQuery(tablesQuery);
+  const { data: discounts = [] } = useQuery(discountsQuery);
   const navigate = useNavigate();
   const submitOrder = placeOrder;
 
@@ -70,10 +71,39 @@ function CartPage() {
     : (tableNumber ?? (tableInput ? Number(tableInput) : null));
 
   const currency = settings?.currency ?? "₹";
+  
+  // Calculate local coupon discount
+  let discountAmount = 0;
+  let discountLabel = null;
+  if (coupon.trim()) {
+    const today = new Date().toISOString().slice(0, 10);
+    const hour = new Date().getHours();
+    const eligible = discounts.filter((d) => {
+      if (!d.is_active) return false;
+      if (d.starts_at && d.starts_at > today) return false;
+      if (d.ends_at && d.ends_at < today) return false;
+      if (subtotal < Number(d.min_order_amount)) return false;
+      if (d.start_hour != null && d.end_hour != null && (hour < d.start_hour || hour >= d.end_hour)) return false;
+      if (d.coupon_code) return coupon.trim().toUpperCase() === d.coupon_code.toUpperCase();
+      return false;
+    });
+
+    for (const d of eligible) {
+      const raw = d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
+      const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+      if (capped > discountAmount) {
+        discountAmount = capped;
+        discountLabel = d.name;
+      }
+    }
+    discountAmount = Math.max(0, Math.round(Math.min(discountAmount, subtotal) * 100) / 100);
+  }
+
+  const taxable = Math.max(0, subtotal - discountAmount);
   const packing = takeaway ? Number(settings?.packing_charge ?? 0) : 0;
   const delivery = takeaway ? Number(settings?.delivery_charge ?? 0) : 0;
-  const estTax = ((subtotal * Number(settings?.tax_percent ?? 0)) / 100) | 0;
-  const estTotal = subtotal + estTax + packing + delivery;
+  const estTax = ((taxable * Number(settings?.tax_percent ?? 0)) / 100) | 0;
+  const estTotal = taxable + estTax + packing + delivery;
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -359,6 +389,9 @@ function CartPage() {
 
           <dl className="space-y-1.5 border-t border-border pt-4 text-sm">
             <Row label="Subtotal" value={money(subtotal, currency)} />
+            {discountAmount > 0 ? (
+              <Row label={discountLabel ?? "Discount"} value={`-${money(discountAmount, currency)}`} />
+            ) : null}
             <Row
               label={`GST (${settings?.tax_percent ?? 0}%)`}
               value={money(estTax, currency)}

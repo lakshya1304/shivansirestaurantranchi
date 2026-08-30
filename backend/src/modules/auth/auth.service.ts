@@ -38,8 +38,8 @@ import type {
 } from "@simplewebauthn/server";
 import logger from "../../core/config/loggerConfig";
 import { hash } from "../../core/utils/helpers/hash";
+import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 import { sendError, sendSuccess } from "../../core/utils/common/response";
-import { prismaAdmin } from "../../core/config/databaseConfig";
 import {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
@@ -563,15 +563,19 @@ export default class AuthService {
     overrideOrigin?: string,
     overrideRpID?: string
   ) {
-    const user = await userRepo.findByEmail(email, { include: { passkeys: true } });
+    const user = await userRepo.findByEmail(email);
     if (!user) throw new NotFoundError("User not found.");
 
     if (!user.currentChallenge) {
       throw new ValidationError("No passkey authentication challenge found.");
     }
 
+    const passkeys = user.role === "ADMIN" || user.role === "SUPERADMIN"
+      ? await prismaAdmin.passkey.findMany({ where: { adminId: user.id } })
+      : await prismaApp.passkey.findMany({ where: { userId: user.id } });
+
     // response.id is base64url string in @simplewebauthn v13
-    const passkey = user.passkeys.find(
+    const passkey = passkeys.find(
       (pk: any) =>
         (Buffer.isBuffer(pk.credentialID)
           ? pk.credentialID.toString("base64url")

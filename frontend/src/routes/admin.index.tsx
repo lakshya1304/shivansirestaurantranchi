@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { updateOrderStatus } from "@/lib/notify.functions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, IndianRupee, ReceiptText, TrendingUp } from "lucide-react";
+import {
+  Bell,
+  ReceiptText,
+  TrendingUp,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +29,33 @@ const NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
   SERVED: "COMPLETED",
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function isSameDay(date: Date, other: Date) {
+  return (
+    date.getDate() === other.getDate() &&
+    date.getMonth() === other.getMonth() &&
+    date.getFullYear() === other.getFullYear()
+  );
+}
+
+function isThisMonth(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+function isThisYear(iso: string) {
+  const d = new Date(iso);
+  return d.getFullYear() === new Date().getFullYear();
+}
+
+function revenueOf(orders: Order[]) {
+  return orders
+    .filter((o) => o.status !== "CANCELLED")
+    .reduce((sum, o) => sum + Number(o.total), 0);
+}
+
 function LiveOrders() {
   const { data: orders = [] } = useQuery(ordersQuery);
   const { data: settings } = useQuery(settingsQuery);
@@ -32,13 +63,13 @@ function LiveOrders() {
   const qc = useQueryClient();
   const [openBill, setOpenBill] = useState<string | null>(null);
   const [filter, setFilter] = useState<"live" | "today" | "unread">("live");
+  const [customDate, setCustomDate] = useState("");
+  const [showAnalytics, setShowAnalytics] = useState(true);
   const changeStatus = updateOrderStatus;
 
   const currency = settings?.currency ?? "₹";
   const todays = orders.filter((o) => isToday(o.created_at));
-  const revenue = todays
-    .filter((o) => o.status !== "CANCELLED")
-    .reduce((sum, o) => sum + Number(o.total), 0);
+  const revenue = revenueOf(todays);
   const live = orders.filter((o) =>
     ["CONFIRMED", "PREPARING", "PREPARED", "SERVED"].includes(o.status),
   );
@@ -71,18 +102,11 @@ function LiveOrders() {
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-3">
         <Kpi
           icon={ReceiptText}
           label="Orders today"
           value={String(todays.length)}
-          active={filter === "today"}
-          onClick={() => setFilter("today")}
-        />
-        <Kpi
-          icon={IndianRupee}
-          label="Revenue today"
-          value={money(revenue, currency)}
           active={filter === "today"}
           onClick={() => setFilter("today")}
         />

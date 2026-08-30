@@ -75,9 +75,7 @@ export function SiteHeader() {
                 {settings?.name ?? import.meta.env["VITE_BUSINESS_NAME"] ?? "Restaurant"}
               </span>
               <span className="block truncate text-[11px] text-muted-foreground">
-                {tableNumber
-                  ? `Table ${tableNumber} • dine-in`
-                  : (settings?.tagline ?? "Restaurant & Sweet Shop")}
+                {settings?.tagline ?? "Restaurant & Sweet Shop"}
               </span>
             </span>
           </Link>

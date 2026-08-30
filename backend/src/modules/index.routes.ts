@@ -7,6 +7,7 @@ import catalogRoutes from "./catalog/catalog.routes";
 import reviewRoutes from "./reviews/review.routes";
 import settingsRoutes from "./settings/settings.routes";
 import systemRoutes from "./system/system.routes";
+import governanceRoutes from "./governance/governance.routes";
 import { healthRoutes } from "./system/health";
 import { pingRoutes } from "./system/ping";
 import { version } from "./system/version";
@@ -20,6 +21,7 @@ export default async function moduleRoutes(app: FastifyInstance) {
   app.register(reviewRoutes, { prefix: "/data/reviews" });
   app.register(settingsRoutes, { prefix: "/data/settings" });
   app.register(systemRoutes, { prefix: "/data" });
+  app.register(governanceRoutes, { prefix: "/data/governance" });
 
   // Top-level /customer-profile endpoints (called by frontend /my-orders & /profile)
   app.get("/customer-profile", orderController.getCustomerProfile);

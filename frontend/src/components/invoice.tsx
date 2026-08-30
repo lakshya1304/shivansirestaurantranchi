@@ -27,6 +27,9 @@ export function Invoice({
         </div>
         <div className="text-right text-xs text-muted-foreground">
           <p className="font-mono text-sm text-foreground">{order.order_number}</p>
+          {(order as any).bill_id && (
+            <p className="font-mono text-xs">Bill: {(order as any).bill_id}</p>
+          )}
           <p>{formatDateTime(order.created_at)}</p>
           <p>{takeaway ? "Takeaway" : `Table ${order.table_number}`}</p>
           <p>
@@ -105,7 +108,9 @@ export function Invoice({
       ) : null}
 
       <p className="mt-4 text-center text-xs text-muted-foreground">
-        Thank you for dining with us. Please visit again!
+        {takeaway
+          ? "Thank you for your order. Please visit again!"
+          : "Thank you for dining with us. Please visit again!"}
       </p>
     </div>
   );

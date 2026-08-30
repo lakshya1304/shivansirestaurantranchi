@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useQuery } from "@tanstack/react-query";
 import { settingsQuery } from "@/lib/db";
 import { useIsAdmin } from "@/lib/auth";
+import { useOrderStream } from "@/lib/useOrderStream";
 
 /** 🍬 Not Found — sweet-themed, auto-redirects after 10 s */
 function NotFoundComponent() {
@@ -344,6 +345,11 @@ function SuspensionGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function OrderStreamSync() {
+  useOrderStream();
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -353,6 +359,7 @@ function RootComponent() {
         <CartProvider>
           <AuthSync />
           <ThemeSync />
+          <OrderStreamSync />
           <ScrollToTop />
           <div className="relative min-h-screen">
             <div className="pointer-events-none fixed inset-0 -z-10 aurora-bg opacity-70" />

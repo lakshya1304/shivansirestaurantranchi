@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Star, Trash2 } from "lucide-react";
+import { MessageSquareWarning, Star, Trash2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,30 +18,11 @@ function ReviewsManager() {
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function togglePublish(review: Review) {
-    setBusy(review.id);
-    try {
-      await fetchAPI(`/reviews/${review.id}/publish`, {
-        method: "PATCH",
-        body: JSON.stringify({ is_published: !review.is_published }),
-        headers: { "Content-Type": "application/json" },
-      });
-      toast.success(
-        review.is_published
-          ? "Review hidden from homepage"
-          : "Review published to homepage ✓",
-      );
-      void qc.invalidateQueries({ queryKey: ["reviews"] });
-    } catch (err: any) {
-      toast.error(err?.message ?? "Could not update review");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   async function deleteReview(review: Review) {
     if (
-      !confirm(`Delete this review by "${review.customer_name}"? This cannot be undone.`)
+      !confirm(
+        `Delete this review by "${review.customer_name}"?\n\nThis should only be used for spam or abusive content. This cannot be undone.`,
+      )
     )
       return;
     setBusy(review.id);
@@ -56,8 +37,18 @@ function ReviewsManager() {
     }
   }
 
-  const published = reviews.filter((r) => r.is_published);
-  const pending = reviews.filter((r) => !r.is_published);
+  // Calculate average rating
+  const avgRating =
+    reviews.length > 0
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+      : "0";
+
+  // Reviews from the last 7 days
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weeklyReviews = reviews.filter(
+    (r) => new Date(r.created_at) >= weekAgo,
+  );
 
   return (
     <div className="space-y-8">
@@ -65,14 +56,30 @@ function ReviewsManager() {
       <header className="space-y-1">
         <h2 className="font-display text-xl font-bold">Customer Reviews</h2>
         <p className="text-sm text-muted-foreground">
-          Published reviews appear on the homepage. Toggle visibility or delete reviews
-          below.
+          All reviews are shown automatically to customers — no manual
+          approval. You may only remove spam or abusive content.
         </p>
         <div className="flex flex-wrap gap-3 pt-2">
-          <Badge variant="gold">{published.length} published</Badge>
-          <Badge variant="glass">{pending.length} pending</Badge>
+          <Badge variant="gold">{reviews.length} total reviews</Badge>
+          <Badge variant="glass">⭐ {avgRating} avg rating</Badge>
+          <Badge variant="glass">{weeklyReviews.length} this week</Badge>
         </div>
       </header>
+
+      {/* Transparency notice */}
+      <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+        <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            Genuine Review Policy
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            All customer reviews are displayed automatically without admin
+            approval to ensure transparency. The delete button should only be
+            used for spam, offensive, or clearly fake content.
+          </p>
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="glass rounded-3xl p-10 text-center text-sm text-muted-foreground animate-pulse">
@@ -87,9 +94,7 @@ function ReviewsManager() {
           {reviews.map((review) => (
             <article
               key={review.id}
-              className={`glass animate-rise rounded-3xl p-5 transition-opacity ${
-                review.is_published ? "" : "opacity-70"
-              }`}
+              className="glass animate-rise rounded-3xl p-5"
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
@@ -110,15 +115,6 @@ function ReviewsManager() {
                     <span className="text-xs text-muted-foreground">
                       {formatDateTime(review.created_at)}
                     </span>
-                    {review.is_published ? (
-                      <Badge variant="gold" className="ml-1 text-[10px] px-1.5 py-0">
-                        Live
-                      </Badge>
-                    ) : (
-                      <Badge variant="glass" className="ml-1 text-[10px] px-1.5 py-0">
-                        Hidden
-                      </Badge>
-                    )}
                   </div>
 
                   {/* Comment */}
@@ -128,38 +124,24 @@ function ReviewsManager() {
                     </p>
                   ) : (
                     <p className="mt-2 text-xs italic text-muted-foreground">
-                      No written comment.
+                      Rating only — no written comment.
                     </p>
                   )}
                 </div>
 
-                {/* Actions */}
+                {/* Actions — delete only for spam/abuse */}
                 <div className="flex shrink-0 gap-2">
                   <Button
                     size="sm"
-                    variant={review.is_published ? "glass" : "hero"}
-                    className="rounded-full gap-1.5"
-                    disabled={busy === review.id}
-                    onClick={() => togglePublish(review)}
-                  >
-                    {review.is_published ? (
-                      <>
-                        <EyeOff className="size-3.5" /> Hide
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="size-3.5" /> Publish
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    size="icon"
                     variant="glass"
-                    className="size-8 rounded-full"
+                    className="rounded-full gap-1.5 text-destructive hover:bg-destructive/10"
                     disabled={busy === review.id}
                     onClick={() => deleteReview(review)}
+                    title="Delete spam or abusive review"
                   >
                     <Trash2 className="size-3.5" />
+                    <MessageSquareWarning className="size-3.5" />
+                    Remove spam
                   </Button>
                 </div>
               </div>

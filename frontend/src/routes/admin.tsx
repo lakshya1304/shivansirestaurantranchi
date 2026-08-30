@@ -22,6 +22,7 @@ import {
   UtensilsCrossed,
   UserCircle2,
   Palette,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin } from "@/lib/auth";
@@ -56,6 +57,7 @@ const NAV = [
   { to: "/admin/staff", label: "Staff", icon: ShieldCheck },
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
+  { to: "/admin/governance", label: "Governance", icon: Lock },
 ] as const;
 
 function AdminLayout() {
@@ -117,7 +119,7 @@ function AdminLayout() {
           aria-label="Admin navigation"
         >
           {NAV.filter((item) => {
-            if (user?.role !== "SUPERADMIN" && item.to === "/admin/settings") return false;
+            if (user?.role !== "SUPERADMIN" && (item.to === "/admin/settings" || item.to === "/admin/governance")) return false;
             return true;
           }).map((item) => {
             const active =

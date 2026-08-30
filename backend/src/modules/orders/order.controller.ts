@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
+import { broadcastOrderEvent } from "./order.stream";
 import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 import logger from "../../core/config/loggerConfig";
 import crypto from "crypto";
@@ -64,7 +65,7 @@ const placeOrderSchema = z.object({
   customerPhone: z.string().min(1),
   paymentMethod: z.string(),
   isTakeaway: z.boolean().optional().nullable(),
-  tableNumber: z.string().optional().nullable(),
+  tableNumber: z.union([z.string(), z.number()]).optional().nullable(),
   couponCode: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
 });
@@ -138,8 +139,13 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
     const { newOrder: order, total } = await prismaApp.$transaction(async (tx) => {
       // 2b. Check Idempotency inside transaction
-      const existingOrder = await tx.order.findUnique({
-        where: { idempotency_key: idempotencyKey },
+      const existingOrder = await tx.order.findFirst({
+        where: {
+          OR: [
+            { idempotency_key: idempotencyKey },
+            { request_hash: requestHash },
+          ],
+        },
       });
       if (existingOrder) return { newOrder: existingOrder, total: Number(existingOrder.total) };
 
@@ -249,7 +255,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
         data: {
           order_number: orderNumber,
           bill_id: billId,
-          table_number: data.tableNumber ? parseInt(data.tableNumber, 10) : null,
+          table_number: data.tableNumber ? Number(data.tableNumber) : null,
           user_id: customer.id,
           customer_name: data.customerName,
           customer_phone: normalizedPhone,
@@ -257,6 +263,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
           status: "PENDING",
           payment_status: "pending",
           idempotency_key: idempotencyKey,
+          request_hash: requestHash,
           session_token: crypto.randomUUID
             ? crypto.randomUUID()
             : crypto.randomBytes(16).toString("hex"),
@@ -303,6 +310,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
         },
       });
 
+      broadcastOrderEvent("order_created", newOrder);
       return { newOrder, total };
     });
 
@@ -401,10 +409,18 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
         .send({ error: `Order is already ${current.status} and cannot be changed` });
     }
 
-    const order = await prismaApp.order.update({
-      where: { id },
-      data: { status },
-    });
+    let order;
+    try {
+      order = await prismaApp.order.update({
+        where: { id, status: current.status },
+        data: { status },
+      });
+    } catch (err: any) {
+      if (err.code === "P2025") {
+        return res.status(409).send({ error: "Order status was updated by another request. Please refresh." });
+      }
+      throw err;
+    }
 
     const STATUS_MESSAGE: Record<string, string> = {
       CONFIRMED: "has been accepted by the kitchen",
@@ -423,6 +439,7 @@ export const updateOrderStatus = async (req: FastifyRequest, res: FastifyReply) 
       );
     }
 
+    broadcastOrderEvent("order_updated", order);
     return res.send({ ok: true, order });
   } catch (error: any) {
     logger.error(`Error in updateOrderStatus: ${error.message}`);
@@ -437,6 +454,7 @@ export const updatePaymentStatus = async (req: FastifyRequest, res: FastifyReply
       where: { id },
       data: { payment_status: "paid" },
     });
+    broadcastOrderEvent("order_updated", order);
     return res.send({ ok: true, order });
   } catch (error: any) {
     logger.error(`Error in updatePaymentStatus: ${error.message}`);
@@ -615,7 +633,7 @@ export const getCustomerProfile = async (req: FastifyRequest, res: FastifyReply)
     
     // Try JWT first
     try {
-      await req.jwtVerify();
+      await (req as any).jwtVerify();
       const jwtUser = req.user as any;
       if (jwtUser) {
         if (jwtUser.role === "ADMIN" || jwtUser.role === "SUPERADMIN") {
@@ -741,9 +759,13 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
       throw err;
     }
 
-    // Update product rating aggregate using database-level aggregation
+    // Update product rating aggregate using database-level aggregation (Weekly)
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const agg = await prismaApp.rating.aggregate({
-      where: { menuItemId },
+      where: { 
+        menuItemId,
+        createdAt: { gte: oneWeekAgo }
+      },
       _avg: { stars: true },
       _count: { _all: true },
     });

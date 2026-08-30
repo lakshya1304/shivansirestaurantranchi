@@ -61,6 +61,20 @@ export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
       if (v < 0 || v > 100) return res.status(400).send({ error: "Percentage value must be between 0 and 100" });
     }
 
+    const user = req.user as any;
+    // Intercept SUPERADMIN actions on restaurant_settings for multi-sig governance
+    if (table === "restaurant_settings" && data.is_suspended !== undefined) {
+      const currentSettings = await prismaAdmin.restaurantSettings.findFirst();
+      if (currentSettings && currentSettings.is_suspended !== data.is_suspended) {
+         if (user?.role === "SUPERADMIN") {
+            return res.status(403).send({ 
+              error: "GOVERNANCE_REQUIRED", 
+              message: "Modifying suspension status requires a Governance Proposal. Please submit it through the Governance tab."
+            });
+         }
+      }
+    }
+
     let delegate = (prismaApp as any)[modelName];
     if (!delegate) delegate = (prismaAdmin as any)[modelName];
 

@@ -17,6 +17,7 @@ import {
   generateWebAuthnRegistration,
   verifyWebAuthnRegistration,
   removePasskeys,
+  listPasskeys,
   generateWebAuthnAuthentication,
   verifyWebAuthnAuthentication,
   uploadAvatar,
@@ -263,6 +264,19 @@ const authRouter: FastifyPluginAsync = async (app) => {
       },
     },
     verifyWebAuthnRegistration,
+  );
+
+  app.get(
+    "/webauthn/passkeys",
+    {
+      preHandler: authenticate,
+      schema: {
+        description: "List passkey count",
+        tags: ["auth"],
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    listPasskeys,
   );
 
   app.delete(

@@ -11,6 +11,7 @@ import {
   saveAppConfig,
   saveOwnerSettings,
 } from "@/lib/config.functions";
+import { proposeGovernanceAction } from "@/lib/governance.functions";
 import { useIsAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin/settings")({
@@ -42,7 +43,7 @@ function SettingsManager() {
   const [form, setForm] = useState<Record<string, unknown>>({});
 
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const data = Object.fromEntries(
         FIELDS.map((f) => [
           f.key,
@@ -50,9 +51,26 @@ function SettingsManager() {
         ]),
       ) as any;
       if (form["id"]) data.id = form["id"];
-      data.is_suspended = Boolean(form["is_suspended"]);
-      data.shutdown_code = form["shutdown_code"] ? Number(form["shutdown_code"]) : null;
-      data.shutdown_message = form["shutdown_message"] ? String(form["shutdown_message"]) : null;
+      
+      const newSuspended = Boolean(form["is_suspended"]);
+      
+      if (isSuperAdmin && settings && Boolean(settings.is_suspended) !== newSuspended) {
+         // Submit as governance request instead of saving directly
+         await proposeGovernanceAction({
+            action_type: "SUSPEND_APP",
+            payload: {
+               message: form["shutdown_message"] ? String(form["shutdown_message"]) : null,
+               code: form["shutdown_code"] ? Number(form["shutdown_code"]) : null,
+               is_suspended: newSuspended
+            }
+         });
+         toast.success("Governance proposal submitted for suspension change.");
+      } else {
+         data.is_suspended = newSuspended;
+         data.shutdown_code = form["shutdown_code"] ? Number(form["shutdown_code"]) : null;
+         data.shutdown_message = form["shutdown_message"] ? String(form["shutdown_message"]) : null;
+      }
+      
       return saveOwnerSettings(data);
     },
     onSuccess: () => {
@@ -220,6 +238,12 @@ function SettingsManager() {
             Add your WhatsApp Cloud API credentials here — order updates start sending
             automatically once saved.
           </p>
+          <div className="mt-2 text-xs text-muted-foreground bg-primary/5 border border-primary/20 p-3 rounded-xl">
+            <strong className="text-foreground">How to get these?</strong><br />
+            1. Go to the <a href="https://developers.facebook.com/" target="_blank" className="text-primary hover:underline font-medium">Meta for Developers</a> dashboard and create an app (Type: Business).<br />
+            2. Add the WhatsApp product to your app.<br />
+            3. In the WhatsApp Setup page, you will find the <strong>Phone number ID</strong> and a temporary <strong>Access Token</strong> (for permanent tokens, create a System User in Business Manager).
+          </div>
         </div>
         <div>
           <Label htmlFor="ownerEmail">Owner email</Label>

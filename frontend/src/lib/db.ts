@@ -111,31 +111,37 @@ export const settingsQuery = queryOptions({
 export const categoriesQuery = queryOptions({
   queryKey: ["categories"],
   queryFn: ({ signal }) => fetchAPI<Category[]>("/categories", { signal }),
+  staleTime: 60_000,
 });
 
 export const productsQuery = queryOptions({
   queryKey: ["products"],
   queryFn: ({ signal }) => fetchAPI<Product[]>("/products", { signal }),
+  staleTime: 60_000,
 });
 
 export const offersQuery = queryOptions({
   queryKey: ["offers"],
   queryFn: ({ signal }) => fetchAPI<Offer[]>("/offers", { signal }),
+  staleTime: 60_000,
 });
 
 export const discountsQuery = queryOptions({
   queryKey: ["discounts"],
   queryFn: ({ signal }) => fetchAPI<Discount[]>("/discounts", { signal }),
+  staleTime: 60_000,
 });
 
 export const loyaltyQuery = queryOptions({
   queryKey: ["loyalty"],
   queryFn: ({ signal }) => fetchAPI<LoyaltyRule[]>("/loyalty", { signal }),
+  staleTime: 60_000,
 });
 
 export const tablesQuery = queryOptions({
   queryKey: ["tables"],
   queryFn: ({ signal }) => fetchAPI<RestaurantTable[]>("/tables", { signal }),
+  staleTime: 60_000,
 });
 
 export const reviewsQuery = queryOptions({

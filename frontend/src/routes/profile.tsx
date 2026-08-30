@@ -739,6 +739,7 @@ function TotpSetup({ hasMfaEnrolled }: { hasMfaEnrolled: boolean }) {
 function PasskeySetup() {
   const qc = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const { passkeyCount } = useIsAdmin();
 
   const registerPasskey = async () => {
     setLoading(true);
@@ -781,6 +782,11 @@ function PasskeySetup() {
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-2 font-display text-base font-bold">
           Passkeys
+          {passkeyCount > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {passkeyCount} registered
+            </Badge>
+          )}
         </h2>
       </div>
       <div className="text-sm text-muted-foreground">
@@ -791,10 +797,13 @@ function PasskeySetup() {
           {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
           Register a Passkey
         </Button>
-        <Button variant="glass" onClick={removePasskeys} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-          Remove Passkeys
-        </Button>
+        {passkeyCount > 0 && (
+          <Button variant="glass" onClick={removePasskeys} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+            Remove Passkeys
+          </Button>
+        )}
       </div>
     </div>
   );
 }
+

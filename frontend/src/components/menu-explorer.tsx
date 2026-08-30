@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -29,9 +29,11 @@ export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorer
     onCategoryChange?.(slug);
   }
 
+  const deferredSearch = useDeferredValue(search);
+
   const filtered = useMemo(() => {
     const list = products ?? [];
-    const term = search.trim().toLowerCase();
+    const term = deferredSearch.trim().toLowerCase();
     return list.filter((p) => {
       const cat = categories.find((c) => c.id === p.category_id);
       if (category !== "all" && cat?.slug !== category) return false;

@@ -77,7 +77,7 @@ const logger = pino({
   level: LOG_LEVEL,
 
   base: {
-    service: "ranchikart-api",
+    service: "maatara-api",
   },
 
   timestamp: pino.stdTimeFunctions.isoTime,

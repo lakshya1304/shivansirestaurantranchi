@@ -1,124 +1,83 @@
-## Project Context & Progress
-*(Updated: 2026-08-28 — Phase 2 UX polish complete)*
-
----
-
-### Phase 0: Foundation ✅
-- **Seed Script**: `backend/prisma/seed.ts` includes Orders (ORD-TEST-001/002/003), Reviews (published + pending), and a `--reset` flag.
-- **Backend Audit**:
-  - `PATCH /users/:id/role` → SUPERADMIN only + AuditLog entry
-  - `DELETE /users/:id` → SUPERADMIN only + AuditLog entry
-  - `POST /orders` session_token now uses `crypto.randomUUID()`
-
----
-
-### Phase 1: Critical Fixes ✅
-- **Toast System (#8)**:
-  - Phone regex: `^(?:\+?91[\-\s]?)?[6-9]\d{9}$` (10-digit Indian format) in `orders.functions.ts` and `cart.tsx`
-  - All `catch` blocks now use `error?.message ?? error?.toString() ?? "fallback"` pattern across `login.tsx`, `auth.tsx`, `whatsapp-login-form.tsx`, `profile.tsx`, `admin.settings.tsx`, `cart.tsx`
-  - `sonner.tsx`: `closeButton=true`, `duration=4000`, `visibleToasts=5`, `position=bottom-right`
-- **QR Order Flow (#1)**:
-  - `table.$tableNumber.tsx` reads URL param → sets tableNumber in cart store with source `"qr"`
-  - Cart displays "Table X detected from your QR code" banner when QR-sourced
-  - `session_token` in orders is now unique per request via `crypto.randomUUID()`
-- **Placeholder Cleanup (#7)**:
-  - `cart.tsx`: name, phone, coupon, table all have generic placeholders
-  - `auth.tsx`: email → "Enter your email address", password → "Enter your password"
-  - `profile.tsx`: saved_address → "Enter your address"
-  - `admin.settings.tsx`: all inputs use `Enter ${field.label.toLowerCase()}`
-- **Footer (#11, #16)**:
-  - Phone wrapped in `<a href="tel:...">` in `site-footer.tsx`
-  - Stray `pp` text removed from footer bottom bar
-- **Owner Page (#13)**:
-  - Established year changed 2005 → **2025**
-
----
-
-### Phase 2: UX & Polish ✅
-- **Navbar Profile Item (#9)** — `site-header.tsx`:
-  - Imports `useIsAdmin` + `getCustomerSession` to detect active session
-  - Desktop nav: shows "Profile" when logged in, "Login" otherwise
-  - Mobile drawer: same logic, with active-state dot indicator
-- **Homepage Live Kitchen Tracking removed (#14)** — `index.tsx`:
-  - Removed `Timer` import + "Live kitchen tracking" stat
-- **Homepage QR Scan CTA in Ratings (#19)** — `index.tsx`:
-  - Added pill-style `<Link to="/scanner">` below review cards
-- **Full Menu Category Filters (#10)**:
-  - Menu Explorer accepts `initialCategory` and updates URL `?category=` dynamically
-- **QR Scanner Camera UX (#12)**:
-  - Validated strict click-to-start (Start scanning button) flow
-- **Status Indicator Dots (#18)**:
-  - Added network (Red/Green) and backend health (Orange/Blue via `/api/health` polling) dots to footer
-
----
-
-### Phase 3: Backend & Workflows ✅
-- **Admin Kitchen Status Flow (#2)**:
-  - Added `OrderStatus` Enum (`PENDING`, `CONFIRMED`, `PREPARING`, `PREPARED`, `SERVED`, `COMPLETED`, `CANCELLED`) to schema.
-  - Added WhatsApp notification for new orders sent directly to `settings.phone`.
-- **Bill Generation & Storage (#3)**:
-  - Added `bill_id` (String) to `Order` schema.
-  - Auto-generated on creation as `BILL-YYYYMMDD-XXXX`.
-- **Loyalty Program (#4)**:
-  - Updated loyalty tier check in `orderController.ts` to trigger exactly on the milestone (`visits + 1 === visits_required`).
-- **Product Rating by Users (#15)**:
-  - Added new `Rating` model in Prisma.
-  - Exposed `POST /ratings` to securely store ratings matching past orders and update aggregate product rating.
-- **Homepage Ratings (#17)**:
-  - Added `GET /ratings/google` in `dataRoutes.ts` calling Google Places API.
-  - Wrapped in 1-hour Redis cache (`fetchWithCache`).
-- **SuperAdmin → Admin Promotion (#6)**:
-  - Verified `updateRole` endpoint uses `requireSuperAdmin` correctly.
-
-### Phase 3.5: Architectural Refactoring ✅
-- **Backend Domain-Driven Refactoring**: 
-  - Migrated from a monolithic layered controller/route structure to a modular, feature-wise (domain-driven) design.
-  - Isolated features into independent modules (`auth`, `catalog`, `orders`, `reviews`, `settings`, `system`, `users`) inside `backend/src/modules/` for better maintainability and separation of concerns.
-- **Database Architecture Split**:
-  - Split the monolithic database into two independent databases: **Admin Database** (for users, audit logs, settings) and **Application Database** (for catalog, orders, customer data).
-  - Maintained shared authentication (JWT) while creating dual, independently connected Prisma clients (`prisma.admin.config.ts`, `prisma.app.config.ts`).
-
----
-
-## Phase 4 Implementation
-
-- **Review Management:**
-  - Added `allReviewsQuery` (fetching all reviews `published=false`) in `db.ts` for Admin use.
-  - Implemented `PATCH /reviews/:id/publish` in backend to toggle review visibility.
-  - Created new `admin.reviews.tsx` frontend page to manage reviews.
-  - Updated homepage to filter explicitly via `/reviews?published=true&limit=6` and show loading skeletons.
-- **Supabase Image Pipeline:**
-  - Built `uploadProductImage` and `deleteProductImage` in `dataController.ts` using Fastify Multipart.
-  - Images are compressed/converted to WebP using `sharp` before being pushed to Supabase Storage.
-  - Replaced text URL inputs in `admin.menu.tsx` with a native `ImageUpload` file picker component.
-- **Bill Styling:**
-  - Added `@media print` CSS block in `styles.css` to hide site-header, site-footer, and admin controls.
-  - Formatted the invoice to A4 size, removing glassmorphism backgrounds for clean paper printing.
-- **Seed Data Enhancement:**
-  - Swapped generic 'Seed User' reviews with realistic Indian names (e.g., Priya Singh, Rahul Gupta) mimicking actual loyal customers.
-
----
-
-### Phase 4.5: Configuration & Health Fixes ✅
-- **Environment Setup**:
-  - Replaced production API URL (`shivansirestaurantranchi.onrender.com`) with local backend (`http://localhost:3000`) in `frontend/.env` to fix `/api/v1/health` errors during local development.
-- **Database Seeding**:
-  - Successfully executed `db:seed` for both Admin and App databases, populating Categories, Products, Tables, Loyalty Rules, and Coupons for local development.
-
----
-
-### Key Technical Notes
-- **Auth**: JWT (email), WhatsApp OTP via `phone_verifications` table, and Google OAuth. Users can register via `/signup` and login via `/login` with Email/Password or Google. Customer sessions stored in `localStorage` as `customer_session`.
-- **Database**: PostgreSQL + Prisma. Seed via `bun run scripts/seedData.ts`.
-- **Frontend**: TanStack Start/Router, React Query, Redux (theme). Sonner for toasts.
-- **Backend**: Fastify + Prisma. Role hierarchy: USER < ADMIN < SUPERADMIN.
-- **SUPERADMIN only routes**: `PATCH /data/users/:id/role`, `DELETE /data/users/:id`.
-- **Navbar**: `site-header.tsx` — hidden on `/admin*`. Profile link is context-aware via `useIsAdmin()` + `getCustomerSession()`.
-- **Build Step**: Requires `bun run build` across frontend and backend, with Prisma client regenerated first via `bunx prisma generate`.
-
----
-
-### Project Metadata
-- **Shop Name**: Maa Tara Sweets
-- **Location**: Ranchi
-- **Primary Collaborator**: nishur31
+{
+  "__meta__": {
+    "project": "Maa Tara Sweets / Shivansi Restaurant Ranchi",
+    "type": "FullStack Restaurant Management App"
+  },
+  "stack": {
+    "frontend": ["React", "Vite", "TailwindCSS", "Tanstack Router", "React Query", "Shadcn UI"],
+    "backend": ["Node.js", "Fastify", "Prisma"],
+    "db": ["PostgreSQL", "Split schema: app.schema.prisma (Public) / admin.schema.prisma (Internal)"]
+  },
+  "auth": {
+    "methods": ["WebAuthn / Passkeys", "Google OAuth (UI built, flow pending)", "Email OTP / Password"],
+    "roles": ["USER", "ADMIN", "SUPERADMIN"],
+    "middlewares": ["requireRole (Backend)", "auth-middleware.ts (Frontend)"]
+  },
+  "routes": {
+    "frontend": {
+      "public": ["/", "/menu", "/cart", "/login", "/signup", "/scanner", "/table/$tableNumber"],
+      "customer_auth": ["/profile", "/my-orders"],
+      "admin": [
+        "/auth (Admin login only)",
+        "/admin (Live Orders Board)",
+        "/admin/reports (Revenue & Analytics)",
+        "/admin/governance (Superadmin Actions: Create/Delete Admins)",
+        "/admin/menu", "/admin/inventory", "/admin/customers", "/admin/staff", "/admin/settings"
+      ]
+    },
+    "backend": {
+      "prefix": "/api/v1",
+      "modules": {
+        "/auth": "Authentication (login, register, webauthn, totp)",
+        "/data/orders": "Order lifecycle (place, status, payment, history)",
+        "/data/catalog": "Products, Categories",
+        "/data/governance": "AdminActionRequest, Votes, Superadmin creation/deletion",
+        "/data/settings": "Restaurant metadata, global toggles",
+        "/data/users": "User management"
+      }
+    }
+  },
+  "accomplishments": [
+    {
+      "feature": "Governance Module Fix",
+      "action": "Fixed InternalServerError by changing user.userId to user.id in governance.controller.ts. Prevented target admins from voting on their own deletion requests."
+    },
+    {
+      "feature": "Admin Auth UI",
+      "action": "Added Passkey and Google login integration to the restricted admin `/auth` route."
+    },
+    {
+      "feature": "Dashboard Re-organization",
+      "action": "Moved Revenue Analytics out of admin.index.tsx (Live Kitchen) and into admin.reports.tsx (Revenue & Reports). Removed 'Revenue today' KPI from Live dashboard to fix UI mixup where order cards showed in revenue views."
+    },
+    {
+      "feature": "Build & UI Fixes",
+      "action": "Fixed missing format.ts exports (isThisMonth, isThisYear, isSameDay) causing black screens. Fixed missing IndianRupee lucide-react import."
+    }
+  ],
+  "active_bugs_and_tasks": [
+    {
+      "issue": "Live Dashboard State Update Failure",
+      "description": "Clicking state change buttons ('Mark ready to serve') in `admin.index.tsx` does not update the order state or UI.",
+      "flow": "admin.index.tsx (setStatus) -> notify.functions.ts (updateOrderStatus) -> PATCH /data/orders/:id/status -> order.routes.ts -> order.controller.ts (updateOrderStatus)",
+      "hypotheses": [
+        "WhatsApp API (`sendWhatsAppMessage` in `order.controller.ts`) is throwing an unhandled exception which crashes the API request before 200 OK is sent.",
+        "Prisma throws a P2025 error due to state mismatch.",
+        "React Query `qc.invalidateQueries(['orders'])` is failing to re-fetch or WebSockets are not pushing updates correctly."
+      ],
+      "next_steps": [
+        "Check Fastify backend logs immediately after clicking a state change button in the dashboard.",
+        "Wrap `sendWhatsAppMessage` inside `order.controller.ts` in a try/catch block to prevent it from failing the state update transaction.",
+        "Verify `broadcastOrderEvent` successfully emits the event to connected clients."
+      ]
+    },
+    {
+      "issue": "WhatsApp / Email Integrations",
+      "status": "Pending full implementation. Brevo and WhatsApp API configurations exist but need verification."
+    },
+    {
+      "issue": "Google OAuth Backend",
+      "status": "UI added, backend logic needs to be connected for restricted Admin/Superadmin Google logins."
+    }
+  ]
+}

@@ -323,10 +323,13 @@ export const getMe = asyncHandler(async (req: FastifyRequest, res: FastifyReply)
   }
 
   let dbUser: any;
+  let passkeyCount = 0;
   if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
     dbUser = await prismaAdmin.admin.findUnique({ where: { id: user.id } });
+    passkeyCount = await prismaAdmin.passkey.count({ where: { adminId: user.id } });
   } else {
     dbUser = await prismaApp.user.findUnique({ where: { id: user.id } });
+    passkeyCount = await prismaApp.passkey.count({ where: { userId: user.id } });
   }
 
   sendSuccess(res, "Session details", STATUS_CODES.OK, {
@@ -334,7 +337,24 @@ export const getMe = asyncHandler(async (req: FastifyRequest, res: FastifyReply)
     isAdmin: dbUser?.role === "ADMIN" || dbUser?.role === "SUPERADMIN",
     mfaSatisfied: true,
     hasMfaEnrolled: dbUser?.isTotpEnabled ?? false,
+    passkeyCount,
   });
+});
+
+export const listPasskeys = asyncHandler(async (req: FastifyRequest, res: FastifyReply) => {
+  const user = req.user;
+  if (!user) {
+    throw new UnauthorizedError("Not authenticated");
+  }
+
+  let count = 0;
+  if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
+    count = await prismaAdmin.passkey.count({ where: { adminId: user.id } });
+  } else {
+    count = await prismaApp.passkey.count({ where: { userId: user.id } });
+  }
+
+  sendSuccess(res, "Passkey list", STATUS_CODES.OK, { count });
 });
 
 export const uploadAvatar = asyncHandler(async (req: FastifyRequest, res: FastifyReply) => {

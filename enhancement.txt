@@ -1,0 +1,29 @@
+- brevo ka email api
+- WhatsApp config
+- oauth google email
+- seo
+- backend hosting change maybe
+- bill pdf fix
+- latency in backend and front end
+- dashboard revenue should  show payments with date,month,today, people on what
+- notes of product toggle use from UI components
+- order placing from cart not working: invalid order data but takeaway parcel order successful: it's using api/v1/data/orders/place 400 bad request 
+- order updatation takes alot of time to update dashboards and data and sometimes not work
+- upi gets empty on saving and where it's shown,keep upi clickable and qr for easy payment and updating in page(where it's shown) should update seemlessly
+- my orders are not fetching(even if i did admin/superadmin login), normal users use email/WhatsApp login and still it's showing login screen
+- setup whatsapp login 
+- latency in live order pending...,states changing takes times
+- logo
+- check customer product review aggregation and update it for weekly review calculation
+- fix review section: currently it can choose reviews to accept makimg the admin to choose only good reviews which will be biased and misleading, make it show genuine reviews and no ability choose which ti accept or decline
+- inventory products under same name should merge and there should be actions to merge in case typos arrives as rice and Rice etc both are same but can be calculated diff as per case sensitivity 
+- add inventory chart display for product for checking it's supply stock lower and some calculations about weekly updates by default,add new column item like Item quantity are already there,add graph or chart similar.
+- festive coupon successful created but not reducing the price when added
+- product food category asking image why, it's just a category,fix it
+- suggest only and save implementation in superadminimplementation.md: since one superadmin cannot delete crud actions on other superadmin,also for admins cannot edit other admins, tell me how (in case of account compromise of superadmin) how superadmins can be editing (power can be misused),can we add request to delete or crud edit super admin and other super admins can verify it(like consensus in blockchain) suggest only
+- in top navbar where main business name and icon stays,there is text best sweets in ranchi, but after sometime it changes to table 10 selected automatically,fix it to no get changed , it's for tagline not table selection,fix that component.
+- passkey registration is successfully but i cannot see the passkey registered,and even if no passkeys are set it still shows delete passkeys (why delete all) button, also there is not login with passkey option in logon forms with email or whatever
+add helper note in dashboard superadmin in settings where whatsapp id etc stays where input fields are there,add note how to setup and get the apis keys and where to look for links etc 
+
+
+use .context
