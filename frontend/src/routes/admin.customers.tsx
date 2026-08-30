@@ -69,7 +69,7 @@ function CustomersManager() {
                   <Button
                     size="icon"
                     variant="glass"
-                    className="size-8"
+                    className="size-8 rounded-full"
                     onClick={() => deleteReview.mutate(r.id)}
                   >
                     <Trash2 className="size-3.5" />

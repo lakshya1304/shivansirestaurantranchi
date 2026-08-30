@@ -99,9 +99,17 @@
 
 ---
 
+### Phase 4.5: Configuration & Health Fixes ✅
+- **Environment Setup**:
+  - Replaced production API URL (`shivansirestaurantranchi.onrender.com`) with local backend (`http://localhost:3000`) in `frontend/.env` to fix `/api/v1/health` errors during local development.
+- **Database Seeding**:
+  - Successfully executed `db:seed` for both Admin and App databases, populating Categories, Products, Tables, Loyalty Rules, and Coupons for local development.
+
+---
+
 ### Key Technical Notes
 - **Auth**: JWT (email), WhatsApp OTP via `phone_verifications` table, and Google OAuth. Users can register via `/signup` and login via `/login` with Email/Password or Google. Customer sessions stored in `localStorage` as `customer_session`.
-- **Database**: PostgreSQL + Prisma. Seed via `bun run prisma/seed.ts [--reset]`.
+- **Database**: PostgreSQL + Prisma. Seed via `bun run scripts/seedData.ts`.
 - **Frontend**: TanStack Start/Router, React Query, Redux (theme). Sonner for toasts.
 - **Backend**: Fastify + Prisma. Role hierarchy: USER < ADMIN < SUPERADMIN.
 - **SUPERADMIN only routes**: `PATCH /data/users/:id/role`, `DELETE /data/users/:id`.

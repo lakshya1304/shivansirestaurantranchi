@@ -206,7 +206,7 @@ function MenuManager() {
                 <Button
                   size="icon"
                   variant="glass"
-                  className="size-8"
+                  className="size-8 rounded-full"
                   onClick={() => setCategory({ ...c })}
                 >
                   <Pencil className="size-3.5" />
@@ -214,7 +214,7 @@ function MenuManager() {
                 <Button
                   size="icon"
                   variant="glass"
-                  className="size-8"
+                  className="size-8 rounded-full"
                   onClick={() => deleteCategory.mutate(c.id)}
                 >
                   <Trash2 className="size-3.5" />
@@ -443,7 +443,7 @@ function MenuManager() {
                       <Button
                         size="icon"
                         variant="glass"
-                        className="size-8"
+                        className="size-8 rounded-full"
                         onClick={() => setProduct({ ...p })}
                       >
                         <Pencil className="size-3.5" />
@@ -451,7 +451,7 @@ function MenuManager() {
                       <Button
                         size="icon"
                         variant="glass"
-                        className="size-8"
+                        className="size-8 rounded-full"
                         onClick={() => deleteProduct.mutate(p.id)}
                       >
                         <Trash2 className="size-3.5" />
@@ -487,8 +487,12 @@ function Toggle({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-border px-3 py-2">
-      <span className="text-sm">{label}</span>
+    <div
+      className={`flex items-center justify-between rounded-full border px-4 py-2 transition-colors ${
+        checked ? "border-primary/40 bg-primary/10" : "border-border bg-transparent"
+      }`}
+    >
+      <span className="text-sm font-medium">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
