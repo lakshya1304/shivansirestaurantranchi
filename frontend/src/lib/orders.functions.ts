@@ -42,7 +42,10 @@ export const getPublicOrder = async (input: unknown) => {
   return fetchAPI<any>(`/orders/public?id=${data.id}&token=${data.token}`);
 };
 
-const phoneSchema = z.string().trim().regex(/^(?:\+?91[\-\s]?)?[6-9]\d{9}$/, "Enter a valid 10-digit phone number");
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^(?:\+?91[\-\s]?)?[6-9]\d{9}$/, "Enter a valid 10-digit phone number");
 
 export const requestOrderHistoryCode = async (input: unknown) => {
   const data = z.object({ phone: phoneSchema }).parse(input);
@@ -54,7 +57,15 @@ export const requestOrderHistoryCode = async (input: unknown) => {
 };
 
 export const getOrdersByPhone = async (input: unknown) => {
-  const data = z.object({ phone: phoneSchema, code: z.string().trim().regex(/^[0-9]{6}$/) }).parse(input);
+  const data = z
+    .object({
+      phone: phoneSchema,
+      code: z
+        .string()
+        .trim()
+        .regex(/^[0-9]{6}$/),
+    })
+    .parse(input);
   return fetchAPI<any>("/orders/history/verify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

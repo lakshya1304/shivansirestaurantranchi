@@ -16,7 +16,9 @@ export function Invoice({
     <div id="invoice" className="glass rounded-3xl p-6">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div>
-          <h2 className="font-display text-xl font-bold">{settings?.name ?? import.meta.env.VITE_BUSINESS_NAME ?? "Restaurant"}</h2>
+          <h2 className="font-display text-xl font-bold">
+            {settings?.name ?? import.meta.env.VITE_BUSINESS_NAME ?? "Restaurant"}
+          </h2>
           <p className="text-xs text-muted-foreground">{settings?.address}</p>
           <p className="text-xs text-muted-foreground">{settings?.phone}</p>
           {settings?.gst_number ? (
@@ -34,7 +36,8 @@ export function Invoice({
       </header>
 
       <div className="py-3 text-xs text-muted-foreground">
-        Billed to <span className="text-foreground">{order.customer_name}</span> • {order.customer_phone}
+        Billed to <span className="text-foreground">{order.customer_name}</span> •{" "}
+        {order.customer_phone}
       </div>
 
       <table className="w-full text-sm">
@@ -52,10 +55,15 @@ export function Invoice({
               <td className="py-2">
                 {item.name}
                 {item.weight_label ? (
-                  <span className="text-xs text-muted-foreground"> ({item.weight_label})</span>
+                  <span className="text-xs text-muted-foreground">
+                    {" "}
+                    ({item.weight_label})
+                  </span>
                 ) : null}
                 {item.instructions ? (
-                  <span className="block text-[11px] text-accent">{item.instructions}</span>
+                  <span className="block text-[11px] text-accent">
+                    {item.instructions}
+                  </span>
                 ) : null}
               </td>
               <td className="py-2 text-center">{item.quantity}</td>
@@ -70,11 +78,16 @@ export function Invoice({
         <Line label="Subtotal" value={money(order.subtotal, currency)} />
         {order.discount > 0 ? (
           <Line
-            label={order.discount_label ? `Discount (${order.discount_label})` : "Discount"}
+            label={
+              order.discount_label ? `Discount (${order.discount_label})` : "Discount"
+            }
             value={`-${money(order.discount, currency)}`}
           />
         ) : null}
-        <Line label={`GST (${settings?.tax_percent ?? 0}%)`} value={money(order.tax, currency)} />
+        <Line
+          label={`GST (${settings?.tax_percent ?? 0}%)`}
+          value={money(order.tax, currency)}
+        />
         {order.packing_charge > 0 ? (
           <Line label="Packing" value={money(order.packing_charge, currency)} />
         ) : null}

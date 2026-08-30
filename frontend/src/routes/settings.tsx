@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { setThemeMode, setThemeBase, ThemeMode, ThemeBase } from "@/store/slices/themeSlice";
+import {
+  setThemeMode,
+  setThemeBase,
+  ThemeMode,
+  ThemeBase,
+} from "@/store/slices/themeSlice";
 import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
 
@@ -32,8 +37,12 @@ function SettingsPage() {
       <section className="flex-1 px-4 py-14 sm:px-6 scroll-reveal">
         <div className="mx-auto max-w-3xl space-y-12">
           <header className="space-y-2">
-            <h1 className="font-display text-4xl font-bold gradient-text">Display Settings</h1>
-            <p className="text-muted-foreground">Customize how the app looks on your device.</p>
+            <h1 className="font-display text-4xl font-bold gradient-text">
+              Display Settings
+            </h1>
+            <p className="text-muted-foreground">
+              Customize how the app looks on your device.
+            </p>
           </header>
 
           {/* Theme Mode Selection */}
@@ -64,14 +73,33 @@ function SettingsPage() {
           {/* Base/Style Selection */}
           <div className="space-y-4">
             <h2 className="font-display text-2xl font-semibold flex items-center gap-2">
-              UI Base Style <Badge variant="gold" className="text-xs px-2 py-0.5">Pro Max</Badge>
+              UI Base Style{" "}
+              <Badge variant="gold" className="text-xs px-2 py-0.5">
+                Pro Max
+              </Badge>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { id: "default", label: "Glassmorphism", desc: "Default dark/vibrant glass" },
-                { id: "minimalist", label: "Minimalist", desc: "Clean typography, flat UI, no glass" },
-                { id: "liquid-glass", label: "Liquid Glass", desc: "Adaptive Apple-like translucency" },
-                { id: "claymorphism", label: "Claymorphism", desc: "Soft 3D, chunky, playful borders" },
+                {
+                  id: "default",
+                  label: "Glassmorphism",
+                  desc: "Default dark/vibrant glass",
+                },
+                {
+                  id: "minimalist",
+                  label: "Minimalist",
+                  desc: "Clean typography, flat UI, no glass",
+                },
+                {
+                  id: "liquid-glass",
+                  label: "Liquid Glass",
+                  desc: "Adaptive Apple-like translucency",
+                },
+                {
+                  id: "claymorphism",
+                  label: "Claymorphism",
+                  desc: "Soft 3D, chunky, playful borders",
+                },
               ].map((b) => (
                 <button
                   key={b.id}

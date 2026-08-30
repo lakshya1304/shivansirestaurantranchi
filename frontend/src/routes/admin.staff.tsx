@@ -50,7 +50,7 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
   const qc = useQueryClient();
 
   // Form fields
-  const [name, setName] = useState(mode?.type === "edit" ? mode.user.name ?? "" : "");
+  const [name, setName] = useState(mode?.type === "edit" ? (mode.user.name ?? "") : "");
   const [email, setEmail] = useState(mode?.type === "edit" ? mode.user.email : "");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>(
@@ -62,9 +62,7 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
   const [loading, setLoading] = useState(false);
 
   const availableRoles: UserRole[] =
-    callerRole === "SUPERADMIN"
-      ? ["USER", "ADMIN", "SUPERADMIN"]
-      : ["USER", "ADMIN"];
+    callerRole === "SUPERADMIN" ? ["USER", "ADMIN", "SUPERADMIN"] : ["USER", "ADMIN"];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -110,10 +108,7 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="glass-strong relative w-full max-w-md rounded-3xl p-6 shadow-2xl">
         <button
           onClick={onClose}
@@ -219,8 +214,7 @@ function StaffManager() {
 
   // ── Delete mutation ──
   const deleteMutation = useMutation({
-    mutationFn: (id: string) =>
-      fetchAPI<any>(`/users/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => fetchAPI<any>(`/users/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       toast.success("User deleted");
       void qc.invalidateQueries({ queryKey: ["staff"] });
@@ -277,11 +271,7 @@ function StaffManager() {
               : "You can manage Users and promote them to Admin"}
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => setModal({ type: "create" })}
-          className="gap-2"
-        >
+        <Button size="sm" onClick={() => setModal({ type: "create" })} className="gap-2">
           <PlusCircle className="size-4" />
           Add user
         </Button>
@@ -328,7 +318,9 @@ function StaffManager() {
                           <td className="px-4 py-3 font-medium">
                             {u.name ?? <span className="text-muted-foreground">—</span>}
                             {isSelf && (
-                              <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (you)
+                              </span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
@@ -381,7 +373,10 @@ function StaffManager() {
                                   className="size-7"
                                   title={u.isActive ? "Deactivate" : "Activate"}
                                   onClick={() =>
-                                    toggleActive.mutate({ id: u.id, isActive: !u.isActive })
+                                    toggleActive.mutate({
+                                      id: u.id,
+                                      isActive: !u.isActive,
+                                    })
                                   }
                                 >
                                   {u.isActive ? (
@@ -445,11 +440,7 @@ function StaffManager() {
 
       {/* Modal */}
       {modal && callerRole && (
-        <UserModal
-          mode={modal}
-          callerRole={callerRole}
-          onClose={() => setModal(null)}
-        />
+        <UserModal mode={modal} callerRole={callerRole} onClose={() => setModal(null)} />
       )}
     </div>
   );

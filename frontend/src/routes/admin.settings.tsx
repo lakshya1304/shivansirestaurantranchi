@@ -17,7 +17,6 @@ export const Route = createFileRoute("/admin/settings")({
   component: SettingsManager,
 });
 
-
 const FIELDS: Array<{ key: string; label: string; type?: string }> = [
   { key: "name", label: "Restaurant name" },
   { key: "tagline", label: "Tagline" },
@@ -36,7 +35,10 @@ const FIELDS: Array<{ key: string; label: string; type?: string }> = [
 function SettingsManager() {
   const qc = useQueryClient();
   const { isSuperAdmin } = useIsAdmin();
-  const { data: settings } = useQuery({ queryKey: ["owner-settings"], queryFn: () => getOwnerSettings() });
+  const { data: settings } = useQuery({
+    queryKey: ["owner-settings"],
+    queryFn: () => getOwnerSettings(),
+  });
   const [form, setForm] = useState<Record<string, unknown>>({});
 
   const save = useMutation({
@@ -47,7 +49,7 @@ function SettingsManager() {
           f.type === "number" ? Number(form[f.key] ?? 0) : String(form[f.key] ?? ""),
         ]),
       ) as any;
-      data.is_suspended = Boolean(form['is_suspended']);
+      data.is_suspended = Boolean(form["is_suspended"]);
       return saveOwnerSettings(data);
     },
     onSuccess: () => {
@@ -55,11 +57,19 @@ function SettingsManager() {
       void qc.invalidateQueries({ queryKey: ["owner-settings"] });
       void qc.invalidateQueries({ queryKey: ["settings"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? e?.toString() ?? "Could not save settings"),
+    onError: (e: any) =>
+      toast.error(e?.message ?? e?.toString() ?? "Could not save settings"),
   });
 
-  const { data: config } = useQuery({ queryKey: ["app-config"], queryFn: () => getAppConfig() });
-  const [cfg, setCfg] = useState({ ownerEmail: "", whatsappPhoneNumberId: "", whatsappToken: "" });
+  const { data: config } = useQuery({
+    queryKey: ["app-config"],
+    queryFn: () => getAppConfig(),
+  });
+  const [cfg, setCfg] = useState({
+    ownerEmail: "",
+    whatsappPhoneNumberId: "",
+    whatsappToken: "",
+  });
 
   const saveConfig = useMutation({
     mutationFn: () => saveAppConfig(cfg),
@@ -68,7 +78,8 @@ function SettingsManager() {
       setCfg((c) => ({ ...c, whatsappToken: "" }));
       void qc.invalidateQueries({ queryKey: ["app-config"] });
     },
-    onError: (e: any) => toast.error(e?.message ?? e?.toString() ?? "Could not save config"),
+    onError: (e: any) =>
+      toast.error(e?.message ?? e?.toString() ?? "Could not save config"),
   });
 
   useEffect(() => {
@@ -84,12 +95,13 @@ function SettingsManager() {
       });
   }, [config]);
 
-
   if (!isSuperAdmin) {
     return (
       <div className="glass mt-12 rounded-3xl p-12 text-center">
         <h2 className="font-display text-xl font-bold">Access Denied</h2>
-        <p className="mt-2 text-muted-foreground">Only Superadmins can access restaurant settings.</p>
+        <p className="mt-2 text-muted-foreground">
+          Only Superadmins can access restaurant settings.
+        </p>
       </div>
     );
   }
@@ -115,7 +127,8 @@ function SettingsManager() {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  [field.key]: field.type === "number" ? Number(e.target.value) : e.target.value,
+                  [field.key]:
+                    field.type === "number" ? Number(e.target.value) : e.target.value,
                 })
               }
             />
@@ -124,14 +137,19 @@ function SettingsManager() {
         <div className="sm:col-span-2 mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-display font-bold text-destructive">Emergency Shutdown</h3>
-              <p className="text-sm text-muted-foreground text-destructive/80">Turn this on to shut down the app for all customers (e.g., maintenance or payment required).</p>
+              <h3 className="font-display font-bold text-destructive">
+                Emergency Shutdown
+              </h3>
+              <p className="text-sm text-muted-foreground text-destructive/80">
+                Turn this on to shut down the app for all customers (e.g., maintenance or
+                payment required).
+              </p>
             </div>
             <label className="relative inline-flex cursor-pointer items-center">
               <input
                 type="checkbox"
                 className="peer sr-only"
-                checked={Boolean(form['is_suspended'])}
+                checked={Boolean(form["is_suspended"])}
                 onChange={(e) => setForm({ ...form, is_suspended: e.target.checked })}
               />
               <div className="peer h-6 w-11 rounded-full bg-border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-destructive peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-destructive/30 dark:border-gray-600 dark:bg-gray-700"></div>
@@ -171,13 +189,12 @@ function SettingsManager() {
         </div>
       </div>
 
-
-
       <div className="glass grid gap-4 rounded-3xl p-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <h3 className="font-display text-lg font-bold">Owner & WhatsApp bot</h3>
           <p className="text-sm text-muted-foreground">
-            Add your WhatsApp Cloud API credentials here — order updates start sending automatically once saved.
+            Add your WhatsApp Cloud API credentials here — order updates start sending
+            automatically once saved.
           </p>
         </div>
         <div>
@@ -201,7 +218,8 @@ function SettingsManager() {
         </div>
         <div className="sm:col-span-2">
           <Label htmlFor="waToken">
-            WhatsApp access token {config?.whatsappTokenSet ? "(saved — leave blank to keep)" : ""}
+            WhatsApp access token{" "}
+            {config?.whatsappTokenSet ? "(saved — leave blank to keep)" : ""}
           </Label>
           <Input
             id="waToken"
@@ -225,5 +243,4 @@ function SettingsManager() {
       </div>
     </div>
   );
-
 }

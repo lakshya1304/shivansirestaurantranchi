@@ -6,13 +6,13 @@
 export const HERO_IMAGE = "/assets/hero-food.jpg";
 
 const BY_SLUG: Record<string, string> = {
-  "sweet-shop":   "/assets/cat-sweets.jpg",
-  desserts:       "/assets/cat-sweets.jpg",
-  "main-course":  "/assets/cat-main.jpg",
-  combos:         "/assets/cat-main.jpg",
-  breakfast:      "/assets/cat-snacks.jpg",
-  snacks:         "/assets/cat-snacks.jpg",
-  drinks:         "/assets/cat-sweets.jpg",
+  "sweet-shop": "/assets/cat-sweets.jpg",
+  desserts: "/assets/cat-sweets.jpg",
+  "main-course": "/assets/cat-main.jpg",
+  combos: "/assets/cat-main.jpg",
+  breakfast: "/assets/cat-snacks.jpg",
+  snacks: "/assets/cat-snacks.jpg",
+  drinks: "/assets/cat-sweets.jpg",
 };
 
 export function fallbackImage(slug?: string | null) {

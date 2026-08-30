@@ -12,7 +12,11 @@ export function getCookie(name: string): string | null {
   return match ? decodeURIComponent(match.split("=").slice(1).join("=")) : null;
 }
 
-export function setCookie(name: string, value: string, maxAgeSeconds = 60 * 60 * 24 * 30) {
+export function setCookie(
+  name: string,
+  value: string,
+  maxAgeSeconds = 60 * 60 * 24 * 30,
+) {
   if (typeof document === "undefined") return;
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(

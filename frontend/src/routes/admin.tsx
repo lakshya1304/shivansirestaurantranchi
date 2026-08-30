@@ -1,5 +1,11 @@
 import { useEffect } from "react";
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
@@ -9,6 +15,7 @@ import {
   Loader2,
   LogOut,
   Settings,
+  Star,
   Tag,
   Users,
   ShieldCheck,
@@ -25,7 +32,10 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Owner dashboard — Maa Tara Sweets" },
-      { name: "description", content: "Manage live orders, menu, inventory, offers and reports." },
+      {
+        name: "description",
+        content: "Manage live orders, menu, inventory, offers and reports.",
+      },
       { property: "og:title", content: "Owner dashboard — Maa Tara Sweets" },
       { property: "og:description", content: "Manage the restaurant from one place." },
       { name: "robots", content: "noindex" },
@@ -41,6 +51,7 @@ const NAV = [
   { to: "/admin/offers", label: "Offers & loyalty", icon: Tag },
   { to: "/admin/tables", label: "Tables & QR", icon: LayoutGrid },
   { to: "/admin/customers", label: "Customers", icon: Users },
+  { to: "/admin/reviews", label: "Reviews", icon: Star },
   { to: "/admin/staff", label: "Staff", icon: ShieldCheck },
   { to: "/admin/reports", label: "Reports", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
@@ -49,7 +60,10 @@ const NAV = [
 /** Short synthesized chime so the kitchen hears every incoming order. */
 function playChime() {
   try {
-    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
     if (!Ctx) return;
     const ctx = new Ctx();
     [880, 1320].forEach((freq, i) => {
@@ -100,7 +114,9 @@ function AdminLayout() {
     await qc.cancelQueries();
     try {
       await fetchAPI("/auth/logout", { method: "POST" });
-    } catch { /* ignore network errors */ }
+    } catch {
+      /* ignore network errors */
+    }
     // Wipe all cached data — especially the auth_me session — before navigating
     // so the admin guard doesn't see a stale "isAdmin:true" and redirect back.
     qc.clear();
@@ -125,7 +141,8 @@ function AdminLayout() {
       <div className="mx-auto max-w-7xl space-y-6">
         <nav className="glass flex flex-nowrap gap-1 overflow-x-auto rounded-2xl p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {NAV.map((item) => {
-            const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
+            const active =
+              item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}

@@ -36,7 +36,9 @@ if (!authCode) {
   try {
     const { tokens } = await oauth2Client.getToken(authCode.trim());
     if (!tokens.refresh_token) {
-      console.warn("Warning: No refresh token returned. Make sure to revoke app access in your Google Account and re-run Step 1 to force consent prompt.");
+      console.warn(
+        "Warning: No refresh token returned. Make sure to revoke app access in your Google Account and re-run Step 1 to force consent prompt.",
+      );
     } else {
       console.log("\n========================================================");
       console.log("SUCCESS! Here is your new GMAIL_REFRESH_TOKEN:");

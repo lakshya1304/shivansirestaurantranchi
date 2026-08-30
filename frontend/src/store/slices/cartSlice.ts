@@ -1,5 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { TABLE_COOKIE, TABLE_SOURCE_COOKIE, deleteCookie, getCookie, setCookie } from "@/lib/cookies";
+import {
+  TABLE_COOKIE,
+  TABLE_SOURCE_COOKIE,
+  deleteCookie,
+  getCookie,
+  setCookie,
+} from "@/lib/cookies";
 
 export interface CartLine {
   key: string;
@@ -31,7 +37,7 @@ const getInitialState = (): CartState => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) lines = JSON.parse(raw) as CartLine[];
-  } catch { }
+  } catch {}
 
   let tableNumber: number | null = null;
   let tableSource: TableSource | null = null;
@@ -89,7 +95,10 @@ export const cartSlice = createSlice({
       state.lines = state.lines.filter((l) => l.key !== action.payload);
       syncStorage(state);
     },
-    setInstructions: (state, action: PayloadAction<{ key: string; instructions: string[] }>) => {
+    setInstructions: (
+      state,
+      action: PayloadAction<{ key: string; instructions: string[] }>,
+    ) => {
       const existing = state.lines.find((l) => l.key === action.payload.key);
       if (existing) {
         existing.instructions = action.payload.instructions;
@@ -100,7 +109,10 @@ export const cartSlice = createSlice({
       state.lines = [];
       syncStorage(state);
     },
-    setTableNumber: (state, action: PayloadAction<{ table: number | null; source?: TableSource }>) => {
+    setTableNumber: (
+      state,
+      action: PayloadAction<{ table: number | null; source?: TableSource }>,
+    ) => {
       const { table, source = "manual" } = action.payload;
       state.tableNumber = table;
       state.tableSource = table == null ? null : source;
@@ -117,5 +129,13 @@ export const cartSlice = createSlice({
   },
 });
 
-export const { addLine, increment, decrement, remove, setInstructions, clear, setTableNumber } = cartSlice.actions;
+export const {
+  addLine,
+  increment,
+  decrement,
+  remove,
+  setInstructions,
+  clear,
+  setTableNumber,
+} = cartSlice.actions;
 export default cartSlice.reducer;

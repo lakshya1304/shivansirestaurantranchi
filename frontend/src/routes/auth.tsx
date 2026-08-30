@@ -17,9 +17,16 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Admin login — Maa Tara Sweets" },
-      { name: "description", content: "Restricted sign-in for admin and superadmin accounts at Maa Tara Sweets." },
+      {
+        name: "description",
+        content:
+          "Restricted sign-in for admin and superadmin accounts at Maa Tara Sweets.",
+      },
       { property: "og:title", content: "Admin login — Maa Tara Sweets" },
-      { property: "og:description", content: "Restricted access — admin and superadmin only." },
+      {
+        property: "og:description",
+        content: "Restricted access — admin and superadmin only.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -83,7 +90,7 @@ function AuthPage() {
       const res = await fetchAPI<any>("/auth/login", {
         method: "POST",
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
       // Backend wraps response as { data: { requireTotp, user, accessToken } }
       const payload = res?.data ?? res;
@@ -107,14 +114,14 @@ function AuthPage() {
         await fetchAPI("/auth/totp/verify", {
           method: "POST",
           body: JSON.stringify({ token: otp.trim() }),
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         });
         toast.success("MFA Setup complete — welcome");
       } else {
         await fetchAPI("/auth/login", {
           method: "POST",
           body: JSON.stringify({ email, password, totpToken: otp.trim() }),
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         });
         toast.success("Verified — welcome back");
       }
@@ -152,8 +159,8 @@ function AuthPage() {
       {stage === "enroll" ? (
         <div className="space-y-3 text-center">
           <p className="text-sm text-muted-foreground">
-            Set up two-step verification: scan this code with Google Authenticator (or any authenticator app),
-            then enter the 6-digit code it shows.
+            Set up two-step verification: scan this code with Google Authenticator (or any
+            authenticator app), then enter the 6-digit code it shows.
           </p>
           {qr ? (
             <img
@@ -163,7 +170,9 @@ function AuthPage() {
             />
           ) : null}
           {secret ? (
-            <p className="break-all font-mono text-xs text-muted-foreground">Manual key: {secret}</p>
+            <p className="break-all font-mono text-xs text-muted-foreground">
+              Manual key: {secret}
+            </p>
           ) : null}
         </div>
       ) : (
@@ -183,10 +192,20 @@ function AuthPage() {
           required
         />
       </div>
-      <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
+      <Button
+        type="submit"
+        variant="hero"
+        className="w-full rounded-full"
+        disabled={busy}
+      >
         {busy ? <Loader2 className="size-4 animate-spin" /> : null} Verify &amp; continue
       </Button>
-      <Button type="button" variant="glass" className="w-full rounded-full" onClick={handleSignOut}>
+      <Button
+        type="button"
+        variant="glass"
+        className="w-full rounded-full"
+        onClick={handleSignOut}
+      >
         Cancel
       </Button>
     </form>
@@ -214,12 +233,17 @@ function AuthPage() {
             </p>
             {!isAdmin && !checking ? (
               <p className="text-sm text-muted-foreground">
-                This account does not have admin access. Only admin and superadmin accounts can open the dashboard.
+                This account does not have admin access. Only admin and superadmin
+                accounts can open the dashboard.
               </p>
             ) : (
               <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" />
             )}
-            <Button variant="glass" className="w-full rounded-full" onClick={handleSignOut}>
+            <Button
+              variant="glass"
+              className="w-full rounded-full"
+              onClick={handleSignOut}
+            >
               Sign out
             </Button>
           </div>
@@ -259,17 +283,27 @@ function AuthPage() {
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
                   </button>
                 </div>
               </div>
-              <Button type="submit" variant="hero" className="w-full rounded-full" disabled={busy}>
+              <Button
+                type="submit"
+                variant="hero"
+                className="w-full rounded-full"
+                disabled={busy}
+              >
                 {busy ? <Loader2 className="size-4 animate-spin" /> : null} Sign in
               </Button>
             </form>
 
             <p className="text-center text-xs text-muted-foreground">
-              Access is restricted to admin and superadmin roles. Two-factor authentication (TOTP) is optional.
+              Access is restricted to admin and superadmin roles. Two-factor
+              authentication (TOTP) is optional.
             </p>
           </>
         )}

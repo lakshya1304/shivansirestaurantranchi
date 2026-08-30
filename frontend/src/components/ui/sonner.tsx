@@ -7,6 +7,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       className="toaster group"
       position="bottom-right"
+      expand={true}
       closeButton={true}
       duration={4000}
       visibleToasts={5}
@@ -14,11 +15,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
         classNames: {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
-          description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+
+          description:
+            "group-[.toast]:text-muted-foreground",
+
+          actionButton:
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+
           closeButton:
-            "!size-6 !min-w-0 !aspect-square !rounded-md !p-0 !border-border/60 !bg-background/80 !text-muted-foreground hover:!text-foreground hover:!bg-muted transition-colors",
+            "!absolute !right-2 !top-2 !z-10 !size-6 !min-h-6 !min-w-6 !max-h-6 !max-w-6 !shrink-0 !p-0 !m-0 !aspect-square !rounded-md !border !border-border/60 !bg-background/80 !text-muted-foreground hover:!bg-muted hover:!text-foreground",
         },
       }}
       {...props}

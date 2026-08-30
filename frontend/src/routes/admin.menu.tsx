@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,10 +15,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { categoriesQuery, productsQuery, settingsQuery } from "@/lib/db";
+import { categoriesQuery, productsQuery, settingsQuery, fetchAPI } from "@/lib/db";
 import { useDeleteRow, useSaveRow } from "@/lib/admin";
 import { money } from "@/lib/format";
 import type { Category, Product } from "@/lib/types";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/menu")({
   component: MenuManager,
@@ -44,6 +45,22 @@ const emptyProduct = {
   category_id: null as string | null,
 };
 
+async function uploadImage(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(
+    `${import.meta.env["VITE_API_BASE_URL"] || "/api/v1"}/data/upload-image`,
+    {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    },
+  );
+  const json = await res.json();
+  if (!res.ok || !json.url) throw new Error(json.error || "Upload failed");
+  return json.url as string;
+}
+
 function MenuManager() {
   const { data: categories = [] } = useQuery(categoriesQuery);
   const { data: products = [] } = useQuery(productsQuery);
@@ -57,6 +74,7 @@ function MenuManager() {
 
   const [product, setProduct] = useState<Record<string, unknown> | null>(null);
   const [category, setCategory] = useState<Record<string, unknown> | null>(null);
+  const [uploadingFor, setUploadingFor] = useState<"product" | "category" | null>(null);
 
   return (
     <div className="space-y-8">
@@ -64,11 +82,26 @@ function MenuManager() {
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-display text-xl font-bold">Categories</h2>
-            <p className="text-sm text-muted-foreground">Sections shown on the customer menu.</p>
+            <p className="text-sm text-muted-foreground">
+              Sections shown on the customer menu.
+            </p>
           </div>
           <Dialog
             open={category !== null}
-            onOpenChange={(open) => setCategory(open ? (category ?? { name: "", slug: "", description: "", image_url: "", sort_order: categories.length + 1, is_active: true }) : null)}
+            onOpenChange={(open) =>
+              setCategory(
+                open
+                  ? (category ?? {
+                      name: "",
+                      slug: "",
+                      description: "",
+                      image_url: "",
+                      sort_order: categories.length + 1,
+                      is_active: true,
+                    })
+                  : null,
+              )
+            }
           >
             <DialogTrigger asChild>
               <Button variant="hero" className="rounded-full">
@@ -77,7 +110,9 @@ function MenuManager() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{category?.["id"] ? "Edit category" : "New category"}</DialogTitle>
+                <DialogTitle>
+                  {category?.["id"] ? "Edit category" : "New category"}
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-3">
                 <Field label="Name">
@@ -103,20 +138,36 @@ function MenuManager() {
                 <Field label="Description">
                   <Input
                     value={String(category?.["description"] ?? "")}
-                    onChange={(e) => setCategory({ ...category, description: e.target.value })}
+                    onChange={(e) =>
+                      setCategory({ ...category, description: e.target.value })
+                    }
                   />
                 </Field>
-                <Field label="Image URL">
-                  <Input
-                    value={String(category?.["image_url"] ?? "")}
-                    onChange={(e) => setCategory({ ...category, image_url: e.target.value })}
-                  />
-                </Field>
+                <ImageUpload
+                  label="Category Image"
+                  currentUrl={String(category?.["image_url"] ?? "")}
+                  uploading={uploadingFor === "category"}
+                  onUrlChange={(url) => setCategory({ ...category, image_url: url })}
+                  onFileSelect={async (file) => {
+                    setUploadingFor("category");
+                    try {
+                      const url = await uploadImage(file);
+                      setCategory((prev) => ({ ...prev, image_url: url }));
+                      toast.success("Image uploaded!");
+                    } catch (e: any) {
+                      toast.error(e.message);
+                    } finally {
+                      setUploadingFor(null);
+                    }
+                  }}
+                />
                 <Field label="Sort order">
                   <Input
                     type="number"
                     value={Number(category?.["sort_order"] ?? 0)}
-                    onChange={(e) => setCategory({ ...category, sort_order: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setCategory({ ...category, sort_order: Number(e.target.value) })
+                    }
                   />
                 </Field>
                 <Toggle
@@ -140,7 +191,10 @@ function MenuManager() {
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((c: Category) => (
-            <div key={c.id} className="glass flex items-center justify-between gap-3 rounded-2xl p-4">
+            <div
+              key={c.id}
+              className="glass flex items-center justify-between gap-3 rounded-2xl p-4"
+            >
               <div className="min-w-0">
                 <p className="truncate font-semibold">{c.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -149,7 +203,12 @@ function MenuManager() {
                 </p>
               </div>
               <div className="flex shrink-0 gap-1">
-                <Button size="icon" variant="glass" className="size-8" onClick={() => setCategory({ ...c })}>
+                <Button
+                  size="icon"
+                  variant="glass"
+                  className="size-8"
+                  onClick={() => setCategory({ ...c })}
+                >
                   <Pencil className="size-3.5" />
                 </Button>
                 <Button
@@ -176,7 +235,9 @@ function MenuManager() {
           </div>
           <Dialog
             open={product !== null}
-            onOpenChange={(open) => setProduct(open ? (product ?? { ...emptyProduct }) : null)}
+            onOpenChange={(open) =>
+              setProduct(open ? (product ?? { ...emptyProduct }) : null)
+            }
           >
             <DialogTrigger asChild>
               <Button variant="hero" className="rounded-full">
@@ -198,14 +259,18 @@ function MenuManager() {
                   <Textarea
                     rows={2}
                     value={String(product?.["description"] ?? "")}
-                    onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                    onChange={(e) =>
+                      setProduct({ ...product, description: e.target.value })
+                    }
                   />
                 </Field>
                 <Field label="Category">
                   <select
                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={String(product?.["category_id"] ?? "")}
-                    onChange={(e) => setProduct({ ...product, category_id: e.target.value || null })}
+                    onChange={(e) =>
+                      setProduct({ ...product, category_id: e.target.value || null })
+                    }
                   >
                     <option value="">Uncategorised</option>
                     {categories.map((c) => (
@@ -215,18 +280,32 @@ function MenuManager() {
                     ))}
                   </select>
                 </Field>
-                <Field label="Image URL">
-                  <Input
-                    value={String(product?.["image_url"] ?? "")}
-                    onChange={(e) => setProduct({ ...product, image_url: e.target.value })}
-                  />
-                </Field>
+                <ImageUpload
+                  label="Product Image"
+                  currentUrl={String(product?.["image_url"] ?? "")}
+                  uploading={uploadingFor === "product"}
+                  onUrlChange={(url) => setProduct({ ...product, image_url: url })}
+                  onFileSelect={async (file) => {
+                    setUploadingFor("product");
+                    try {
+                      const url = await uploadImage(file);
+                      setProduct((prev) => ({ ...prev, image_url: url }));
+                      toast.success("Image uploaded!");
+                    } catch (e: any) {
+                      toast.error(e.message);
+                    } finally {
+                      setUploadingFor(null);
+                    }
+                  }}
+                />
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Price">
                     <Input
                       type="number"
                       value={Number(product?.["price"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, price: Number(e.target.value) })
+                      }
                     />
                   </Field>
                   <Field label="Offer price">
@@ -245,14 +324,18 @@ function MenuManager() {
                     <Input
                       type="number"
                       value={Number(product?.["prep_time_mins"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, prep_time_mins: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, prep_time_mins: Number(e.target.value) })
+                      }
                     />
                   </Field>
                   <Field label="Calories">
                     <Input
                       type="number"
                       value={Number(product?.["calories"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, calories: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, calories: Number(e.target.value) })
+                      }
                     />
                   </Field>
                 </div>
@@ -266,7 +349,9 @@ function MenuManager() {
                     <Input
                       type="number"
                       value={Number(product?.["price_per_kg"] ?? 0)}
-                      onChange={(e) => setProduct({ ...product, price_per_kg: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setProduct({ ...product, price_per_kg: Number(e.target.value) })
+                      }
                     />
                   </Field>
                 ) : null}
@@ -305,7 +390,9 @@ function MenuManager() {
                 <Button
                   variant="hero"
                   className="w-full rounded-full"
-                  onClick={() => saveProduct.mutate(product!, { onSuccess: () => setProduct(null) })}
+                  onClick={() =>
+                    saveProduct.mutate(product!, { onSuccess: () => setProduct(null) })
+                  }
                 >
                   Save item
                 </Button>
@@ -346,7 +433,9 @@ function MenuManager() {
                   <td className="py-2 text-center">
                     <Switch
                       checked={p.is_available}
-                      onCheckedChange={(v) => saveProduct.mutate({ id: p.id, is_available: v })}
+                      onCheckedChange={(v) =>
+                        saveProduct.mutate({ id: p.id, is_available: v })
+                      }
                     />
                   </td>
                   <td className="py-2">
@@ -401,6 +490,70 @@ function Toggle({
     <div className="flex items-center justify-between rounded-xl border border-border px-3 py-2">
       <span className="text-sm">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+// ─── Image Upload Component ───────────────────────────────────────────────────
+function ImageUpload({
+  label,
+  currentUrl,
+  uploading,
+  onUrlChange,
+  onFileSelect,
+}: {
+  label: string;
+  currentUrl: string;
+  uploading: boolean;
+  onUrlChange: (url: string) => void;
+  onFileSelect: (file: File) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  return (
+    <div className="space-y-1.5">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <Input
+          placeholder="Paste URL or upload a file →"
+          value={currentUrl}
+          onChange={(e) => onUrlChange(e.target.value)}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          variant="glass"
+          size="icon"
+          className="shrink-0"
+          disabled={uploading}
+          onClick={() => fileRef.current?.click()}
+          title="Upload image"
+        >
+          {uploading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ImagePlus className="size-4" />
+          )}
+        </Button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onFileSelect(file);
+            e.target.value = "";
+          }}
+        />
+      </div>
+      {currentUrl ? (
+        <img
+          src={currentUrl}
+          alt="preview"
+          className="mt-1 h-20 w-full rounded-xl object-cover border border-border/60"
+          onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+        />
+      ) : null}
     </div>
   );
 }

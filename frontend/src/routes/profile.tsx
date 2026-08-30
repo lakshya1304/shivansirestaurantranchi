@@ -32,7 +32,10 @@ export const Route = createFileRoute("/profile")({
   head: () => ({
     meta: [
       { title: "My profile — Maa Tara Sweets" },
-      { name: "description", content: "View your loyalty points, order history and profile details." },
+      {
+        name: "description",
+        content: "View your loyalty points, order history and profile details.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -52,7 +55,11 @@ function initials(name: string) {
 
 function formatDate(d: string | Date | null | undefined) {
   if (!d) return null;
-  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -81,7 +88,13 @@ function ProfilePage() {
 
   // Admin profile (JWT session takes priority)
   if (user && isAdmin) {
-    return <AdminProfile user={user} isSuperAdmin={isSuperAdmin} hasMfaEnrolled={hasMfaEnrolled} />;
+    return (
+      <AdminProfile
+        user={user}
+        isSuperAdmin={isSuperAdmin}
+        hasMfaEnrolled={hasMfaEnrolled}
+      />
+    );
   }
 
   // Customer profile (localStorage session)
@@ -124,7 +137,9 @@ function CustomerProfile({
     if (customer) {
       setForm({
         name: customer.name ?? "",
-        birthday: customer.birthday ? new Date(customer.birthday).toISOString().slice(0, 10) : "",
+        birthday: customer.birthday
+          ? new Date(customer.birthday).toISOString().slice(0, 10)
+          : "",
         saved_address: customer.saved_address ?? "",
       });
     }
@@ -186,12 +201,19 @@ function CustomerProfile({
               <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <span>📱</span> {session.phone}
                 {customer?.last_visit && (
-                  <span className="ml-2">• Last visit: {formatDate(customer.last_visit)}</span>
+                  <span className="ml-2">
+                    • Last visit: {formatDate(customer.last_visit)}
+                  </span>
                 )}
               </p>
             </div>
           </div>
-          <Button variant="glass" size="sm" className="rounded-full" onClick={handleSignOut}>
+          <Button
+            variant="glass"
+            size="sm"
+            className="rounded-full"
+            onClick={handleSignOut}
+          >
             <LogOut className="size-4" />
             Sign out
           </Button>
@@ -204,7 +226,11 @@ function CustomerProfile({
               <Gift className="size-5 text-accent" /> Loyalty &amp; Stats
             </h2>
             <div className="grid gap-4 sm:grid-cols-4">
-              <Stat label="Visits" value={String(customer.visits ?? 0)} icon={<Star className="size-4 text-accent" />} />
+              <Stat
+                label="Visits"
+                value={String(customer.visits ?? 0)}
+                icon={<Star className="size-4 text-accent" />}
+              />
               <Stat
                 label="Reward points"
                 value={String(customer.reward_points ?? 0)}
@@ -244,7 +270,10 @@ function CustomerProfile({
 
             {editing ? (
               <form
-                onSubmit={(e) => { e.preventDefault(); saveProfile.mutate(); }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  saveProfile.mutate();
+                }}
                 className="space-y-4"
               >
                 <div>
@@ -271,7 +300,9 @@ function CustomerProfile({
                   <Input
                     id="profile-address"
                     value={form.saved_address}
-                    onChange={(e) => setForm((f) => ({ ...f, saved_address: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, saved_address: e.target.value }))
+                    }
                     placeholder="Enter your address"
                     maxLength={200}
                   />
@@ -282,7 +313,9 @@ function CustomerProfile({
                   className="rounded-full"
                   disabled={saveProfile.isPending}
                 >
-                  {saveProfile.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+                  {saveProfile.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : null}
                   Save changes
                 </Button>
               </form>
@@ -312,10 +345,7 @@ function CustomerProfile({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl font-bold">My orders</h2>
-            <Link
-              to="/my-orders"
-              className="text-sm text-accent hover:underline"
-            >
+            <Link to="/my-orders" className="text-sm text-accent hover:underline">
               Search by phone →
             </Link>
           </div>
@@ -323,7 +353,11 @@ function CustomerProfile({
           {orders.length === 0 ? (
             <p className="glass rounded-3xl p-6 text-center text-sm text-muted-foreground">
               No orders found yet.{" "}
-              <Link to="/menu" search={{ category: undefined }} className="text-accent underline">
+              <Link
+                to="/menu"
+                search={{ category: undefined }}
+                className="text-accent underline"
+              >
                 Start your first order
               </Link>
               .
@@ -336,11 +370,15 @@ function CustomerProfile({
                     <p className="font-mono text-sm">{order.order_number}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatDateTime(order.created_at)} •{" "}
-                      {order.table_number == null ? "Takeaway" : `Table ${order.table_number}`}
+                      {order.table_number == null
+                        ? "Takeaway"
+                        : `Table ${order.table_number}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge variant={order.status === "rejected" ? "destructive" : "glass"}>
+                    <Badge
+                      variant={order.status === "rejected" ? "destructive" : "glass"}
+                    >
                       {STATUS_LABEL[order.status as keyof typeof STATUS_LABEL]}
                     </Badge>
                     <span className="font-display font-bold">{money(order.total)}</span>
@@ -393,7 +431,11 @@ function AdminProfile({
   const qc = useQuery({ queryKey: ["auth_me"] } as any);
 
   async function handleSignOut() {
-    try { await fetchAPI("/auth/logout", { method: "POST" }); } catch { /* ignore */ }
+    try {
+      await fetchAPI("/auth/logout", { method: "POST" });
+    } catch {
+      /* ignore */
+    }
     navigate({ to: "/auth", replace: true });
     toast.success("Signed out");
   }
@@ -480,11 +522,7 @@ function AdminProfile({
           </nav>
         </div>
 
-        <Button
-          variant="glass"
-          className="w-full rounded-full"
-          onClick={handleSignOut}
-        >
+        <Button variant="glass" className="w-full rounded-full" onClick={handleSignOut}>
           <LogOut className="size-4" />
           Sign out
         </Button>

@@ -70,6 +70,33 @@
 - **SuperAdmin → Admin Promotion (#6)**:
   - Verified `updateRole` endpoint uses `requireSuperAdmin` correctly.
 
+### Phase 3.5: Architectural Refactoring ✅
+- **Backend Domain-Driven Refactoring**: 
+  - Migrated from a monolithic layered controller/route structure to a modular, feature-wise (domain-driven) design.
+  - Isolated features into independent modules (`auth`, `catalog`, `orders`, `reviews`, `settings`, `system`, `users`) inside `backend/src/modules/` for better maintainability and separation of concerns.
+- **Database Architecture Split**:
+  - Split the monolithic database into two independent databases: **Admin Database** (for users, audit logs, settings) and **Application Database** (for catalog, orders, customer data).
+  - Maintained shared authentication (JWT) while creating dual, independently connected Prisma clients (`prisma.admin.config.ts`, `prisma.app.config.ts`).
+
+---
+
+## Phase 4 Implementation
+
+- **Review Management:**
+  - Added `allReviewsQuery` (fetching all reviews `published=false`) in `db.ts` for Admin use.
+  - Implemented `PATCH /reviews/:id/publish` in backend to toggle review visibility.
+  - Created new `admin.reviews.tsx` frontend page to manage reviews.
+  - Updated homepage to filter explicitly via `/reviews?published=true&limit=6` and show loading skeletons.
+- **Supabase Image Pipeline:**
+  - Built `uploadProductImage` and `deleteProductImage` in `dataController.ts` using Fastify Multipart.
+  - Images are compressed/converted to WebP using `sharp` before being pushed to Supabase Storage.
+  - Replaced text URL inputs in `admin.menu.tsx` with a native `ImageUpload` file picker component.
+- **Bill Styling:**
+  - Added `@media print` CSS block in `styles.css` to hide site-header, site-footer, and admin controls.
+  - Formatted the invoice to A4 size, removing glassmorphism backgrounds for clean paper printing.
+- **Seed Data Enhancement:**
+  - Swapped generic 'Seed User' reviews with realistic Indian names (e.g., Priya Singh, Rahul Gupta) mimicking actual loyal customers.
+
 ---
 
 ### Key Technical Notes

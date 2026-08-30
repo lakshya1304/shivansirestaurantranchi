@@ -4,7 +4,9 @@ export function money(value: number, currency = "₹") {
 }
 
 export function effectivePrice(product: { price: number; offer_price: number | null }) {
-  return product.offer_price != null && product.offer_price > 0 ? product.offer_price : product.price;
+  return product.offer_price != null && product.offer_price > 0
+    ? product.offer_price
+    : product.price;
 }
 
 export function weightPrice(pricePerKg: number, grams: number) {
@@ -21,7 +23,10 @@ export function formatDateTime(iso: string) {
 }
 
 export function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function isToday(iso: string) {

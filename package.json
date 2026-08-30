@@ -1,0 +1,15 @@
+{
+  "name": "maatarasweets",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "format": "bun prettier --write ."
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "^3.9.6"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

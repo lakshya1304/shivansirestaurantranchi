@@ -2,8 +2,14 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Eye, EyeOff, Gift, LogOut, Loader2,
-  MessageCircle, ShieldCheck, UserCircle2,
+  Eye,
+  EyeOff,
+  Gift,
+  LogOut,
+  Loader2,
+  MessageCircle,
+  ShieldCheck,
+  UserCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,7 +20,12 @@ import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { formatDateTime, money } from "@/lib/format";
-import { saveCustomerSession, getCustomerSession, clearCustomerSession, LoginForm } from "./login";
+import {
+  saveCustomerSession,
+  getCustomerSession,
+  clearCustomerSession,
+  LoginForm,
+} from "./login";
 import { fetchAPI } from "@/lib/db";
 
 export const Route = createFileRoute("/my-orders")({
@@ -23,10 +34,14 @@ export const Route = createFileRoute("/my-orders")({
       { title: "My orders & loyalty — Maa Tara Sweets" },
       {
         name: "description",
-        content: "Look up your past Maa Tara Sweets orders, download invoices and check your loyalty points.",
+        content:
+          "Look up your past Maa Tara Sweets orders, download invoices and check your loyalty points.",
       },
       { property: "og:title", content: "My orders & loyalty — Maa Tara Sweets" },
-      { property: "og:description", content: "Past orders, invoices and loyalty points at Maa Tara Sweets." },
+      {
+        property: "og:description",
+        content: "Past orders, invoices and loyalty points at Maa Tara Sweets.",
+      },
     ],
   }),
   component: MyOrders,
@@ -55,7 +70,15 @@ function MyOrders() {
     retry: false,
   });
 
-  function handleLoginSuccess({ customer, profileToken, phone }: { customer: any, profileToken: string, phone: string }) {
+  function handleLoginSuccess({
+    customer,
+    profileToken,
+    phone,
+  }: {
+    customer: any;
+    profileToken: string;
+    phone: string;
+  }) {
     saveCustomerSession({ phone, name: customer.name ?? phone, profileToken });
     toast.success(`Welcome back, ${customer.name ?? ""}!`);
     void queryClient.invalidateQueries({ queryKey: ["customer-profile", phone] });
@@ -70,7 +93,6 @@ function MyOrders() {
   return (
     <main className="px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-4xl space-y-8">
-
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
@@ -83,8 +105,15 @@ function MyOrders() {
           </div>
           {customerSession && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">📱 {customerSession.phone}</span>
-              <Button variant="glass" size="sm" className="rounded-full" onClick={handleSignOut}>
+              <span className="text-sm text-muted-foreground">
+                📱 {customerSession.phone}
+              </span>
+              <Button
+                variant="glass"
+                size="sm"
+                className="rounded-full"
+                onClick={handleSignOut}
+              >
                 <LogOut className="size-4" />
                 Sign out
               </Button>
@@ -116,7 +145,9 @@ function MyOrders() {
                 <UserCircle2 className="size-5 text-accent shrink-0" />
                 <p className="text-sm">
                   <span className="font-medium">View your full profile</span>{" "}
-                  <span className="text-muted-foreground">— edit your name, birthday & address.</span>
+                  <span className="text-muted-foreground">
+                    — edit your name, birthday & address.
+                  </span>
                 </p>
               </div>
               <Link to="/profile">
@@ -141,7 +172,11 @@ function MyOrders() {
             {result.orders.length === 0 && (
               <p className="glass rounded-3xl p-6 text-center text-sm text-muted-foreground">
                 No orders found yet.{" "}
-                <Link to="/menu" search={{ category: undefined }} className="text-accent underline">
+                <Link
+                  to="/menu"
+                  search={{ category: undefined }}
+                  className="text-accent underline"
+                >
                   Start an order
                 </Link>
                 .
@@ -157,11 +192,15 @@ function MyOrders() {
                       <p className="font-mono text-sm">{order.order_number}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDateTime(order.created_at)} •{" "}
-                        {order.table_number == null ? "Takeaway" : `Table ${order.table_number}`}
+                        {order.table_number == null
+                          ? "Takeaway"
+                          : `Table ${order.table_number}`}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge variant={order.status === "rejected" ? "destructive" : "glass"}>
+                      <Badge
+                        variant={order.status === "rejected" ? "destructive" : "glass"}
+                      >
                         {STATUS_LABEL[order.status as keyof typeof STATUS_LABEL]}
                       </Badge>
                       <span className="font-display font-bold">{money(order.total)}</span>
@@ -185,14 +224,21 @@ function MyOrders() {
             </section>
           </>
         ) : null}
-
       </div>
       <SiteFooter />
     </main>
   );
 }
 
-function Stat({ label, value, hint }: { label: string; value: string; hint?: React.ReactNode }) {
+function Stat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: React.ReactNode;
+}) {
   return (
     <div>
       <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">

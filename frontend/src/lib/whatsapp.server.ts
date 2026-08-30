@@ -7,7 +7,10 @@
  */
 const API_BASE = process.env["VITE_API_BASE_URL"] ?? "http://localhost:3000/api/v1";
 
-async function loadCredentials(): Promise<{ token: string; phoneNumberId: string } | null> {
+async function loadCredentials(): Promise<{
+  token: string;
+  phoneNumberId: string;
+} | null> {
   try {
     const res = await fetch(`${API_BASE}/data/settings/owner`);
     if (res.ok) {
@@ -15,7 +18,11 @@ async function loadCredentials(): Promise<{ token: string; phoneNumberId: string
         whatsappToken?: string;
         whatsappPhoneNumberId?: string;
       };
-      if (json.whatsappToken && json.whatsappToken !== "***" && json.whatsappPhoneNumberId) {
+      if (
+        json.whatsappToken &&
+        json.whatsappToken !== "***" &&
+        json.whatsappPhoneNumberId
+      ) {
         return { token: json.whatsappToken, phoneNumberId: json.whatsappPhoneNumberId };
       }
     }
@@ -28,7 +35,10 @@ async function loadCredentials(): Promise<{ token: string; phoneNumberId: string
   return token && phoneNumberId ? { token, phoneNumberId } : null;
 }
 
-export async function sendWhatsAppMessage(rawPhone: string, message: string): Promise<boolean> {
+export async function sendWhatsAppMessage(
+  rawPhone: string,
+  message: string,
+): Promise<boolean> {
   const creds = await loadCredentials();
   if (!creds) return false;
 
@@ -37,19 +47,22 @@ export async function sendWhatsAppMessage(rawPhone: string, message: string): Pr
   const to = digits.length === 10 ? `91${digits}` : digits;
 
   try {
-    const res = await fetch(`https://graph.facebook.com/v20.0/${creds.phoneNumberId}/messages`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${creds.token}`,
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `https://graph.facebook.com/v20.0/${creds.phoneNumberId}/messages`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${creds.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to,
+          type: "text",
+          text: { preview_url: false, body: message },
+        }),
       },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to,
-        type: "text",
-        text: { preview_url: false, body: message },
-      }),
-    });
+    );
     if (!res.ok) {
       console.error("[whatsapp] send failed", res.status);
       return false;

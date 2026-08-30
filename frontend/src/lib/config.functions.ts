@@ -8,7 +8,11 @@ const saveSchema = z.object({
 });
 
 export const getAppConfig = async () => {
-  const data = await fetchAPI<{ ownerEmail: string, whatsappPhoneNumberId: string, whatsappToken: string }>("/settings/owner");
+  const data = await fetchAPI<{
+    ownerEmail: string;
+    whatsappPhoneNumberId: string;
+    whatsappToken: string;
+  }>("/settings/owner");
   return {
     ownerEmail: data.ownerEmail,
     whatsappPhoneNumberId: data.whatsappPhoneNumberId,

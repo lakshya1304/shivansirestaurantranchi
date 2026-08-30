@@ -89,15 +89,27 @@ function TablesManager() {
             <p className="mt-3 font-display text-lg font-bold">Table {t.table_number}</p>
             <p className="text-xs text-muted-foreground">{t.seats} seats</p>
             <div className="mt-3 flex items-center justify-center gap-2">
-              <Switch checked={t.is_active} onCheckedChange={(v) => save.mutate({ id: t.id, is_active: v })} />
-              <Button size="icon" variant="glass" className="size-8" onClick={() => remove.mutate(t.id)}>
+              <Switch
+                checked={t.is_active}
+                onCheckedChange={(v) => save.mutate({ id: t.id, is_active: v })}
+              />
+              <Button
+                size="icon"
+                variant="glass"
+                className="size-8"
+                onClick={() => remove.mutate(t.id)}
+              >
                 <Trash2 className="size-3.5" />
               </Button>
             </div>
           </div>
         ))}
       </div>
-      <Button variant="glass" className="rounded-full print:hidden" onClick={() => window.print()}>
+      <Button
+        variant="glass"
+        className="rounded-full print:hidden"
+        onClick={() => window.print()}
+      >
         Print all QR codes
       </Button>
     </div>
