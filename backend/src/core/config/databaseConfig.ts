@@ -1,4 +1,3 @@
-import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient as PrismaAdminClient } from "../../generated/prismaAdmin";
 import { PrismaClient as PrismaAppClient } from "../../generated/prismaApp";
@@ -9,24 +8,22 @@ import logger from "./loggerConfig";
 const connectionStringAdmin = env.ADMIN_DATABASE_URL;
 const connectionStringApp = env.APP_DATABASE_URL;
 
-const poolAdmin = new Pool({
+const adapterAdmin = new PrismaPg({
   connectionString: connectionStringAdmin,
   max: 10,
   min: 2,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
 });
-const adapterAdmin = new PrismaPg(poolAdmin as any);
 const basePrismaAdmin = new PrismaAdminClient({ adapter: adapterAdmin });
 
-const poolApp = new Pool({
+const adapterApp = new PrismaPg({
   connectionString: connectionStringApp,
   max: 20,
   min: 2,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
 });
-const adapterApp = new PrismaPg(poolApp as any);
 const basePrismaApp = new PrismaAppClient({ adapter: adapterApp });
 
 interface UserData {

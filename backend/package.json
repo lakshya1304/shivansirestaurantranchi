@@ -12,6 +12,7 @@
     "db:push:app": "~/.bun/bin/bun ./node_modules/prisma/build/index.js db push --config=prisma.app.config.ts",
     "build": "tsc",
     "db:push": "bun run db:push:app & bun run db:push:admin",
+    "db:seed": "bun scripts/seedData.ts",
     "git": "git add . && git commit -m \"kuch toh kiya hu \"&& git push -f origin main"
   },
   "keywords": [],
@@ -43,6 +44,7 @@
     "nodemailer": "^8.0.4",
     "otplib": "^13.4.0",
     "pg": "^8.23.0",
+    "pino-pretty": "^13.1.3",
     "qrcode": "^1.5.4",
     "sharp": "^0.35.4",
     "zod": "^3",
@@ -65,7 +67,7 @@
     "typescript": "^6.0.2"
   },
   "prisma": {
-    "seed": "bun run prisma/seed.ts"
+    "seed": "bun scripts/seedData.ts"
   },
   "private": true
 }
