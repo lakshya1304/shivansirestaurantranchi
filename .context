@@ -115,3 +115,10 @@
 - **SUPERADMIN only routes**: `PATCH /data/users/:id/role`, `DELETE /data/users/:id`.
 - **Navbar**: `site-header.tsx` — hidden on `/admin*`. Profile link is context-aware via `useIsAdmin()` + `getCustomerSession()`.
 - **Build Step**: Requires `bun run build` across frontend and backend, with Prisma client regenerated first via `bunx prisma generate`.
+
+---
+
+### Project Metadata
+- **Shop Name**: Maa Tara Sweets
+- **Location**: Ranchi
+- **Primary Collaborator**: nishur31
