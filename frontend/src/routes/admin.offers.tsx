@@ -141,7 +141,7 @@ function OffersManager() {
                 <Button
                   size="icon"
                   variant="glass"
-                  className="size-8"
+                  className="size-8 rounded-full"
                   onClick={() => deleteOffer.mutate(o.id)}
                 >
                   <Trash2 className="size-3.5" />
@@ -239,7 +239,7 @@ function OffersManager() {
                 <Button
                   size="icon"
                   variant="glass"
-                  className="size-8"
+                  className="size-8 rounded-full"
                   onClick={() => deleteDiscount.mutate(d.id)}
                 >
                   <Trash2 className="size-3.5" />
@@ -320,7 +320,7 @@ function OffersManager() {
                 <Button
                   size="icon"
                   variant="glass"
-                  className="size-8"
+                  className="size-8 rounded-full"
                   onClick={() => deleteLoyalty.mutate(l.id)}
                 >
                   <Trash2 className="size-3.5" />

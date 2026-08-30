@@ -139,7 +139,7 @@ function InventoryManager() {
                     <Button
                       size="icon"
                       variant="glass"
-                      className="size-8"
+                      className="size-8 rounded-full"
                       onClick={() => remove.mutate(item.id)}
                     >
                       <Trash2 className="size-3.5" />
