@@ -90,8 +90,7 @@ function ScannerPage() {
         toast.error("Could not start camera: " + (err?.message || "unknown error"));
         setScanState("idle");
       }
-    }
-  }, [isSupported, facingMode]);
+  }, [facingMode]);
 
   const tick = useCallback(() => {
     const video = videoRef.current;
