@@ -17,7 +17,7 @@ export function Invoice({
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
         <div>
           <h2 className="font-display text-xl font-bold">
-            {settings?.name ?? import.meta.env['VITE_BUSINESS_NAME'] ?? "Maa Tara Sweets"}
+            {settings?.name ?? import.meta.env["VITE_BUSINESS_NAME"] ?? "Maa Tara Sweets"}
           </h2>
           <p className="text-xs text-muted-foreground">{settings?.address}</p>
           <p className="text-xs text-muted-foreground">{settings?.phone}</p>

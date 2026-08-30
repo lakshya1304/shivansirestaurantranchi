@@ -41,15 +41,15 @@ function Reports() {
     import("xlsx").then((XLSX) => {
       const rows = valid.map((o) => ({
         "Order ID": o.id,
-        "Date": new Date(o.created_at).toLocaleString(),
-        "Status": o.status,
-        "Total": o.total,
+        Date: new Date(o.created_at).toLocaleString(),
+        Status: o.status,
+        Total: o.total,
         "Customer Phone": o.customer_phone || "",
       }));
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
-      XLSX.writeFile(workbook, `reports-${new Date().toISOString().split('T')[0]}.xlsx`);
+      XLSX.writeFile(workbook, `reports-${new Date().toISOString().split("T")[0]}.xlsx`);
     });
   };
 

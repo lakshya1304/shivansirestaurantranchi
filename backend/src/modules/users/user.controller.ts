@@ -58,23 +58,21 @@ export const createUser = async (
 ) => {
   const { name, email, password, role } = req.body;
   const requestor = req.user!;
+  const cleanEmail = email.trim().toLowerCase();
 
   if (!["USER", "ADMIN", "SUPERADMIN"].includes(role))
     throw new BadRequestError("Invalid role");
-  if (!email || !password) throw new BadRequestError("Email and password are required");
+  if (!cleanEmail || !password) throw new BadRequestError("Email and password are required");
 
   // Admin cannot create a SUPERADMIN
   if (requestor.role === "ADMIN" && role === "SUPERADMIN")
     throw new ForbiddenError("Admins cannot create SUPERADMIN accounts");
 
-  const existing = await prismaAdmin.admin.findUnique({ where: { email } });
+  const existing = await prismaAdmin.admin.findUnique({ where: { email: cleanEmail } });
   if (existing) throw new BadRequestError("A user with this email already exists");
 
-  const salt = await bcrypt.genSalt(12);
-  const passwordHash = await bcrypt.hash(password, salt);
-
   const user = await prismaAdmin.admin.create({
-    data: { name: name || "", email, password: passwordHash, role: role as $Enums.Role },
+    data: { name: name || "", email: cleanEmail, password, role: role as $Enums.Role },
     select: {
       id: true,
       name: true,
@@ -106,9 +104,11 @@ export const updateUser = async (
 
   assertCanModify(requestor.role, targetUser.role, targetUser.id, requestor.id);
 
+  const cleanEmail = email ? email.trim().toLowerCase() : undefined;
+
   // If changing email, make sure it's not taken
-  if (email && email !== targetUser.email) {
-    const clash = await prismaAdmin.admin.findUnique({ where: { email } });
+  if (cleanEmail && cleanEmail !== targetUser.email) {
+    const clash = await prismaAdmin.admin.findUnique({ where: { email: cleanEmail } });
     if (clash) throw new BadRequestError("Email already in use by another account");
   }
 
@@ -116,7 +116,7 @@ export const updateUser = async (
     where: { id },
     data: {
       ...(name !== undefined && { name }),
-      ...(email !== undefined && { email }),
+      ...(cleanEmail !== undefined && { email: cleanEmail }),
       ...(isActive !== undefined && { isActive }),
     },
     select: {

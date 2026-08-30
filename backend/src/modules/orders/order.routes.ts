@@ -18,6 +18,11 @@ export default async function orderRoutes(app: FastifyInstance) {
     { config: { rateLimit: { max: 10, timeWindow: "10 minute" } } },
     orderController.getOrdersByPhone
   );
+  
+  // Also register customer profile endpoints here (frontend uses /customer-profile but we prefix with /data in index.routes? No, we should register it on root or whatever index.routes provides)
+  // Let's register it in data.routes or just here. In index.routes.ts: app.register(orderRoutes, { prefix: "/data/orders" });
+  // Wait, frontend fetches `/customer-profile` directly from `/api/v1/customer-profile`.
+  // Wait, let's look at index.routes.ts again to see where to add `/customer-profile`.
   app.patch(
     "/:id/status",
     { preHandler: [authenticate as any, requireAdmin as any] },

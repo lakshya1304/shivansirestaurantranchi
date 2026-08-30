@@ -4,6 +4,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 
 import AuthService from "./auth.service";
+import { deleteFromSupabase } from "../../core/utils/image/supabase";
 import asyncHandler from "../../core/utils/common/asyncHandler";
 import { UnauthorizedError } from "../../core/utils/errors/error";
 import { sendSuccess } from "../../core/utils/common/response";
@@ -220,10 +221,10 @@ export const changePassword = asyncHandler(
 
 export const enableTotp = asyncHandler(
   async (
-    req: FastifyRequest<{ Body: { userId: string; password: string } }>,
+    req: FastifyRequest,
     res: FastifyReply,
   ) => {
-    const result = await authService.enableTotp(req.user!.id, req.body.password);
+    const result = await authService.enableTotp(req.user!.id, req.user!.role);
     sendSuccess(
       res,
       "TOTP setup initiated. Scan QR code and verify.",
@@ -238,38 +239,51 @@ export const verifyTotp = asyncHandler(
     req: FastifyRequest<{ Body: { userId: string; token: string } }>,
     res: FastifyReply,
   ) => {
-    await authService.verifyAndActivateTotp(req.user!.id, req.body.token);
+    await authService.verifyAndActivateTotp(req.user!.id, req.body.token, req.user!.role);
     sendSuccess(res, "TOTP enabled successfully", STATUS_CODES.OK, null);
   },
 );
 
 export const disableTotp = asyncHandler(
   async (
-    req: FastifyRequest<{ Body: { userId: string; password: string } }>,
+    req: FastifyRequest,
     res: FastifyReply,
   ) => {
-    await authService.disableTotp(req.user!.id, req.body.password);
+    await authService.disableTotp(req.user!.id, req.user!.role);
     sendSuccess(res, "TOTP disabled successfully", STATUS_CODES.OK, null);
   },
 );
 
 export const generateWebAuthnRegistration = asyncHandler(
   async (req: FastifyRequest, res: FastifyReply) => {
-    const options = await authService.generateWebAuthnRegistration(req.user!.id);
+    const origin = req.headers.origin || "http://localhost:5173";
+    const rpID = new URL(origin).hostname;
+    const options = await authService.generateWebAuthnRegistration(req.user!.id, req.user!.role, rpID);
     sendSuccess(res, "WebAuthn registration options generated", STATUS_CODES.OK, options);
   },
 );
 
 export const verifyWebAuthnRegistration = asyncHandler(
   async (req: any, res: FastifyReply) => {
-    const result = await authService.verifyWebAuthnRegistration(req.user!.id, req.body);
+    const origin = req.headers.origin || "http://localhost:5173";
+    const rpID = new URL(origin).hostname;
+    const result = await authService.verifyWebAuthnRegistration(req.user!.id, req.body, req.user!.role, origin, rpID);
     sendSuccess(res, "WebAuthn registration verified", STATUS_CODES.OK, result);
+  },
+);
+
+export const removePasskeys = asyncHandler(
+  async (req: any, res: FastifyReply) => {
+    await authService.deletePasskeys(req.user!.id, req.user!.role);
+    sendSuccess(res, "Passkeys removed successfully", STATUS_CODES.OK, null);
   },
 );
 
 export const generateWebAuthnAuthentication = asyncHandler(
   async (req: FastifyRequest<{ Body: { email: string } }>, res: FastifyReply) => {
-    const options = await authService.generateWebAuthnAuthentication(req.body.email);
+    const origin = req.headers.origin || "http://localhost:5173";
+    const rpID = new URL(origin).hostname;
+    const options = await authService.generateWebAuthnAuthentication(req.body.email, rpID);
     sendSuccess(
       res,
       "WebAuthn authentication options generated",
@@ -284,9 +298,13 @@ export const verifyWebAuthnAuthentication = asyncHandler(
     req: FastifyRequest<{ Body: { email: string; response: any } }>,
     res: FastifyReply,
   ) => {
+    const origin = req.headers.origin || "http://localhost:5173";
+    const rpID = new URL(origin).hostname;
     const result = await authService.verifyWebAuthnAuthentication(
       req.body.email,
       req.body.response,
+      origin,
+      rpID
     );
 
     res.setCookie("refreshToken", result.tokens.refreshToken, cookieOption("refresh"));
@@ -317,4 +335,75 @@ export const getMe = asyncHandler(async (req: FastifyRequest, res: FastifyReply)
     mfaSatisfied: true,
     hasMfaEnrolled: dbUser?.isTotpEnabled ?? false,
   });
+});
+
+export const uploadAvatar = asyncHandler(async (req: FastifyRequest, res: FastifyReply) => {
+  const user = req.user;
+  if (!user) {
+    throw new UnauthorizedError("Not authenticated");
+  }
+
+  const { imageUrl } = req.body as any;
+  if (!imageUrl) {
+    return res.status(400).send({ success: false, message: "No image uploaded" });
+  }
+
+  let dbUser: any;
+  if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
+    // Get existing to delete
+    const existing = await prismaAdmin.admin.findUnique({ where: { id: user.id } });
+    if (existing?.avatarUrl) {
+      await deleteFromSupabase(existing.avatarUrl).catch(console.error);
+    }
+    
+    dbUser = await prismaAdmin.admin.update({
+      where: { id: user.id },
+      data: { avatarUrl: imageUrl },
+    });
+  } else {
+    // Get existing to delete
+    const existing = await prismaApp.user.findUnique({ where: { id: user.id } });
+    if (existing?.avatarUrl) {
+      await deleteFromSupabase(existing.avatarUrl).catch(console.error);
+    }
+
+    dbUser = await prismaApp.user.update({
+      where: { id: user.id },
+      data: { avatarUrl: imageUrl },
+    });
+  }
+
+  sendSuccess(res, "Avatar updated successfully", STATUS_CODES.OK, { user: dbUser });
+});
+
+export const removeAvatar = asyncHandler(async (req: FastifyRequest, res: FastifyReply) => {
+  const user = req.user;
+  if (!user) {
+    throw new UnauthorizedError("Not authenticated");
+  }
+
+  let dbUser: any;
+  if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
+    const existing = await prismaAdmin.admin.findUnique({ where: { id: user.id } });
+    if (existing?.avatarUrl) {
+      await deleteFromSupabase(existing.avatarUrl).catch(console.error);
+    }
+
+    dbUser = await prismaAdmin.admin.update({
+      where: { id: user.id },
+      data: { avatarUrl: null },
+    });
+  } else {
+    const existing = await prismaApp.user.findUnique({ where: { id: user.id } });
+    if (existing?.avatarUrl) {
+      await deleteFromSupabase(existing.avatarUrl).catch(console.error);
+    }
+
+    dbUser = await prismaApp.user.update({
+      where: { id: user.id },
+      data: { avatarUrl: null },
+    });
+  }
+
+  sendSuccess(res, "Avatar removed successfully", STATUS_CODES.OK, { user: dbUser });
 });

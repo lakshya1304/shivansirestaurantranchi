@@ -78,7 +78,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 pt-12 pb-6 sm:px-6 md:grid-cols-3 relative z-10">
         {/* Brand column */}
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <span
               className="grid size-10 shrink-0 place-items-center rounded-2xl"
               style={{ background: "var(--gradient-primary)" }}
@@ -86,44 +86,46 @@ export function SiteFooter() {
             >
               <ChefHat className="size-5 text-primary-foreground" />
             </span>
-            <h2 className="font-display text-xl font-bold gradient-text">{s.name}</h2>
-          </div>
+            <h2 className="font-display text-xl font-bold gradient-text">{BUSINESS_NAME}</h2>
+          </Link>
           <p className="text-sm text-muted-foreground leading-relaxed">{s.tagline}</p>
         </div>
 
         {/* Contact column */}
-        <div className="space-y-3 text-sm text-muted-foreground">
+        <div className="space-y-2 text-sm text-muted-foreground">
           <h3 className="font-display text-base font-bold text-foreground">
             Contact & Location
           </h3>
-          <a
-            href="https://maps.app.goo.gl/Wc3uMz7K1z4XcoHL8"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-start gap-2 hover:text-foreground transition-colors"
-          >
-            <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
-            {s.address}
-          </a>
-          <a
-            href={`tel:${s.phone.replace(/\s/g, "")}`}
-            className="flex items-center gap-2 hover:text-foreground transition-colors"
-          >
-            <Phone className="size-4 shrink-0 text-accent" aria-hidden="true" />
-            {s.phone}
-          </a>
-          <p className="flex items-center gap-2 hover:text-foreground transition-colors">
-            <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
-            {s.opening_time} – {s.closing_time}
-          </p>
+          <div className="flex flex-col gap-2">
+            <a
+              href="https://maps.app.goo.gl/Wc3uMz7K1z4XcoHL8"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start gap-2 hover:text-foreground transition-colors"
+            >
+              <MapPin className="size-4 shrink-0 text-accent mt-0.5" aria-hidden="true" />
+              <span>{s.address}</span>
+            </a>
+            <a
+              href={`tel:${s.phone.replace(/\s/g, "")}`}
+              className="flex items-center gap-2 hover:text-foreground transition-colors"
+            >
+              <Phone className="size-4 shrink-0 text-accent" aria-hidden="true" />
+              <span>{s.phone}</span>
+            </a>
+            <p className="flex items-center gap-2 hover:text-foreground transition-colors">
+              <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
+              <span>{s.opening_time} – {s.closing_time}</span>
+            </p>
+          </div>
         </div>
 
         {/* Quick links column */}
-        <div className="space-y-1">
-          <h3 className="font-display text-base font-bold text-foreground mb-2">
+        <div className="space-y-2">
+          <h3 className="font-display text-base font-bold text-foreground">
             Quick Links
           </h3>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-4">
             <Link
               to="/menu"
               search={{ category: undefined }}
@@ -178,9 +180,9 @@ export function SiteFooter() {
       </div>
 
       {/* Bottom bar */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 mt-6 py-5 border-t border-border/40 flex items-center justify-center gap-3 sm:gap-4 text-xs text-muted-foreground">
         {/* Left side: Network status */}
-        <div className="flex items-center gap-2" title={isOnline ? "Online" : "Offline"}>
+        <div className="flex items-center" title={isOnline ? "Online" : "Offline"}>
           <span className="relative flex size-2">
             {isOnline && (
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
@@ -192,12 +194,12 @@ export function SiteFooter() {
         </div>
 
         <p className="text-center">
-          © {new Date().getFullYear()} {s.name}. All rights reserved.
+          © {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.
         </p>
 
         {/* Right side: Backend status */}
         <div
-          className="flex items-center gap-2"
+          className="flex items-center"
           title={isBackendUp ? "Services OK" : "Services degraded"}
         >
           <span className="relative flex size-2">

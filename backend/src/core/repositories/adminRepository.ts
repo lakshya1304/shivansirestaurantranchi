@@ -38,4 +38,8 @@ export default class AdminRepository extends BaseRepository<Admin> {
   async activateAdmin(adminId: string): Promise<Admin> {
     return this.update(adminId, { isActive: true });
   }
+
+  async addPasskey(data: any): Promise<any> {
+    return (prismaAdmin as any).passkey.create({ data });
+  }
 }

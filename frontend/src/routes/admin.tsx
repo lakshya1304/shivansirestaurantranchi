@@ -21,10 +21,12 @@ import {
   ShieldCheck,
   UtensilsCrossed,
   UserCircle2,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsAdmin } from "@/lib/auth";
 import { fetchAPI } from "@/lib/db";
+import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -114,11 +116,12 @@ function AdminLayout() {
           className="glass flex flex-nowrap items-center gap-1 overflow-x-auto rounded-full p-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="Admin navigation"
         >
-          {NAV.map((item) => {
+          {NAV.filter((item) => {
+            if (user?.role !== "SUPERADMIN" && item.to === "/admin/settings") return false;
+            return true;
+          }).map((item) => {
             const active =
-              item.to === "/admin"
-                ? pathname === "/admin"
-                : pathname.startsWith(item.to);
+              item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
@@ -144,12 +147,24 @@ function AdminLayout() {
           {/* ── Utility buttons ── */}
           <div className="ml-auto flex shrink-0 items-center gap-1 pl-1">
             <Link
+              to="/settings"
+              aria-label="Theme settings"
+              title="Theme settings"
+              className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
+            >
+              <Palette className="size-5" />
+            </Link>
+            <Link
               to="/profile"
               aria-label="My profile"
               title="My profile"
               className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
             >
-              <UserCircle2 className="size-5" />
+              {user["avatarUrl"] ? (
+                <img src={user["avatarUrl"]} alt="Profile" className="size-6 rounded-full object-cover" />
+              ) : (
+                <UserCircle2 className="size-5" />
+              )}
             </Link>
             <Button
               type="button"
@@ -165,6 +180,9 @@ function AdminLayout() {
         </nav>
 
         <Outlet />
+      </div>
+      <div className="mt-12">
+        <SiteFooter />
       </div>
     </main>
   );

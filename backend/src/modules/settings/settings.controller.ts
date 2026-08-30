@@ -23,6 +23,8 @@ export const getSettings = async (req: FastifyRequest, res: FastifyReply) => {
       currency: true,
       theme: true,
       is_suspended: true,
+      shutdown_code: true,
+      shutdown_message: true,
     };
     const settings = await fetchWithCache("data:settings", 60, () =>
       prismaAdmin.restaurantSettings.findFirst({ select: PUBLIC_SETTINGS_COLUMNS }),

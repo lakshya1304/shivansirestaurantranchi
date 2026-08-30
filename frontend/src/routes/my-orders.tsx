@@ -63,7 +63,7 @@ function MyOrders() {
       if (!customerSession) return null;
       const res = await fetchAPI<any>(
         `/customer-profile?phone=${encodeURIComponent(customerSession.phone)}`,
-        { signal }
+        { signal },
       );
       return res as { customer: any; orders: Order[] };
     },
@@ -87,6 +87,8 @@ function MyOrders() {
 
   function handleSignOut() {
     clearCustomerSession();
+    fetchAPI("/auth/logout", { method: "POST" }).catch(() => {});
+    queryClient.invalidateQueries({ queryKey: ["auth_me"] });
     navigate({ to: "/login", replace: true });
     toast.success("Signed out");
   }
@@ -107,7 +109,7 @@ function MyOrders() {
           {customerSession && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                📱 {customerSession.phone}
+                 {customerSession.phone}
               </span>
               <Button
                 variant="glass"

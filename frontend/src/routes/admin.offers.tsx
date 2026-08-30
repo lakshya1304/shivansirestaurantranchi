@@ -74,7 +74,10 @@ function OffersManager() {
               max="100"
               value={offer.discount_percent}
               onChange={(e) =>
-                setOffer({ ...offer, discount_percent: Math.min(100, Math.max(0, Number(e.target.value))) })
+                setOffer({
+                  ...offer,
+                  discount_percent: Math.min(100, Math.max(0, Number(e.target.value))),
+                })
               }
             />
           </div>
@@ -279,7 +282,10 @@ function OffersManager() {
               max="100"
               value={rule.discount_percent}
               onChange={(e) =>
-                setRule({ ...rule, discount_percent: Math.min(100, Math.max(0, Number(e.target.value))) })
+                setRule({
+                  ...rule,
+                  discount_percent: Math.min(100, Math.max(0, Number(e.target.value))),
+                })
               }
             />
           </div>

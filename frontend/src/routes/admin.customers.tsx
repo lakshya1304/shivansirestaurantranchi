@@ -16,8 +16,11 @@ export const Route = createFileRoute("/admin/customers")({
 function CustomersManager() {
   const { data: customers = [] } = useQuery(customersQuery);
   const { data: reviews = [] } = useQuery(reviewsQuery);
-  
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(null);
+
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  } | null>(null);
 
   const sortedCustomers = useMemo(() => {
     let sortable = [...customers];
@@ -25,13 +28,13 @@ function CustomersManager() {
       sortable.sort((a: any, b: any) => {
         let aVal = a[sortConfig.key] ?? "";
         let bVal = b[sortConfig.key] ?? "";
-        
+
         if (typeof aVal === "string" && typeof bVal === "string") {
-          return sortConfig.direction === "asc" 
+          return sortConfig.direction === "asc"
             ? aVal.localeCompare(bVal)
             : bVal.localeCompare(aVal);
         }
-        
+
         if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
         if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
@@ -49,8 +52,13 @@ function CustomersManager() {
   };
 
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sortConfig?.key !== columnKey) return <ArrowUpDown className="inline ml-1 size-3 opacity-50" />;
-    return sortConfig.direction === "asc" ? <ArrowUp className="inline ml-1 size-3" /> : <ArrowDown className="inline ml-1 size-3" />;
+    if (sortConfig?.key !== columnKey)
+      return <ArrowUpDown className="inline ml-1 size-3 opacity-50" />;
+    return sortConfig.direction === "asc" ? (
+      <ArrowUp className="inline ml-1 size-3" />
+    ) : (
+      <ArrowDown className="inline ml-1 size-3" />
+    );
   };
   const [busy, setBusy] = useState<string | null>(null);
   const qc = useQueryClient();
@@ -94,19 +102,34 @@ function CustomersManager() {
           <table className="w-full min-w-[640px] text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground select-none">
               <tr>
-                <th className="py-2 cursor-pointer hover:text-foreground" onClick={() => requestSort("name")}>
+                <th
+                  className="py-2 cursor-pointer hover:text-foreground"
+                  onClick={() => requestSort("name")}
+                >
                   Name <SortIcon columnKey="name" />
                 </th>
-                <th className="py-2 cursor-pointer hover:text-foreground" onClick={() => requestSort("phone")}>
+                <th
+                  className="py-2 cursor-pointer hover:text-foreground"
+                  onClick={() => requestSort("phone")}
+                >
                   Phone <SortIcon columnKey="phone" />
                 </th>
-                <th className="py-2 text-center cursor-pointer hover:text-foreground" onClick={() => requestSort("visits")}>
+                <th
+                  className="py-2 text-center cursor-pointer hover:text-foreground"
+                  onClick={() => requestSort("visits")}
+                >
                   Visits <SortIcon columnKey="visits" />
                 </th>
-                <th className="py-2 text-center cursor-pointer hover:text-foreground" onClick={() => requestSort("reward_points")}>
+                <th
+                  className="py-2 text-center cursor-pointer hover:text-foreground"
+                  onClick={() => requestSort("reward_points")}
+                >
                   Points <SortIcon columnKey="reward_points" />
                 </th>
-                <th className="py-2 text-right cursor-pointer hover:text-foreground" onClick={() => requestSort("total_spend")}>
+                <th
+                  className="py-2 text-right cursor-pointer hover:text-foreground"
+                  onClick={() => requestSort("total_spend")}
+                >
                   Total spend <SortIcon columnKey="total_spend" />
                 </th>
               </tr>

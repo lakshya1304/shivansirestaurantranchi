@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 import logger from "../../core/config/loggerConfig";
+import { cache } from "../../core/config/redisConfig";
 
 // Map frontend table names to Prisma model names
 const modelMap: Record<string, any> = {
@@ -13,6 +14,21 @@ const modelMap: Record<string, any> = {
   restaurant_tables: "restaurantTable",
   restaurant_settings: "restaurantSettings",
   app_config: "appConfig",
+};
+
+// Map frontend table names to Redis cache keys
+const cacheKeyMap: Record<string, string> = {
+  products: "data:products",
+  categories: "data:categories",
+  offers: "data:offers",
+  discounts: "data:discounts",
+  loyalty_rules: "data:loyaltyRules",
+  inventory_items: "data:inventory",
+  restaurant_tables: "data:tables",
+  customers: "data:customers",
+  orders: "data:orders",
+  notifications: "data:notifications",
+  restaurant_settings: "data:settings",
 };
 
 export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
@@ -54,12 +70,14 @@ export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
         where: { id: data.id },
         data,
       });
+      if (cacheKeyMap[table]) await cache.del(cacheKeyMap[table]);
       return res.send(updated);
     } else {
       // Insert
       const inserted = await delegate.create({
         data,
       });
+      if (cacheKeyMap[table]) await cache.del(cacheKeyMap[table]);
       return res.send(inserted);
     }
   } catch (error: any) {
@@ -83,6 +101,8 @@ export const deleteRow = async (req: FastifyRequest, res: FastifyReply) => {
     await delegate.delete({
       where: { id },
     });
+
+    if (cacheKeyMap[table]) await cache.del(cacheKeyMap[table]);
 
     return res.send({ ok: true });
   } catch (error: any) {

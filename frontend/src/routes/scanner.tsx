@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/site-footer";
+import jsQR from "jsqr";
 
 export const Route = createFileRoute("/scanner")({
   head: () => ({
@@ -45,8 +46,8 @@ function ScannerPage() {
   const [copied, setCopied] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
 
-  // ── BarcodeDetector setup ──────────────────────────────────────────────────
-  const isSupported = typeof window !== "undefined" && "BarcodeDetector" in window;
+  // ── jsQR setup ─────────────────────────────────────────────────────────────
+  // Relaxed support check to allow native permissions if available
 
   const stopStream = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
@@ -58,29 +59,30 @@ function ScannerPage() {
   }, []);
 
   const startScan = useCallback(async () => {
-    if (!isSupported) {
-      setScanState("unsupported");
-      return;
-    }
     setScanState("requesting");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const getUserMedia = navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices) ||
+                           (navigator as any).getUserMedia?.bind(navigator) ||
+                           (navigator as any).webkitGetUserMedia?.bind(navigator);
+                           
+      if (!getUserMedia) {
+        setScanState("unsupported");
+        return;
+      }
+
+      const stream = await getUserMedia({
         video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       streamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute("playsinline", "true"); // required to tell iOS safari we don't want fullscreen
         await videoRef.current.play();
       }
 
-      // @ts-ignore — BarcodeDetector exists in modern browsers
-      detectorRef.current = new BarcodeDetector({
-        formats: ["qr_code", "ean_13", "code_128", "data_matrix"],
-      });
-
       setScanState("active");
-      tick();
+      rafRef.current = requestAnimationFrame(tick);
     } catch (err: any) {
       if (err?.name === "NotAllowedError") {
         setScanState("denied");
@@ -91,35 +93,51 @@ function ScannerPage() {
     }
   }, [isSupported, facingMode]);
 
-  const tick = useCallback(async () => {
+  const tick = useCallback(() => {
     const video = videoRef.current;
-    const detector = detectorRef.current;
-    if (!video || !detector || video.readyState < 2) {
+    const canvas = canvasRef.current;
+    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
       rafRef.current = requestAnimationFrame(tick);
       return;
     }
 
-    try {
-      const barcodes: any[] = await detector.detect(video);
-      if (barcodes.length > 0) {
-        const value: string = barcodes[0].rawValue;
-        setLastResult(value);
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) {
+      rafRef.current = requestAnimationFrame(tick);
+      return;
+    }
 
-        // If it's an internal /table/... URL — navigate directly
-        if (value.startsWith(INTERNAL_ORIGIN + "/table/")) {
-          const path = value.slice(INTERNAL_ORIGIN.length);
-          toast.success("Table QR detected — opening menu…");
-          stopStream();
-          setScanState("idle");
-          navigate({ to: path as any });
-          return;
+    // Match canvas dimensions to video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: "dontInvert",
+    });
+
+    if (code) {
+      const value = code.data;
+      
+      // Prevent spamming the same result
+      setLastResult((prev) => {
+        if (prev !== value) {
+          // If it's an internal /table/... URL — navigate directly
+          if (value.startsWith(INTERNAL_ORIGIN + "/table/")) {
+            const path = value.slice(INTERNAL_ORIGIN.length);
+            toast.success("Table QR detected — opening menu…");
+            stopStream();
+            setScanState("idle");
+            navigate({ to: path as any });
+            return value;
+          }
+
+          // Otherwise show the result and keep scanning
+          toast.info("Scanned: " + value.slice(0, 60) + (value.length > 60 ? "…" : ""));
         }
-
-        // Otherwise show the result and keep scanning
-        toast.info("Scanned: " + value.slice(0, 60) + (value.length > 60 ? "…" : ""));
-      }
-    } catch {
-      // Detector can throw if the frame isn't ready yet — just skip
+        return value;
+      });
     }
 
     rafRef.current = requestAnimationFrame(tick);

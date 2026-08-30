@@ -12,6 +12,8 @@ import {
   UserX,
   X,
   Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,6 +55,7 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
   const [name, setName] = useState(mode?.type === "edit" ? (mode.user.name ?? "") : "");
   const [email, setEmail] = useState(mode?.type === "edit" ? mode.user.email : "");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<UserRole>(
     mode?.type === "create" ? "USER" : mode?.type === "role" ? mode.user.role : "USER",
   );
@@ -67,23 +70,24 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
     try {
       if (mode?.type === "create") {
-        await fetchAPI<any>("/users", {
+        await fetchAPI<any>("/data/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name || undefined, email, password, role }),
+          body: JSON.stringify({ name: name || undefined, email: cleanEmail, password, role }),
         });
         toast.success("User created successfully");
       } else if (mode?.type === "edit") {
-        await fetchAPI<any>(`/users/${mode.user.id}`, {
+        await fetchAPI<any>(`/data/users/${mode.user.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name || undefined, email, isActive }),
+          body: JSON.stringify({ name: name || undefined, email: cleanEmail, isActive }),
         });
         toast.success("User updated");
       } else if (mode?.type === "role") {
-        await fetchAPI<any>(`/users/${mode.user.id}/role`, {
+        await fetchAPI<any>(`/data/users/${mode.user.id}/role`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ role }),
@@ -152,15 +156,30 @@ function UserModal({ mode, callerRole, onClose }: ModalProps) {
           {mode?.type === "create" && (
             <label className="block space-y-1">
               <span className="text-xs text-muted-foreground">Password *</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-                placeholder="Min. 8 characters"
-                className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  placeholder="Min. 8 characters"
+                  className="w-full rounded-xl border border-border bg-transparent px-3 py-2 pr-10 text-sm outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
+              </div>
             </label>
           )}
 
@@ -214,7 +233,7 @@ function StaffManager() {
 
   // ── Delete mutation ──
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => fetchAPI<any>(`/users/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => fetchAPI<any>(`/data/users/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       toast.success("User deleted");
       void qc.invalidateQueries({ queryKey: ["staff"] });
@@ -225,7 +244,7 @@ function StaffManager() {
   // ── Quick-toggle isActive ──
   const toggleActive = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      fetchAPI<any>(`/users/${id}`, {
+      fetchAPI<any>(`/data/users/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive }),
@@ -395,13 +414,13 @@ function StaffManager() {
                                   className="size-7"
                                   title="Delete user"
                                   onClick={() => {
-                                    if (
-                                      confirm(
-                                        `Delete ${u.name ?? u.email}? This cannot be undone.`,
-                                      )
-                                    ) {
-                                      deleteMutation.mutate(u.id);
-                                    }
+                                    toast.error(`Delete ${u.name ?? u.email}?`, {
+                                      description: "This cannot be undone.",
+                                      action: {
+                                        label: "Delete",
+                                        onClick: () => deleteMutation.mutate(u.id),
+                                      },
+                                    });
                                   }}
                                 >
                                   <Trash2 className="size-3.5 text-destructive" />

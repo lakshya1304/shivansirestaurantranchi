@@ -16,10 +16,14 @@ import {
   testPasslessVerify,
   generateWebAuthnRegistration,
   verifyWebAuthnRegistration,
+  removePasskeys,
   generateWebAuthnAuthentication,
   verifyWebAuthnAuthentication,
+  uploadAvatar,
+  removeAvatar,
 } from "../../modules/auth/auth.controller";
 import { authenticate } from "../../core/middlewares/authMiddleware";
+import { avatarImageMiddleware } from "../../core/middlewares/imageUploadMiddleware";
 import { FastifyPluginAsync } from "fastify";
 import {
   registerSchema,
@@ -261,6 +265,19 @@ const authRouter: FastifyPluginAsync = async (app) => {
     verifyWebAuthnRegistration,
   );
 
+  app.delete(
+    "/webauthn/passkeys",
+    {
+      preHandler: authenticate,
+      schema: {
+        description: "Remove all passkeys",
+        tags: ["auth"],
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    removePasskeys,
+  );
+
   app.post(
     "/webauthn/login/generate",
     {
@@ -283,6 +300,33 @@ const authRouter: FastifyPluginAsync = async (app) => {
       },
     },
     verifyWebAuthnAuthentication,
+  );
+
+  // === Avatar Upload ===
+  app.post(
+    "/me/avatar",
+    {
+      preHandler: [authenticate as any, avatarImageMiddleware],
+      schema: {
+        description: "Upload profile avatar",
+        tags: ["auth"],
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    uploadAvatar,
+  );
+
+  app.delete(
+    "/me/avatar",
+    {
+      preHandler: authenticate,
+      schema: {
+        description: "Remove profile avatar",
+        tags: ["auth"],
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    removeAvatar,
   );
 };
 

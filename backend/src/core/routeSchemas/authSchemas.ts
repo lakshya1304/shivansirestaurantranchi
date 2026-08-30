@@ -53,17 +53,13 @@ const _passlessVerifyZod = z.object({
   role: z.string().min(1),
 });
 
-const _enableTotpZod = z.object({
-  password: z.string().min(1),
-});
+const _enableTotpZod = z.object({});
 
 const _verifyTotpZod = z.object({
   token: z.string().length(6),
 });
 
-const _disableTotpZod = z.object({
-  password: z.string().min(1),
-});
+const _disableTotpZod = z.object({});
 
 const _webAuthnGenerateRegistrationZod = z.object({}); // Typically GET or empty POST
 

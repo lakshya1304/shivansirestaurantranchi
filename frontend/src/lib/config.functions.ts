@@ -44,6 +44,9 @@ const settingsSchema = z.object({
   packing_charge: z.number().min(0).max(10000),
   delivery_charge: z.number().min(0).max(10000),
   currency: z.string().trim().max(4),
+  is_suspended: z.boolean().optional(),
+  shutdown_code: z.number().optional().nullable(),
+  shutdown_message: z.string().optional().nullable(),
 });
 
 export const getOwnerSettings = async (opts?: { signal?: AbortSignal }) => {

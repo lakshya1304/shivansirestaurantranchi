@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { Suspense } from "react";
 import { ArrowRight, QrCode, Sparkles, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,8 @@ import {
   categoriesQuery,
   offersQuery,
   productsQuery,
-  reviewsQuery,
   settingsQuery,
+  googleRatingsQuery,
 } from "@/lib/db";
 import { HERO_IMAGE, fallbackImage } from "@/lib/images";
 import { useCart } from "@/lib/cart";
@@ -44,7 +45,6 @@ function Home() {
   const { data: products = [] } = useQuery(productsQuery);
   const { data: categories = [] } = useQuery(categoriesQuery);
   const { data: offers = [] } = useQuery(offersQuery);
-  const { data: reviews = [], isLoading: reviewsLoading } = useQuery(reviewsQuery);
   const { data: settings } = useQuery(settingsQuery);
   const { tableNumber } = useCart();
 
@@ -128,7 +128,12 @@ function Home() {
             </div>
             <div className="flex flex-wrap gap-6 pt-4 text-sm font-medium text-muted-foreground">
               <span className="flex items-center gap-2">
-                <Star className="size-4 text-accent" aria-hidden="true" /> {loadRatings() ? "4.8 average rating" : "No ratings yet"}
+                <Star className="size-4 text-accent" aria-hidden="true" />
+                <Suspense
+                  fallback={<span className="shimmer h-4 w-32 rounded inline-block" />}
+                >
+                  <HeroRating />
+                </Suspense>
               </span>
             </div>
           </div>
@@ -272,53 +277,9 @@ function Home() {
         <MenuExplorer />
       </Section>
 
-      {reviewsLoading ? (
-        <Section title="Guest reviews" subtitle="Straight from our tables">
-          <div className="grid gap-5 md:grid-cols-3 stagger-children">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="glass-strong rounded-3xl p-7 space-y-3 animate-pulse"
-              >
-                <div className="flex gap-1">
-                  {Array.from({ length: 5 }).map((__, j) => (
-                    <div key={j} className="size-4 rounded-full shimmer" />
-                  ))}
-                </div>
-                <div className="h-4 w-3/4 rounded shimmer" />
-                <div className="h-3 w-full rounded shimmer" />
-                <div className="h-3 w-5/6 rounded shimmer" />
-                <div className="h-3 w-1/3 rounded shimmer mt-3" />
-              </div>
-            ))}
-          </div>
-        </Section>
-      ) : reviews.length > 0 ? (
-        <Section title="Guest reviews" subtitle="Straight from our tables">
-          <div className="grid gap-5 md:grid-cols-3 stagger-children">
-            {reviews.slice(0, 6).map((r) => (
-              <blockquote key={r.id} className="glass-strong rounded-3xl p-7 relative">
-                <div className="absolute top-0 right-8 -translate-y-1/2 text-[80px] leading-none text-accent/10 font-serif font-bold">
-                  "
-                </div>
-                <div className="flex gap-1 text-accent">
-                  {Array.from({ length: Math.round(r.rating) }).map((_, i) => (
-                    <Star key={i} className="size-4 fill-current" aria-hidden="true" />
-                  ))}
-                </div>
-                <p className="mt-4 text-sm text-foreground leading-relaxed relative z-10">
-                  "{r.comment}"
-                </p>
-                <footer className="mt-5 text-sm font-bold text-accent">
-                  {r.customer_name}
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </Section>
-      ) : null}
-
-
+      <Suspense fallback={<ReviewsFallback />}>
+        <GoogleReviewsSection />
+      </Suspense>
 
       <SiteFooter />
     </main>
@@ -346,5 +307,69 @@ function Section({
         {children}
       </div>
     </section>
+  );
+}
+
+function HeroRating() {
+  const { data } = useSuspenseQuery(googleRatingsQuery);
+  if (!data || !data.rating) return <span>No ratings yet</span>;
+  return (
+    <span>
+      {data.rating} average rating ({data.total_ratings}+ reviews)
+    </span>
+  );
+}
+
+function ReviewsFallback() {
+  return (
+    <Section title="Guest reviews" subtitle="Straight from our tables">
+      <div className="grid gap-5 md:grid-cols-3 stagger-children">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="glass-strong rounded-3xl p-7 space-y-3 animate-pulse">
+            <div className="flex gap-1">
+              {Array.from({ length: 5 }).map((__, j) => (
+                <div key={j} className="size-4 rounded-full shimmer" />
+              ))}
+            </div>
+            <div className="h-4 w-3/4 rounded shimmer" />
+            <div className="h-3 w-full rounded shimmer" />
+            <div className="h-3 w-5/6 rounded shimmer" />
+            <div className="h-3 w-1/3 rounded shimmer mt-3" />
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function GoogleReviewsSection() {
+  const { data } = useSuspenseQuery(googleRatingsQuery);
+  const reviews = data?.reviews || [];
+
+  if (reviews.length === 0) return null;
+
+  return (
+    <Section title="Guest reviews" subtitle="Straight from our tables">
+      <div className="grid gap-5 md:grid-cols-3 stagger-children">
+        {reviews.map((r: any, i: number) => (
+          <blockquote key={i} className="glass-strong rounded-3xl p-7 relative">
+            <div className="absolute top-0 right-8 -translate-y-1/2 text-[80px] leading-none text-accent/10 font-serif font-bold">
+              "
+            </div>
+            <div className="flex gap-1 text-accent">
+              {Array.from({ length: Math.round(r.rating) }).map((_, i) => (
+                <Star key={i} className="size-4 fill-current" aria-hidden="true" />
+              ))}
+            </div>
+            <p className="mt-4 text-sm text-foreground leading-relaxed relative z-10 line-clamp-4">
+              "{r.text}"
+            </p>
+            <footer className="mt-5 text-sm font-bold text-accent">
+              {r.author_name}
+            </footer>
+          </blockquote>
+        ))}
+      </div>
+    </Section>
   );
 }

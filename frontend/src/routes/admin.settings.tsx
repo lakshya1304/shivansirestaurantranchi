@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,10 @@ function SettingsManager() {
           f.type === "number" ? Number(form[f.key] ?? 0) : String(form[f.key] ?? ""),
         ]),
       ) as any;
+      if (form["id"]) data.id = form["id"];
       data.is_suspended = Boolean(form["is_suspended"]);
+      data.shutdown_code = form["shutdown_code"] ? Number(form["shutdown_code"]) : null;
+      data.shutdown_message = form["shutdown_message"] ? String(form["shutdown_message"]) : null;
       return saveOwnerSettings(data);
     },
     onSuccess: () => {
@@ -96,14 +99,7 @@ function SettingsManager() {
   }, [config]);
 
   if (!isSuperAdmin) {
-    return (
-      <div className="glass mt-12 rounded-3xl p-12 text-center">
-        <h2 className="font-display text-xl font-bold">Access Denied</h2>
-        <p className="mt-2 text-muted-foreground">
-          Only Superadmins can access restaurant settings.
-        </p>
-      </div>
-    );
+    return <Navigate to="/admin" replace />;
   }
 
   return (
@@ -134,7 +130,7 @@ function SettingsManager() {
             />
           </div>
         ))}
-        <div className="sm:col-span-2 mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+        {isSuperAdmin && <div className="sm:col-span-2 mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display font-bold text-destructive">
@@ -155,7 +151,35 @@ function SettingsManager() {
               <div className="peer h-6 w-11 rounded-full bg-border after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-destructive peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-destructive/30 dark:border-gray-600 dark:bg-gray-700"></div>
             </label>
           </div>
-        </div>
+          {form["is_suspended"] ? (
+            <div className="mt-4 flex flex-col gap-4 border-t border-destructive/20 pt-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground">Status Code</label>
+                  <p className="text-xs text-muted-foreground mb-2">e.g. 402, 503</p>
+                  <input
+                    type="number"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder="503"
+                    value={form["shutdown_code"] || ""}
+                    onChange={(e) => setForm({ ...form, shutdown_code: Number(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground">Custom Message</label>
+                  <p className="text-xs text-muted-foreground mb-2">Displayed to locked out users</p>
+                  <input
+                    type="text"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    placeholder="Maintenance in progress..."
+                    value={form["shutdown_message"] || ""}
+                    onChange={(e) => setForm({ ...form, shutdown_message: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>}
 
         <div className="sm:col-span-2 mt-2">
           <Button

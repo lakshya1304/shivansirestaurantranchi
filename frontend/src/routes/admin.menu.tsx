@@ -488,7 +488,7 @@ function Toggle({
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-full border px-4 py-2 transition-colors ${
+      className={`flex items-center justify-between rounded-xl border px-4 py-2 transition-colors ${
         checked ? "border-primary/40 bg-primary/10" : "border-border bg-transparent"
       }`}
     >

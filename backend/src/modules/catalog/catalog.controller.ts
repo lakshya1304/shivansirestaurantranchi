@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { prismaApp } from "../../core/config/databaseConfig";
 import logger from "../../core/config/loggerConfig";
 import { fetchWithCache } from "../../core/config/redisConfig";
+import { normalizePhone } from "../../core/utils/phone";
 
 export const getCategories = async (req: FastifyRequest, res: FastifyReply) => {
   try {
@@ -97,7 +98,31 @@ export const getCustomers = async (req: FastifyRequest, res: FastifyReply) => {
         orderBy: { total_spend: "desc" },
       }),
     );
-    return res.send(customers);
+
+    // Group by normalized phone number to merge duplicates created before normalization
+    const grouped = new Map<string, any>();
+    for (const u of customers) {
+      if (!u.phone) continue;
+      const np = normalizePhone(u.phone);
+      if (grouped.has(np)) {
+        const existing = grouped.get(np);
+        existing.visits += u.visits;
+        existing.reward_points += u.reward_points;
+        existing.total_spend = Number(existing.total_spend) + Number(u.total_spend);
+        if (u.last_visit && (!existing.last_visit || u.last_visit > existing.last_visit)) {
+          existing.last_visit = u.last_visit;
+        }
+      } else {
+        grouped.set(np, {
+          ...u,
+          phone: np,
+          total_spend: Number(u.total_spend),
+        });
+      }
+    }
+
+    const merged = Array.from(grouped.values()).sort((a, b) => b.total_spend - a.total_spend);
+    return res.send(merged);
   } catch (error: any) {
     logger.error(`Error in getCustomers: ${error.message}`);
     return res.status(500).send({ error: "Internal Server Error" });

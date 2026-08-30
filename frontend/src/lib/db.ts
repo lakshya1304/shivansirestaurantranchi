@@ -57,7 +57,10 @@ export interface ApiRequestOptions {
   signal?: AbortSignal;
 }
 
-export async function fetchAPI<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
+export async function fetchAPI<T>(
+  endpoint: string,
+  options?: ApiRequestOptions,
+): Promise<T> {
   const isPost = options?.method && options.method !== "GET";
   // Auth endpoints live at /api/v1/auth/*, not under /data.
   // All other endpoints (categories, products, etc.) live under /api/v1/data/*.
@@ -99,7 +102,7 @@ export async function fetchAPI<T>(endpoint: string, options?: ApiRequestOptions)
 export const settingsQuery = queryOptions({
   queryKey: ["settings"],
   queryFn: async ({ signal }) => {
-    const settings = await fetchAPI<RestaurantSettings | null>("/settings", { signal });
+    const settings = await fetchAPI<RestaurantSettings | null>(`/settings?_t=${Date.now()}`, { signal });
     return settings;
   },
   staleTime: 30_000,
@@ -139,6 +142,18 @@ export const reviewsQuery = queryOptions({
   queryKey: ["reviews", "published"],
   queryFn: ({ signal }) => fetchAPI<Review[]>("/reviews?limit=6", { signal }),
   staleTime: 30_000,
+});
+
+export const googleRatingsQuery = queryOptions({
+  queryKey: ["googleRatings"],
+  queryFn: async ({ signal }) => {
+    try {
+      return await fetchAPI<any>("/reviews/google", { signal });
+    } catch (e) {
+      return null;
+    }
+  },
+  staleTime: 3600_000,
 });
 
 export const allReviewsQuery = queryOptions({

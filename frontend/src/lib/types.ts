@@ -49,6 +49,8 @@ export interface RestaurantSettings {
   currency: string;
   theme: string;
   is_suspended: boolean;
+  shutdown_code: number | null;
+  shutdown_message: string | null;
 }
 
 export interface Offer {

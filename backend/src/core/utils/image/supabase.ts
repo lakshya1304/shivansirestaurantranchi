@@ -65,3 +65,35 @@ export default async function uploadToSupabase(
     path,
   };
 }
+
+export async function deleteFromSupabase(publicUrl: string): Promise<void> {
+  const supabaseUrl = SUPABASE_URL;
+  const serviceRoleKey = SUPABASE_SERVICE_ROLE_KEY;
+  const bucket = SUPABASE_STORAGE_BUCKET;
+
+  if (!supabaseUrl || !serviceRoleKey || !bucket) {
+    return; // Cannot delete if not configured
+  }
+
+  // public URL pattern: <SUPABASE_URL>/storage/v1/object/public/<bucket>/<path>
+  const publicPrefix = `${supabaseUrl}/storage/v1/object/public/${bucket}/`;
+  if (!publicUrl.startsWith(publicPrefix)) {
+    return; // Not a supabase URL for this bucket
+  }
+
+  const path = publicUrl.substring(publicPrefix.length);
+  const deleteUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+
+  const response = await fetch(deleteUrl, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: serviceRoleKey,
+    },
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(`Supabase delete failed (${response.status}): ${text}`);
+  }
+}

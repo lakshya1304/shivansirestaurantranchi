@@ -32,9 +32,9 @@ export const placeOrder = async (input: unknown) => {
   const data = orderSchema.parse(input);
   return fetchAPI<{ id: string; token: string; orderNumber: string }>("/orders/place", {
     method: "POST",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
-      "Idempotency-Key": crypto.randomUUID()
+      "Idempotency-Key": crypto.randomUUID(),
     },
     body: JSON.stringify(data),
   });
@@ -42,7 +42,9 @@ export const placeOrder = async (input: unknown) => {
 
 export const getPublicOrder = async (input: unknown, opts?: { signal?: AbortSignal }) => {
   const data = z.object({ id: z.string().uuid(), token: z.string().uuid() }).parse(input);
-  return fetchAPI<any>(`/orders/public?id=${data.id}&token=${data.token}`, { signal: opts?.signal });
+  return fetchAPI<any>(`/orders/public?id=${data.id}&token=${data.token}`, {
+    signal: opts?.signal,
+  });
 };
 
 const phoneSchema = z

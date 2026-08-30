@@ -38,4 +38,8 @@ export default class UserRepository extends BaseRepository<User> {
   async activateUser(userId: string): Promise<User> {
     return this.update(userId, { isActive: true });
   }
+
+  async addPasskey(data: any): Promise<any> {
+    return (prismaApp as any).passkey.create({ data });
+  }
 }

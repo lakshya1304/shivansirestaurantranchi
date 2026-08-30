@@ -220,6 +220,7 @@ export default class AuthService {
     password: string,
     totpToken?: string,
   ): Promise<{ user: any; tokens: TokenPair; requireTotp?: boolean }> {
+    email = email.trim().toLowerCase();
     let user: any = await adminRepo.findByEmail(email);
     let repo: any = adminRepo;
     if (!user) {
@@ -281,6 +282,7 @@ export default class AuthService {
   async passless(
     email: string,
   ): Promise<{ email: string; name?: string; token: string; role: string }> {
+    email = email.trim().toLowerCase();
     let user = await userRepo.findByEmail(email);
     if (!user) throw new NotFoundError("User not found with this email");
     let accessToken = generateAccessToken({
@@ -389,25 +391,24 @@ export default class AuthService {
 
   async enableTotp(
     userId: string,
-    password: string,
+    role: string,
   ): Promise<{ secret: string; qrCode: string }> {
-    const user = await userRepo.findById(userId);
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new ValidationError("Password is incorrect");
+    const repo: any = role === "ADMIN" || role === "SUPERADMIN" ? adminRepo : userRepo;
+    const user = await repo.findById(userId);
 
     if (user.isTotpEnabled) throw new ConflictError("TOTP is already enabled");
 
     const secret = generateTotpSecret();
     const qrCode = await generateTotpQrCode(user.email, secret);
 
-    await userRepo.updateTotpSecret(userId, secret, false);
+    await repo.updateTotpSecret(userId, secret, false);
 
     return { secret, qrCode };
   }
 
-  async verifyAndActivateTotp(userId: string, token: string): Promise<void> {
-    const user = await userRepo.findById(userId);
+  async verifyAndActivateTotp(userId: string, token: string, role: string): Promise<void> {
+    const repo: any = role === "ADMIN" || role === "SUPERADMIN" ? adminRepo : userRepo;
+    const user = await repo.findById(userId);
 
     if (!user.totpSecret) {
       throw new NotFoundError("No TOTP secret found. Call enable first.");
@@ -418,11 +419,13 @@ export default class AuthService {
     }
 
     const isValid = await verifyTotpToken(token, user.totpSecret);
+    console.log(`[TOTP VERIFY] User: ${user.email}, DB Secret: ${user.totpSecret}, Input Token: '${token}', Is Valid: ${isValid}`);
+    
     if (!isValid) {
       throw new ValidationError("Invalid TOTP token. Please try again.");
     }
 
-    await userRepo.updateTotpSecret(userId, user.totpSecret, true);
+    await repo.updateTotpSecret(userId, user.totpSecret, true);
 
     await auditLogRepo.logAction({
       action: "ENABLE_TOTP",
@@ -432,15 +435,11 @@ export default class AuthService {
     });
   }
 
-  async disableTotp(userId: string, password: string): Promise<void> {
-    const user = await userRepo.findById(userId);
+  async disableTotp(userId: string, role: string): Promise<void> {
+    const repo: any = role === "ADMIN" || role === "SUPERADMIN" ? adminRepo : userRepo;
+    const user = await repo.findById(userId);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new ValidationError("Password is incorrect.");
-    }
-
-    await userRepo.updateTotpSecret(userId, null, false);
+    await repo.updateTotpSecret(userId, null, false);
 
     await auditLogRepo.logAction({
       action: "DISABLE_TOTP",
@@ -452,12 +451,13 @@ export default class AuthService {
 
   // --- WebAuthn Passkeys ---
 
-  async generateWebAuthnRegistration(userId: string) {
-    const user = await userRepo.findById(userId, { include: { passkeys: true } });
+  async generateWebAuthnRegistration(userId: string, role: string, overrideRpID?: string) {
+    const repo: any = role === "ADMIN" || role === "SUPERADMIN" ? adminRepo : userRepo;
+    const user = await repo.findById(userId, { include: { passkeys: true } });
 
     const options = await generateRegistrationOptions({
       rpName,
-      rpID,
+      rpID: overrideRpID || rpID,
       userID: new Uint8Array(Buffer.from(user.id)),
       userName: user.email,
       attestationType: "none",
@@ -474,13 +474,20 @@ export default class AuthService {
       },
     });
 
-    await userRepo.update(user.id, { currentChallenge: options.challenge });
+    await repo.update(user.id, { currentChallenge: options.challenge });
 
     return options;
   }
 
-  async verifyWebAuthnRegistration(userId: string, response: RegistrationResponseJSON) {
-    const user = await userRepo.findById(userId);
+  async verifyWebAuthnRegistration(
+    userId: string,
+    response: RegistrationResponseJSON,
+    role: string,
+    overrideOrigin?: string,
+    overrideRpID?: string
+  ) {
+    const repo: any = role === "ADMIN" || role === "SUPERADMIN" ? adminRepo : userRepo;
+    const user = await repo.findById(userId);
 
     if (!user.currentChallenge) {
       throw new ValidationError("No passkey registration challenge found for this user.");
@@ -491,8 +498,8 @@ export default class AuthService {
       verification = await verifyRegistrationResponse({
         response,
         expectedChallenge: user.currentChallenge,
-        expectedOrigin: origin,
-        expectedRPID: rpID,
+        expectedOrigin: overrideOrigin || origin,
+        expectedRPID: overrideRpID || rpID,
       });
     } catch (error: any) {
       throw new ValidationError(`Passkey verification failed: ${error.message}`);
@@ -504,31 +511,37 @@ export default class AuthService {
       const credentialIDBuffer = Buffer.from(credential.id);
       const credentialPublicKeyBuffer = Buffer.from(credential.publicKey);
 
-      await prismaAdmin.passkey.create({
-        data: {
-          credentialID: credentialIDBuffer,
-          credentialPublicKey: credentialPublicKeyBuffer,
-          counter: BigInt(credential.counter),
-          transports: response.response.transports || [],
-          adminId: user.id,
-        },
+      await repo.addPasskey({
+        credentialID: credentialIDBuffer,
+        credentialPublicKey: credentialPublicKeyBuffer,
+        counter: BigInt(credential.counter),
+        transports: response.response.transports || [],
+        [role === "ADMIN" || role === "SUPERADMIN" ? "adminId" : "userId"]: user.id,
       });
 
-      await userRepo.update(user.id, { currentChallenge: null });
+      await repo.update(user.id, { currentChallenge: null });
       return { success: true };
     }
 
     throw new ValidationError("Passkey registration failed.");
   }
 
-  async generateWebAuthnAuthentication(email: string) {
+  async deletePasskeys(userId: string, role: string) {
+    if (role === "ADMIN" || role === "SUPERADMIN") {
+      await prismaAdmin.passkey.deleteMany({ where: { adminId: userId } });
+    } else {
+      await prismaApp.passkey.deleteMany({ where: { userId } });
+    }
+  }
+
+  async generateWebAuthnAuthentication(email: string, overrideRpID?: string) {
     const user = await userRepo.findByEmail(email);
     if (!user) throw new NotFoundError("User not found.");
 
     const passkeys = await prismaAdmin.passkey.findMany({ where: { adminId: user.id } });
 
     const options = await generateAuthenticationOptions({
-      rpID,
+      rpID: overrideRpID || rpID,
       allowCredentials: passkeys.map((key: any) => ({
         // Prisma Bytes returns Buffer; @simplewebauthn v13 needs base64url string
         id: Buffer.isBuffer(key.credentialID)
@@ -547,17 +560,26 @@ export default class AuthService {
   async verifyWebAuthnAuthentication(
     email: string,
     response: AuthenticationResponseJSON,
-  ): Promise<{ user: any; tokens: TokenPair }> {
-    const user = await userRepo.findByEmail(email);
-    if (!user || !user.currentChallenge)
-      throw new UnauthorizedError("Invalid or missing authentication challenge.");
-    if (!user.isActive) throw new UnauthorizedError("Account is deactivated.");
+    overrideOrigin?: string,
+    overrideRpID?: string
+  ) {
+    const user = await userRepo.findByEmail(email, { include: { passkeys: true } });
+    if (!user) throw new NotFoundError("User not found.");
 
-    const passkeys = await prismaAdmin.passkey.findMany({ where: { adminId: user.id } });
-    const passkey = passkeys.find((key: any) => key.credentialID === response.id);
+    if (!user.currentChallenge) {
+      throw new ValidationError("No passkey authentication challenge found.");
+    }
+
+    // response.id is base64url string in @simplewebauthn v13
+    const passkey = user.passkeys.find(
+      (pk: any) =>
+        (Buffer.isBuffer(pk.credentialID)
+          ? pk.credentialID.toString("base64url")
+          : String(pk.credentialID)) === response.id,
+    );
 
     if (!passkey) {
-      throw new UnauthorizedError("Passkey not found for this user.");
+      throw new ValidationError("Passkey is not registered with this user.");
     }
 
     let verification;
@@ -574,8 +596,8 @@ export default class AuthService {
       verification = await verifyAuthenticationResponse({
         response,
         expectedChallenge: user.currentChallenge,
-        expectedOrigin: origin,
-        expectedRPID: rpID,
+        expectedOrigin: overrideOrigin || origin,
+        expectedRPID: overrideRpID || rpID,
         credential: {
           id: credentialIdStr,
           publicKey: publicKeyBytes,

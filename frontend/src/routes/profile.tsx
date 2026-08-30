@@ -14,6 +14,7 @@ import {
   User,
   UtensilsCrossed,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,8 +25,9 @@ import { Switch } from "@/components/ui/switch";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { useIsAdmin } from "@/lib/auth";
-import { fetchAPI } from "@/lib/db";
+import { fetchAPI, apiClient } from "@/lib/db";
 import { STATUS_LABEL, type Order } from "@/lib/types";
+import { startRegistration } from "@simplewebauthn/browser";
 import { formatDateTime, money } from "@/lib/format";
 import { getCustomerSession, clearCustomerSession } from "./login";
 
@@ -123,7 +125,7 @@ function CustomerProfile({
     queryFn: async ({ signal }) => {
       const res = await fetchAPI<any>(
         `/customer-profile?phone=${encodeURIComponent(session.phone)}`,
-        { signal }
+        { signal },
       );
       return res as { customer: any; orders: Order[] };
     },
@@ -202,7 +204,7 @@ function CustomerProfile({
             <div>
               <h1 className="font-display text-2xl font-bold">{displayName}</h1>
               <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <span>📱</span> {session.phone}
+                <span>{session.phone}</span>
                 {customer?.last_visit && (
                   <span className="ml-2">
                     • Last visit: {formatDate(customer.last_visit)}
@@ -431,23 +433,58 @@ function AdminProfile({
   hasMfaEnrolled: boolean;
 }) {
   const navigate = useNavigate();
-  const qc = useQuery({ queryKey: ["auth_me"] } as any);
+  const qc = useQueryClient();
 
   async function handleSignOut() {
+    await qc.cancelQueries();
     try {
       await fetchAPI("/auth/logout", { method: "POST" });
     } catch {
       /* ignore */
     }
+    qc.clear();
+    await qc.invalidateQueries({ queryKey: ["auth_me"] });
     navigate({ to: "/auth", replace: true });
     toast.success("Signed out");
   }
 
   const displayName = user.name ?? user.email;
   const roleLabel = isSuperAdmin ? "Superadmin" : "Admin";
-  const roleColor = isSuperAdmin
-    ? "bg-[image:var(--gradient-primary)]"
-    : "bg-amber-500/20 text-amber-400 border-amber-500/30";
+
+  const [uploading, setUploading] = useState(false);
+  const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      await apiClient.post("/auth/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Profile picture updated!");
+      qc.invalidateQueries({ queryKey: ["auth_me"] });
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setUploading(true);
+    try {
+      await apiClient.delete("/auth/me/avatar");
+      toast.success("Profile picture removed!");
+      qc.invalidateQueries({ queryKey: ["auth_me"] });
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || "Failed to remove");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <main className="grid min-h-[80vh] place-items-center px-4 py-12">
@@ -455,12 +492,29 @@ function AdminProfile({
         {/* Header card */}
         <div className="glass rounded-3xl p-6 space-y-4">
           <div className="flex items-center gap-4">
-            <span
-              className="grid size-16 shrink-0 place-items-center rounded-2xl text-xl font-bold text-primary-foreground"
-              style={{ background: "var(--gradient-primary)" }}
-            >
-              <ShieldCheck className="size-7" />
-            </span>
+            <div className="flex flex-col items-center gap-2 shrink-0">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt="Avatar" className="size-16 rounded-2xl object-cover shadow-sm" />
+              ) : (
+                <span
+                  className="grid size-16 place-items-center rounded-2xl text-xl font-bold text-primary-foreground shadow-sm"
+                  style={{ background: "var(--gradient-primary)" }}
+                >
+                  <ShieldCheck className="size-7" />
+                </span>
+              )}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 rounded-full relative overflow-hidden" disabled={uploading}>
+                  {uploading ? "..." : "Upload"}
+                  <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleUploadAvatar} disabled={uploading} />
+                </Button>
+                {user.avatarUrl && (
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 rounded-full text-destructive hover:bg-destructive/10" onClick={handleRemoveAvatar} disabled={uploading}>
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-xl font-bold">{displayName}</h1>
@@ -481,25 +535,29 @@ function AdminProfile({
 
         {/* Security */}
         <TotpSetup hasMfaEnrolled={hasMfaEnrolled} />
+        
+        {/* Passkeys */}
+        <PasskeySetup />
 
         {/* Quick links */}
         <div className="glass rounded-3xl p-6 space-y-3">
           <h2 className="flex items-center gap-2 font-display text-base font-bold">
-            📊 Quick access
+            Quick access
           </h2>
           <nav className="flex flex-col gap-2 text-sm">
-            <Link
+            {(user.role==="ADMIN" || user.role==="SUPERADMIN") && <Link
               to="/admin"
               className="flex items-center gap-2 rounded-xl p-2 hover:bg-background/40 transition-colors text-muted-foreground hover:text-foreground"
             >
               <Home className="size-4" /> Admin dashboard
-            </Link>
-            <Link
+            </Link>}
+
+            {(user.role==="ADMIN" || user.role==="SUPERADMIN") && <Link
               to="/admin/staff"
               className="flex items-center gap-2 rounded-xl p-2 hover:bg-background/40 transition-colors text-muted-foreground hover:text-foreground"
             >
               <ShieldCheck className="size-4" /> Staff management
-            </Link>
+            </Link>}
             {isSuperAdmin && (
               <Link
                 to="/admin/settings"
@@ -511,10 +569,18 @@ function AdminProfile({
           </nav>
         </div>
 
-        <Button variant="glass" className="w-full rounded-full" onClick={handleSignOut}>
-          <LogOut className="size-4" />
-          Sign out
-        </Button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full mx-auto mt-6">
+          <Button variant="glass" className="w-full sm:w-1/2 rounded-full h-12" onClick={handleSignOut}>
+            <LogOut className="size-4" />
+            Sign out
+          </Button>
+          <Button variant="glass" className="w-full sm:w-1/2 rounded-full h-12 p-0" asChild>
+            <Link to="/" className="w-full h-full flex items-center justify-center gap-2 rounded-full">
+            <ArrowLeft className="size-4" />
+            Back to Home
+            </Link>
+          </Button>
+        </div>
       </div>
       <SiteFooter />
     </main>
@@ -564,26 +630,20 @@ function DetailRow({
 
 function TotpSetup({ hasMfaEnrolled }: { hasMfaEnrolled: boolean }) {
   const [enabled, setEnabled] = useState(hasMfaEnrolled);
-  const [setupData, setSetupData] = useState<{ qrCode: string; secret: string } | null>(null);
+  const [setupData, setSetupData] = useState<{ qrCode: string; secret: string } | null>(
+    null,
+  );
   const [token, setToken] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPasswordInput, setShowPasswordInput] = useState<"enable" | "disable" | null>(null);
   const qc = useQueryClient();
 
   const enableMfa = async () => {
-    if (!password) {
-      toast.error("Password is required");
-      return;
-    }
     try {
-      const res = await fetchAPI<any>("/auth/totp/enable", { 
+      const res = await fetchAPI<any>("/auth/totp/enable", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({}),
       });
-      setSetupData(res);
-      setShowPasswordInput(null);
-      setPassword("");
+      setSetupData(res.data);
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -606,21 +666,15 @@ function TotpSetup({ hasMfaEnrolled }: { hasMfaEnrolled: boolean }) {
   };
 
   const disableMfa = async () => {
-    if (!password) {
-      toast.error("Password is required");
-      return;
-    }
     try {
-      await fetchAPI("/auth/totp/disable", { 
-        method: "POST", 
-        headers: { "Content-Type": "application/json" }, 
-        body: JSON.stringify({ password }) 
+      await fetchAPI("/auth/totp/disable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
       });
       toast.success("Two-factor authentication disabled.");
       setEnabled(false);
       setSetupData(null);
-      setShowPasswordInput(null);
-      setPassword("");
       qc.invalidateQueries({ queryKey: ["auth_me"] });
     } catch (e: any) {
       toast.error(e.message);
@@ -633,53 +687,24 @@ function TotpSetup({ hasMfaEnrolled }: { hasMfaEnrolled: boolean }) {
         <h2 className="flex items-center gap-2 font-display text-base font-bold">
           Security
         </h2>
-        <Switch 
-          checked={enabled || !!setupData || !!showPasswordInput} 
+        <Switch
+          checked={enabled || !!setupData}
           onCheckedChange={(v) => {
-            if (v) setShowPasswordInput("enable");
-            else setShowPasswordInput("disable");
-          }} 
+            if (v) enableMfa();
+            else disableMfa();
+          }}
         />
       </div>
       <div className="text-sm text-muted-foreground">
         Two-factor authentication (TOTP)
       </div>
 
-      {showPasswordInput && (
-        <div className="mt-4 p-4 border border-border/50 rounded-xl space-y-3 bg-background/50">
-          <p className="text-sm">Please enter your password to {showPasswordInput} TOTP:</p>
-          <div className="flex gap-2">
-            <Input 
-              type="password" 
-              placeholder="Your password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-            />
-            <Button 
-              variant="hero" 
-              onClick={() => {
-                if (showPasswordInput === "enable") enableMfa();
-                else disableMfa();
-              }}
-            >
-              Confirm
-            </Button>
-            <Button 
-              variant="glass" 
-              onClick={() => {
-                setShowPasswordInput(null);
-                setPassword("");
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
       {setupData && !enabled && (
         <div className="mt-4 p-4 border border-border/50 rounded-xl space-y-4 bg-background/50">
-          <p className="text-sm text-foreground">Scan this QR code with your authenticator app, or enter the setup key manually.</p>
+          <p className="text-sm text-foreground">
+            Scan this QR code with your authenticator app, or enter the setup key
+            manually.
+          </p>
           <div className="flex justify-center bg-white p-2 rounded-xl w-max mx-auto">
             <img src={setupData.qrCode} alt="TOTP QR Code" className="w-40 h-40" />
           </div>
@@ -687,18 +712,19 @@ function TotpSetup({ hasMfaEnrolled }: { hasMfaEnrolled: boolean }) {
             {setupData.secret}
           </div>
           <div className="flex gap-2">
-            <Input 
-              placeholder="Enter 6-digit code" 
-              value={token} 
-              onChange={(e) => setToken(e.target.value)} 
+            <Input
+              placeholder="Enter 6-digit code"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
               maxLength={6}
             />
-            <Button variant="hero" onClick={verifyMfa}>Verify</Button>
-            <Button 
-              variant="glass" 
+            <Button variant="hero" onClick={verifyMfa}>
+              Verify
+            </Button>
+            <Button
+              variant="glass"
               onClick={() => {
                 setSetupData(null);
-                setPassword("");
               }}
             >
               Cancel
@@ -706,6 +732,69 @@ function TotpSetup({ hasMfaEnrolled }: { hasMfaEnrolled: boolean }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PasskeySetup() {
+  const qc = useQueryClient();
+  const [loading, setLoading] = useState(false);
+
+  const registerPasskey = async () => {
+    setLoading(true);
+    try {
+      // 1. Get options from server
+      const { data: res } = await apiClient.post("/auth/webauthn/register/generate", {});
+      
+      // 2. Pass options to browser to create a passkey
+      const attResp = await startRegistration(res.data);
+      
+      // 3. Send response back to server to verify
+      await apiClient.post("/auth/webauthn/register/verify", attResp);
+
+      toast.success("Passkey registered successfully!");
+      qc.invalidateQueries({ queryKey: ["auth_me"] });
+    } catch (e: any) {
+      const msg = e.response?.data?.message || e.message || "Failed to register passkey";
+      if (msg.includes("timed out or was not allowed") || msg.toLowerCase().includes("cancel")) {
+        toast.error("Passkey setup was cancelled.");
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removePasskeys = async () => {
+    try {
+      await apiClient.delete("/auth/webauthn/passkeys");
+      toast.success("Passkeys removed successfully!");
+      qc.invalidateQueries({ queryKey: ["auth_me"] });
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || e.message || "Failed to remove passkeys");
+    }
+  };
+
+  return (
+    <div className="glass rounded-3xl p-6 space-y-4 mt-4">
+      <div className="flex items-center justify-between">
+        <h2 className="flex items-center gap-2 font-display text-base font-bold">
+          Passkeys
+        </h2>
+      </div>
+      <div className="text-sm text-muted-foreground">
+        Sign in securely using fingerprint, face recognition, or a hardware key.
+      </div>
+      <div className="flex items-center gap-4">
+        <Button variant="hero" onClick={registerPasskey} disabled={loading}>
+          {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+          Register a Passkey
+        </Button>
+        <Button variant="glass" onClick={removePasskeys} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+          Remove Passkeys
+        </Button>
+      </div>
     </div>
   );
 }

@@ -43,6 +43,8 @@ model User {
 
   currentChallenge String?
 
+  passkeys Passkey[]
+
   birthday       DateTime?
   visits         Int       @default(0)
   reward_points  Int       @default(0)
@@ -277,4 +279,21 @@ model PhoneVerification {
   @@index([phone, used, expires_at])
   @@index([created_at])
   @@map("phone_verifications")
+}
+
+model Passkey {
+  id                  String   @id @default(uuid())
+  credentialID        Bytes
+  credentialPublicKey Bytes
+  counter             BigInt
+  transports          String[]
+  
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt           DateTime @default(now())
+
+  @@index([userId])
+  @@index([credentialID])
+  @@map("user_passkeys")
 }

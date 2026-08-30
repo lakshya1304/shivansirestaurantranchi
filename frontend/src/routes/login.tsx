@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Loader2, LogIn, MessageCircle, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Loader2, LogIn, MessageCircle, ShieldCheck, Fingerprint } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useIsAdmin } from "@/lib/auth";
-import { API_BASE_URL, fetchAPI } from "@/lib/db";
+import { API_BASE_URL, fetchAPI, apiClient } from "@/lib/db";
 import { SiteFooter } from "@/components/site-footer";
 import { requestOrderHistoryCode, getOrdersByPhone } from "@/lib/orders.functions";
+import { startAuthentication } from "@simplewebauthn/browser";
 
 export const Route = createFileRoute("/login")({
   validateSearch: z.object({
@@ -34,14 +35,14 @@ type Tab = "whatsapp" | "email";
 type EmailStage = "credentials" | "enroll" | "verify";
 type WaStage = "phone" | "otp";
 
-// Store a verified customer session in localStorage (no JWT needed)
+// Store a verified customer session in sessionStorage (no JWT needed)
 export function saveCustomerSession(data: {
   phone: string;
   name: string;
   profileToken: string;
 }) {
   const session = { ...data, exp: Date.now() + 7 * 24 * 60 * 60 * 1000 };
-  localStorage.setItem("customer_session", JSON.stringify(session));
+  sessionStorage.setItem("customer_session", JSON.stringify(session));
 }
 
 export function getCustomerSession(): {
@@ -51,11 +52,11 @@ export function getCustomerSession(): {
   exp: number;
 } | null {
   try {
-    const raw = localStorage.getItem("customer_session");
+    const raw = sessionStorage.getItem("customer_session");
     if (!raw) return null;
     const session = JSON.parse(raw);
     if (session.exp < Date.now()) {
-      localStorage.removeItem("customer_session");
+      sessionStorage.removeItem("customer_session");
       return null;
     }
     return session;
@@ -65,7 +66,7 @@ export function getCustomerSession(): {
 }
 
 export function clearCustomerSession() {
-  localStorage.removeItem("customer_session");
+  sessionStorage.removeItem("customer_session");
 }
 
 const emailLoginSchema = z.object({
@@ -165,10 +166,24 @@ export function LoginForm({
     if (checking || !user) return;
     if (isAdmin && mfaSatisfied) {
       if (!onSuccessProp) navigate({ to: redir || "/admin", replace: true });
+      else {
+        onSuccessProp({
+          customer: user,
+          profileToken: (user as any).profileToken ?? "",
+          phone: user.phone ?? user.email,
+        });
+      }
       return;
     }
     if (user && role === "USER" && emailStage === "credentials") {
       if (!onSuccessProp) navigate({ to: redir || "/my-orders", replace: true });
+      else {
+        onSuccessProp({
+          customer: user,
+          profileToken: (user as any).profileToken ?? "",
+          phone: user.phone ?? user.email,
+        });
+      }
       return;
     }
     if (
@@ -230,6 +245,38 @@ export function LoginForm({
     }
   }
 
+  async function handlePasskeyLogin() {
+    const email = emailForm.getValues("email").trim().toLowerCase();
+    if (!email) {
+      toast.error("Please enter your email first to use a Passkey.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data: options } = await apiClient.post("/auth/webauthn/login/generate", { email });
+      const asseResp = await startAuthentication(options);
+      const { data: payload } = await apiClient.post("/auth/webauthn/login/verify", { email, response: asseResp });
+
+      if (payload?.requireTotp) {
+        setEmailStage("verify");
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ["auth_me"] });
+        if (onSuccessProp) {
+          const userObj = payload;
+          const phoneNum = userObj?.phone ?? email;
+          const profToken = userObj?.profileToken ?? userObj?.token ?? "";
+          onSuccessProp({ customer: { ...userObj }, profileToken: profToken, phone: phoneNum });
+          return;
+        }
+        navigate({ to: isAdmin ? redir || "/admin" : redir || "/my-orders", replace: true });
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message ?? error?.message ?? "Passkey login failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onTotpSubmit(data: z.infer<typeof totpSchema>) {
     setBusy(true);
     const { email, password } = emailForm.getValues();
@@ -266,6 +313,7 @@ export function LoginForm({
   }
 
   async function handleSignOut() {
+    clearCustomerSession();
     await queryClient.cancelQueries();
     queryClient.clear();
     try {
@@ -626,14 +674,25 @@ export function LoginForm({
                   </span>
                 </label>
 
-                <Button
-                  type="submit"
-                  variant="hero"
-                  className="w-full rounded-full"
-                  disabled={busy}
-                >
-                  {busy ? <Loader2 className="size-4 animate-spin" /> : null} Log in
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    variant="hero"
+                    className="flex-1 rounded-full"
+                    disabled={busy}
+                  >
+                    {busy ? <Loader2 className="size-4 animate-spin" /> : null} Log in
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 rounded-full border-primary/20 hover:bg-primary/5"
+                    disabled={busy}
+                    onClick={handlePasskeyLogin}
+                  >
+                    <Fingerprint className="size-4 mr-2 text-primary" /> Passkey
+                  </Button>
+                </div>
 
                 <p className="text-center text-xs text-muted-foreground mt-2">
                   For staff and admin accounts. Two-factor is required for admins.

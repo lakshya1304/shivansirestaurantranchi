@@ -4,10 +4,12 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useRef, useState, Suspense, type ReactNode } from "react";
 import { Home, ArrowLeft, RefreshCw, ChefHat, AlertTriangle } from "lucide-react";
 import { PageLoader } from "@/components/page-loader";
+import { StartupSplash } from "@/components/startup-splash";
 
 import appCss from "../styles.css?url";
 import { CartProvider } from "@/lib/cart";
@@ -289,10 +291,31 @@ function ScrollToTop() {
 }
 
 function SuspensionGuard({ children }: { children: ReactNode }) {
-  const { data: settings } = useQuery(settingsQuery);
-  const { isAdmin, isSuperAdmin } = useIsAdmin();
+  const { data: settings, isFetching } = useQuery(settingsQuery);
+  const { isSuperAdmin } = useIsAdmin();
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  if (settings?.is_suspended && !isAdmin && !isSuperAdmin) {
+  useEffect(() => {
+    // Once the first fetch completes, we have the authoritative remote state
+    if (!isFetching) {
+      setInitialCheckDone(true);
+    }
+  }, [isFetching]);
+
+  if (!initialCheckDone) {
+    return <StartupSplash onComplete={() => {}} />;
+  }
+
+  // Always allow access to the login page so superadmins can log in and disable the shutdown
+  if (pathname.startsWith("/login")) {
+    return <>{children}</>;
+  }
+
+  if (settings?.is_suspended && !isSuperAdmin) {
+    const statusCode = settings.shutdown_code || 402;
+    const message = settings.shutdown_message || "Payment not received or maintenance in progress. Access restricted.";
+
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center">
         <div
@@ -307,10 +330,10 @@ function SuspensionGuard({ children }: { children: ReactNode }) {
           </div>
           <div>
             <h1 className="font-display text-3xl font-bold text-foreground">
-              Temporarily Unavailable
+              Error {statusCode}
             </h1>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Our website is currently down for maintenance. Please check back later.
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+              {message}
             </p>
           </div>
         </div>

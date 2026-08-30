@@ -53,7 +53,7 @@ async function main() {
         tax_percent: 5.0,
         packing_charge: 10.0,
         delivery_charge: 30.0,
-        currency: "INR",
+        currency: "₹",
         theme: "default",
       },
     });

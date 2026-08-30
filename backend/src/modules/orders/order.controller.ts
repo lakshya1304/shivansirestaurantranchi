@@ -608,13 +608,34 @@ export const getCustomerProfile = async (req: FastifyRequest, res: FastifyReply)
     
     if (!phone)
       return res.status(400).send({ error: "phone is required" });
-    if (!token)
-      return res.status(401).send({ error: "Profile token missing. Please verify phone again." });
 
     const normalizedPhone = normalizePhone(phone);
-    const payload = verifyProfileToken(token);
-    if (payload.phone !== normalizedPhone)
-      return res.status(401).send({ error: "Token does not match phone" });
+    
+    let isAuthorized = false;
+    
+    // Try JWT first
+    try {
+      await req.jwtVerify();
+      const jwtUser = req.user as any;
+      if (jwtUser) {
+        if (jwtUser.role === "ADMIN" || jwtUser.role === "SUPERADMIN") {
+          isAuthorized = true;
+        } else if (jwtUser.phone === normalizedPhone) {
+          isAuthorized = true;
+        }
+      }
+    } catch (e) {
+      // ignore, fallback to profileToken
+    }
+
+    if (!isAuthorized) {
+      if (!token)
+        return res.status(401).send({ error: "Profile token missing. Please verify phone again." });
+
+      const payload = verifyProfileToken(token);
+      if (payload.phone !== normalizedPhone)
+        return res.status(401).send({ error: "Token does not match phone" });
+    }
 
     const customer = await prismaApp.user.findUnique({
       where: { phone: normalizedPhone },

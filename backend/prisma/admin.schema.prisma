@@ -95,7 +95,9 @@ model RestaurantSettings {
   delivery_charge Decimal   @default(0)
   currency        String  @default("INR")
   theme           String  @default("default")
-  is_suspended    Boolean @default(false)
+  is_suspended     Boolean @default(false)
+  shutdown_code    Int?
+  shutdown_message String?
 
   @@map("restaurant_settings")
 }
