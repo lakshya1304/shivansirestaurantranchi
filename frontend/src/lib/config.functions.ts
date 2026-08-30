@@ -7,12 +7,12 @@ const saveSchema = z.object({
   whatsappPhoneNumberId: z.string().trim().max(60),
 });
 
-export const getAppConfig = async () => {
+export const getAppConfig = async (opts?: { signal?: AbortSignal }) => {
   const data = await fetchAPI<{
     ownerEmail: string;
     whatsappPhoneNumberId: string;
     whatsappToken: string;
-  }>("/settings/owner");
+  }>("/settings/owner", { signal: opts?.signal });
   return {
     ownerEmail: data.ownerEmail,
     whatsappPhoneNumberId: data.whatsappPhoneNumberId,
@@ -46,8 +46,8 @@ const settingsSchema = z.object({
   currency: z.string().trim().max(4),
 });
 
-export const getOwnerSettings = async () => {
-  const settings = await fetchAPI<any>("/settings");
+export const getOwnerSettings = async (opts?: { signal?: AbortSignal }) => {
+  const settings = await fetchAPI<any>("/settings", { signal: opts?.signal });
   return settings;
 };
 

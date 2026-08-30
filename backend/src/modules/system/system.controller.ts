@@ -12,10 +12,6 @@ const modelMap: Record<string, any> = {
   inventory_items: "inventoryItem",
   restaurant_tables: "restaurantTable",
   restaurant_settings: "restaurantSettings",
-  orders: "order",
-  reviews: "review",
-  notifications: "appNotification",
-  customers: "customer",
   app_config: "appConfig",
 };
 
@@ -27,6 +23,26 @@ export const saveRow = async (req: FastifyRequest, res: FastifyReply) => {
     const modelName = modelMap[table];
     if (!modelName) {
       return res.status(400).send({ error: `Invalid table: ${table}` });
+    }
+
+    // Convert string dates to Date objects for Prisma
+    for (const key of Object.keys(data)) {
+      if ((key.endsWith("_at") || key.endsWith("_date")) && typeof data[key] === "string") {
+        const parsed = new Date(data[key]);
+        if (!isNaN(parsed.getTime())) {
+          data[key] = parsed;
+        }
+      }
+    }
+
+    // Backend validation for percent limits
+    if (data.discount_percent !== undefined) {
+      const p = Number(data.discount_percent);
+      if (p < 0 || p > 100) return res.status(400).send({ error: "Discount percent must be between 0 and 100" });
+    }
+    if (table === "discounts" && data.type === "percent" && data.value !== undefined) {
+      const v = Number(data.value);
+      if (v < 0 || v > 100) return res.status(400).send({ error: "Percentage value must be between 0 and 100" });
     }
 
     let delegate = (prismaApp as any)[modelName];

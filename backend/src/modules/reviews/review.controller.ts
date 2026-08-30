@@ -5,14 +5,12 @@ import { fetchWithCache } from "../../core/config/redisConfig";
 
 export const getReviews = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const { published, limit } = (req.query as any) ?? {};
-    // published=true → only published | published=false → all (admin) | absent → only published
-    const showAll = published === "false";
+    const { limit } = (req.query as any) ?? {};
     const take = Math.min(Number(limit) || 6, 50);
-    const cacheKey = `data:reviews:all=${showAll}:limit=${take}`;
+    const cacheKey = `data:reviews:all=false:limit=${take}`;
     const reviews = await fetchWithCache(cacheKey, 30, () =>
       prismaApp.review.findMany({
-        where: showAll ? undefined : { is_published: true },
+        where: { is_published: true },
         orderBy: { created_at: "desc" },
         take,
       }),
@@ -20,6 +18,35 @@ export const getReviews = async (req: FastifyRequest, res: FastifyReply) => {
     return res.send(reviews);
   } catch (error: any) {
     logger.error(`Error in getReviews: ${error.message}`);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
+export const getAdminReviews = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { limit } = (req.query as any) ?? {};
+    const take = Math.min(Number(limit) || 50, 200);
+    const cacheKey = `data:reviews:all=true:limit=${take}`;
+    const reviews = await fetchWithCache(cacheKey, 30, () =>
+      prismaApp.review.findMany({
+        orderBy: { created_at: "desc" },
+        take,
+      }),
+    );
+    return res.send(reviews);
+  } catch (error: any) {
+    logger.error(`Error in getAdminReviews: ${error.message}`);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
+export const deleteReview = async (req: FastifyRequest, res: FastifyReply) => {
+  try {
+    const { id } = req.params as any;
+    await prismaApp.review.delete({ where: { id } });
+    return res.send({ ok: true, deleted: id });
+  } catch (error: any) {
+    logger.error(`Error in deleteReview: ${error.message}`);
     return res.status(500).send({ error: "Internal Server Error" });
   }
 };

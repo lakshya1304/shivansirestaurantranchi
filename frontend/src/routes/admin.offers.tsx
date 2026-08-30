@@ -70,9 +70,11 @@ function OffersManager() {
             <Label>Discount %</Label>
             <Input
               type="number"
+              min="0"
+              max="100"
               value={offer.discount_percent}
               onChange={(e) =>
-                setOffer({ ...offer, discount_percent: Number(e.target.value) })
+                setOffer({ ...offer, discount_percent: Math.min(100, Math.max(0, Number(e.target.value))) })
               }
             />
           </div>
@@ -186,8 +188,14 @@ function OffersManager() {
             <Label>Value</Label>
             <Input
               type="number"
+              min="0"
+              max={coupon.type === "percent" ? "100" : undefined}
               value={coupon.value}
-              onChange={(e) => setCoupon({ ...coupon, value: Number(e.target.value) })}
+              onChange={(e) => {
+                let val = Number(e.target.value);
+                if (coupon.type === "percent") val = Math.min(100, Math.max(0, val));
+                setCoupon({ ...coupon, value: val });
+              }}
             />
           </div>
           <div>
@@ -267,9 +275,11 @@ function OffersManager() {
             <Label>Discount %</Label>
             <Input
               type="number"
+              min="0"
+              max="100"
               value={rule.discount_percent}
               onChange={(e) =>
-                setRule({ ...rule, discount_percent: Number(e.target.value) })
+                setRule({ ...rule, discount_percent: Math.min(100, Math.max(0, Number(e.target.value))) })
               }
             />
           </div>

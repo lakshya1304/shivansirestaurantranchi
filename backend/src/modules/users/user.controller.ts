@@ -155,6 +155,17 @@ export const updateRole = async (
   if (targetUser.email === ROOT_EMAIL && role !== "SUPERADMIN")
     throw new ForbiddenError("The root SUPERADMIN cannot be demoted.");
 
+  assertCanModify(requestor.role, targetUser.role, targetUser.id, requestor.id);
+
+  if (requestor.role === "ADMIN") {
+    if (role === "SUPERADMIN") {
+      throw new ForbiddenError("Only SUPERADMIN can assign SUPERADMIN role");
+    }
+    if (requestor.id === targetUser.id && role === "SUPERADMIN") {
+      throw new ForbiddenError("Admins cannot promote themselves");
+    }
+  }
+
   const updated = await prismaAdmin.$transaction(async (tx) => {
     const user = await tx.admin.update({
       where: { id },

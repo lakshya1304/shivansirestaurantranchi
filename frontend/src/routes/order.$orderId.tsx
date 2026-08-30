@@ -36,7 +36,7 @@ function OrderTracking() {
   const { t } = Route.useSearch();
   const query = useQuery({
     queryKey: ["public-order", orderId, t],
-    queryFn: () => getPublicOrder({ id: orderId, token: t }),
+    queryFn: ({ signal }) => getPublicOrder({ id: orderId, token: t }, { signal }),
     enabled: Boolean(orderId && t),
     refetchInterval: 15000,
   });

@@ -37,7 +37,7 @@ function SettingsManager() {
   const { isSuperAdmin } = useIsAdmin();
   const { data: settings } = useQuery({
     queryKey: ["owner-settings"],
-    queryFn: () => getOwnerSettings(),
+    queryFn: ({ signal }) => getOwnerSettings({ signal }),
   });
   const [form, setForm] = useState<Record<string, unknown>>({});
 
@@ -63,7 +63,7 @@ function SettingsManager() {
 
   const { data: config } = useQuery({
     queryKey: ["app-config"],
-    queryFn: () => getAppConfig(),
+    queryFn: ({ signal }) => getAppConfig({ signal }),
   });
   const [cfg, setCfg] = useState({
     ownerEmail: "",

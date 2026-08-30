@@ -31,6 +31,7 @@ function LiveOrders() {
   const { data: notifications = [] } = useQuery(notificationsQuery);
   const qc = useQueryClient();
   const [openBill, setOpenBill] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"live" | "today" | "unread">("live");
   const changeStatus = updateOrderStatus;
 
   const currency = settings?.currency ?? "₹";
@@ -38,7 +39,10 @@ function LiveOrders() {
   const revenue = todays
     .filter((o) => o.status !== "CANCELLED")
     .reduce((sum, o) => sum + Number(o.total), 0);
-  const live = orders.filter((o) => !["COMPLETED", "CANCELLED"].includes(o.status));
+  const live = orders.filter((o) => ["CONFIRMED", "PREPARING", "PREPARED", "SERVED"].includes(o.status));
+  const unread = orders.filter((o) => o.status === "PENDING");
+  
+  const displayedOrders = filter === "today" ? todays : filter === "unread" ? unread : live;
 
   async function setStatus(order: Order, status: OrderStatus) {
     try {
@@ -65,24 +69,46 @@ function LiveOrders() {
   return (
     <div className="space-y-6">
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi icon={ReceiptText} label="Orders today" value={String(todays.length)} />
-        <Kpi icon={IndianRupee} label="Revenue today" value={money(revenue, currency)} />
-        <Kpi icon={TrendingUp} label="Live orders" value={String(live.length)} />
+        <Kpi 
+          icon={ReceiptText} 
+          label="Orders today" 
+          value={String(todays.length)} 
+          active={filter === "today"}
+          onClick={() => setFilter("today")}
+        />
+        <Kpi 
+          icon={IndianRupee} 
+          label="Revenue today" 
+          value={money(revenue, currency)} 
+          active={filter === "today"}
+          onClick={() => setFilter("today")}
+        />
+        <Kpi 
+          icon={TrendingUp} 
+          label="Live orders" 
+          value={String(live.length)} 
+          active={filter === "live"}
+          onClick={() => setFilter("live")}
+        />
         <Kpi
           icon={Bell}
           label="Unread alerts"
-          value={String(notifications.filter((n) => !n.is_read).length)}
+          value={String(unread.length)}
+          active={filter === "unread"}
+          onClick={() => setFilter("unread")}
         />
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-display text-xl font-bold">Live kitchen board</h2>
-        {live.length === 0 ? (
+        <h2 className="font-display text-xl font-bold">
+          {filter === "today" ? "Today's Orders" : filter === "unread" ? "Pending Orders" : "Live kitchen board"}
+        </h2>
+        {displayedOrders.length === 0 ? (
           <p className="glass rounded-3xl p-6 text-sm text-muted-foreground">
-            No live orders right now. New orders appear here instantly.
+            No orders found for this filter.
           </p>
         ) : null}
-        {live.map((order) => {
+        {displayedOrders.map((order) => {
           const next = NEXT[order.status];
           return (
             <article key={order.id} className="glass animate-rise rounded-3xl p-5">
@@ -223,17 +249,26 @@ function Kpi({
   icon: Icon,
   label,
   value,
+  active,
+  onClick,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
+  active?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <div className="glass card-3d hover:card-3d-hover rounded-3xl p-5">
+    <button 
+      onClick={onClick}
+      className={`glass card-3d hover:card-3d-hover rounded-3xl p-5 text-left w-full transition-colors ${
+        active ? "border-primary/50 bg-primary/10 shadow-[0_0_20px_rgba(var(--primary-rgb,124,58,237),0.15)]" : ""
+      }`}
+    >
       <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
         <Icon className="size-4 text-accent" /> {label}
       </div>
       <p className="mt-2 font-display text-2xl font-bold">{value}</p>
-    </div>
+    </button>
   );
 }

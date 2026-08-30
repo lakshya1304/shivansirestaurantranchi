@@ -5,6 +5,25 @@ import crypto from "crypto";
 import { sendWhatsAppMessage } from "../../core/utils/whatsapp";
 import jwt from "jsonwebtoken";
 import { JWT_ACCESS_SECRET } from "../../core/config/envConfig";
+import { z } from "zod";
+import { normalizePhone } from "../../core/utils/phone";
+
+const customerPublicSelect = {
+  id: true,
+  name: true,
+  email: true,
+  phone: true,
+  avatarUrl: true,
+  isActive: true,
+  birthday: true,
+  visits: true,
+  reward_points: true,
+  total_spend: true,
+  favourite_item: true,
+  saved_address: true,
+  last_visit: true,
+  createdAt: true,
+};
 
 // 7-day profile token for phone-verified customer sessions
 const PROFILE_TOKEN_TTL = 7 * 24 * 60 * 60; // seconds
@@ -31,9 +50,39 @@ async function hashCode(phone: string, code: string) {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+const placeOrderSchema = z.object({
+  lines: z.array(
+    z.object({
+      productId: z.string(),
+      quantity: z.number().positive(),
+      weightGrams: z.number().optional().nullable(),
+      weightLabel: z.string().optional().nullable(),
+      instructions: z.array(z.string()).optional().nullable(),
+    })
+  ).min(1),
+  customerName: z.string().min(1),
+  customerPhone: z.string().min(1),
+  paymentMethod: z.string(),
+  isTakeaway: z.boolean().optional().nullable(),
+  tableNumber: z.string().optional().nullable(),
+  couponCode: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
 export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const data = req.body as any; // We will assume it's validated by a middleware or schema later
+    const parsed = placeOrderSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).send({ error: "Invalid order data", details: parsed.error.format() });
+    }
+    const data = parsed.data;
+
+    const idempotencyKey = req.headers["idempotency-key"] as string | undefined;
+    if (!idempotencyKey) {
+      return res.status(400).send({ error: "Idempotency-Key required" });
+    }
+
+    const normalizedPhone = normalizePhone(data.customerPhone);
 
     // 1. Fetch related data
     const productIds = [...new Set(data.lines.map((l: any) => l.productId))];
@@ -77,87 +126,93 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
     const subtotal = items.reduce((s: number, i: any) => s + i.line_total, 0);
 
-    // 3. Customer lookup
-    const existingCustomer = await prismaApp.user.findUnique({
-      where: { phone: data.customerPhone },
-    });
+    const sessionToken = req.cookies?.profile_token ?? req.headers["session-token"] ?? "no-session";
+    const cartHashPayload = JSON.stringify({ items: data.lines, subtotal });
+    const requestHash = crypto.createHash('sha256').update(cartHashPayload + sessionToken).digest('hex');
 
     const today = new Date().toISOString().slice(0, 10);
     const hour = new Date().getHours();
 
-    let discount = 0;
-    let discountLabel: string | null = null;
-
-    // 4. Coupon/Campaign discounts
-    const eligible = discounts.filter((d) => {
-      if (d.starts_at && d.starts_at > new Date(today)) return false;
-      if (d.ends_at && d.ends_at < new Date(today)) return false;
-      if (subtotal < Number(d.min_order_amount)) return false;
-      if (
-        d.start_hour != null &&
-        d.end_hour != null &&
-        (hour < d.start_hour || hour >= d.end_hour)
-      )
-        return false;
-      if (d.coupon_code)
-        return data.couponCode?.toUpperCase() === d.coupon_code.toUpperCase();
-      return true;
-    });
-
-    for (const d of eligible) {
-      const raw =
-        d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
-      const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
-      if (capped > discount) {
-        discount = capped;
-        discountLabel = d.name;
-      }
-    }
-
-    // 5. Loyalty discounts (only on the milestone order, e.g. exactly 25th, 50th visit)
-    const visits = existingCustomer?.visits ?? 0;
-    const loyaltyTier = loyaltyRules
-      .filter((r) => visits + 1 === r.visits_required)
-      .sort((a, b) => b.visits_required - a.visits_required)[0];
-
-    if (loyaltyTier) {
-      const loyaltyValue = (subtotal * Number(loyaltyTier.discount_percent)) / 100;
-      if (loyaltyValue > discount) {
-        discount = loyaltyValue;
-        discountLabel = `Loyalty reward (${loyaltyTier.discount_percent}% • ${visits} visits)`;
-      }
-    }
-
-    // Combined discount must never exceed subtotal (prevents negative totals)
-    // Also cap percentage-based discounts so they can't logically exceed 100%
-    discount = Math.max(0, Math.round(Math.min(discount, subtotal) * 100) / 100);
-    const taxable = Math.max(0, subtotal - discount);
-    const tax = Math.max(
-      0,
-      Math.round(((taxable * Number(settings.tax_percent)) / 100) * 100) / 100,
-    );
-    const packing = data.isTakeaway ? Math.max(0, Number(settings.packing_charge)) : 0;
-    const delivery = data.isTakeaway ? Math.max(0, Number(settings.delivery_charge)) : 0;
-    const total = Math.max(
-      0,
-      Math.round((taxable + tax + packing + delivery) * 100) / 100,
-    );
-
-    const earnedPoints = Math.floor(total / 100) * 10;
-    let customerId = existingCustomer?.id;
-
-    // 6. DB Transaction for order creation
     const orderNumber = `SHV-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
     const billId = `BILL-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    const order = await prismaApp.$transaction(async (tx) => {
+    const { newOrder: order, total } = await prismaApp.$transaction(async (tx) => {
+      // 2b. Check Idempotency inside transaction
+      const existingOrder = await tx.order.findUnique({
+        where: { idempotency_key: idempotencyKey },
+      });
+      if (existingOrder) return { newOrder: existingOrder, total: Number(existingOrder.total) };
+
+      // 3. Customer lookup (inside transaction to prevent race conditions via FOR UPDATE)
+      const customers = await tx.$queryRaw<any[]>`SELECT * FROM "users" WHERE "phone" = ${normalizedPhone} FOR UPDATE`;
+      const existingCustomer = customers[0];
+
+      let discount = 0;
+      let discountLabel: string | null = null;
+
+      // 4. Coupon/Campaign discounts
+      const eligible = discounts.filter((d) => {
+        if (d.starts_at && d.starts_at > new Date(today)) return false;
+        if (d.ends_at && d.ends_at < new Date(today)) return false;
+        if (subtotal < Number(d.min_order_amount)) return false;
+        if (
+          d.start_hour != null &&
+          d.end_hour != null &&
+          (hour < d.start_hour || hour >= d.end_hour)
+        )
+          return false;
+        if (d.coupon_code)
+          return data.couponCode?.toUpperCase() === d.coupon_code.toUpperCase();
+        return true;
+      });
+
+      for (const d of eligible) {
+        const raw =
+          d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
+        const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+        if (capped > discount) {
+          discount = capped;
+          discountLabel = d.name;
+        }
+      }
+
+      // 5. Loyalty discounts (only on the milestone order, e.g. exactly 25th, 50th visit)
+      const visits = existingCustomer?.visits ?? 0;
+      const loyaltyTier = loyaltyRules
+        .filter((r) => visits + 1 === r.visits_required)
+        .sort((a, b) => b.visits_required - a.visits_required)[0];
+
+      if (loyaltyTier) {
+        const loyaltyValue = (subtotal * Number(loyaltyTier.discount_percent)) / 100;
+        if (loyaltyValue > discount) {
+          discount = loyaltyValue;
+          discountLabel = `Loyalty reward (${loyaltyTier.discount_percent}% • ${visits} visits)`;
+        }
+      }
+
+      // Combined discount must never exceed subtotal (prevents negative totals)
+      // Also cap percentage-based discounts so they can't logically exceed 100%
+      discount = Math.max(0, Math.round(Math.min(discount, subtotal) * 100) / 100);
+      const taxable = Math.max(0, subtotal - discount);
+      const tax = Math.max(
+        0,
+        Math.round(((taxable * Number(settings.tax_percent)) / 100) * 100) / 100,
+      );
+      const packing = data.isTakeaway ? Math.max(0, Number(settings.packing_charge)) : 0;
+      const delivery = data.isTakeaway ? Math.max(0, Number(settings.delivery_charge)) : 0;
+      const total = Math.max(
+        0,
+        Math.round((taxable + tax + packing + delivery) * 100) / 100,
+      );
+
+      const earnedPoints = Math.floor(total / 100) * 10;
+
       // Upsert customer
       let customer;
       if (existingCustomer) {
         customer = await tx.user.update({
           where: { id: existingCustomer.id },
           data: {
-            name: data.customerName,
             visits: { increment: 1 },
             reward_points: { increment: earnedPoints },
             total_spend: { increment: total },
@@ -169,10 +224,10 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
         customer = await tx.user.create({
           data: {
             name: data.customerName,
-            email: `${data.customerPhone}@guest.maatarasweets.com`,
+            email: `${normalizedPhone}@guest.maatarasweets.com`,
             password: crypto.randomBytes(16).toString("hex"),
             role: "USER",
-            phone: data.customerPhone,
+            phone: normalizedPhone,
             visits: 1,
             reward_points: earnedPoints,
             total_spend: total,
@@ -184,25 +239,24 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
           data: {
             type: "customer",
             title: "New customer registered",
-            body: `${data.customerName} (${data.customerPhone}) placed their first order.`,
+            body: `${data.customerName} (${normalizedPhone}) placed their first order.`,
           },
         });
       }
-
-      customerId = customer.id;
 
       // Create Order
       const newOrder = await tx.order.create({
         data: {
           order_number: orderNumber,
           bill_id: billId,
-          table_number: data.tableNumber,
+          table_number: data.tableNumber ? parseInt(data.tableNumber, 10) : null,
           user_id: customer.id,
           customer_name: data.customerName,
-          customer_phone: data.customerPhone,
+          customer_phone: normalizedPhone,
           payment_method: data.paymentMethod,
           status: "PENDING",
           payment_status: "pending",
+          idempotency_key: idempotencyKey,
           session_token: crypto.randomUUID
             ? crypto.randomUUID()
             : crypto.randomBytes(16).toString("hex"),
@@ -249,7 +303,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
         },
       });
 
-      return newOrder;
+      return { newOrder, total };
     });
 
     const serveAt = data.tableNumber
@@ -280,6 +334,9 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
     });
   } catch (error: any) {
     logger.error(`Error in placeOrder: ${error.message}`);
+    if (error.code === 'P2002' && error.meta?.target?.includes('request_hash')) {
+      return res.status(409).send({ error: "Order already placed recently. Please check your orders." });
+    }
     return res.status(400).send({ error: error.message });
   }
 };
@@ -390,6 +447,7 @@ export const updatePaymentStatus = async (req: FastifyRequest, res: FastifyReply
 export const getPublicOrder = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { id, token } = req.query as any;
+    
     const order = await prismaApp.order.findFirst({
       where: { id, session_token: token },
       include: { order_items: true },
@@ -403,24 +461,46 @@ export const getPublicOrder = async (req: FastifyRequest, res: FastifyReply) => 
   }
 };
 
+const requestOrderHistoryCodeSchema = z.object({
+  phone: z.string().min(10),
+});
+
 export const requestOrderHistoryCode = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const { phone } = req.body as any;
+    const parsed = requestOrderHistoryCodeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).send({ error: "Invalid request data", details: parsed.error.format() });
+    }
+    const { phone } = parsed.data;
+    const normalizedPhone = normalizePhone(phone);
+
+    // Rate limit: prevent requesting a new code if one was requested in the last 1 minute
+    const recent = await prismaApp.phoneVerification.findFirst({
+      where: {
+        phone: normalizedPhone,
+        created_at: { gt: new Date(Date.now() - 60 * 1000) },
+      },
+    });
+
+    if (recent) {
+      return res.status(429).send({ error: "Please wait before requesting a new code" });
+    }
+
     const code = String(
       crypto.getRandomValues(new Uint32Array(1))[0]! % 1000000,
     ).padStart(6, "0");
-    const hash = await hashCode(phone, code);
+    const hash = await hashCode(normalizedPhone, code);
 
     await prismaApp.phoneVerification.create({
       data: {
-        phone,
+        phone: normalizedPhone,
         code_hash: hash,
         expires_at: new Date(Date.now() + 10 * 60 * 1000),
       },
     });
 
     void sendWhatsAppMessage(
-      phone,
+      normalizedPhone,
       `🔐 *Shivansi Restaurant & Sweet Shop*\n\nYour order history verification code is *${code}*. It expires in 10 minutes.\n\nAutomated message — never share this code with anyone.`,
     );
 
@@ -431,13 +511,23 @@ export const requestOrderHistoryCode = async (req: FastifyRequest, res: FastifyR
   }
 };
 
+const getOrdersByPhoneSchema = z.object({
+  phone: z.string().min(10),
+  code: z.string().min(6),
+});
+
 export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const { phone, code } = req.body as any;
+    const parsed = getOrdersByPhoneSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).send({ error: "Invalid request data", details: parsed.error.format() });
+    }
+    const { phone, code } = parsed.data;
+    const normalizedPhone = normalizePhone(phone);
 
     const challenge = await prismaApp.phoneVerification.findFirst({
       where: {
-        phone,
+        phone: normalizedPhone,
         used: false,
         expires_at: { gt: new Date() },
       },
@@ -447,7 +537,7 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
     const invalid = new Error("That code is invalid or has expired. Request a new one.");
     if (!challenge || challenge.attempts >= 5) throw invalid;
 
-    const hash = await hashCode(phone, code);
+    const hash = await hashCode(normalizedPhone, code);
     if (challenge.code_hash !== hash) {
       await prismaApp.phoneVerification.update({
         where: { id: challenge.id },
@@ -462,26 +552,28 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
     });
 
     let customer = await prismaApp.user.findUnique({
-      where: { phone },
+      where: { phone: normalizedPhone },
+      select: customerPublicSelect,
     });
 
     if (!customer) {
       customer = await prismaApp.user.create({
         data: {
-          name: phone, // Provide a default name since it's required
-          email: `${phone}@guest.maatarasweets.com`,
+          name: normalizedPhone, // Provide a default name since it's required
+          email: `${normalizedPhone}@guest.maatarasweets.com`,
           password: crypto.randomBytes(16).toString("hex"),
           role: "USER",
-          phone,
+          phone: normalizedPhone,
           visits: 0,
           reward_points: 0,
           total_spend: 0,
         },
-      });
+        select: customerPublicSelect,
+      }) as any;
     }
 
     const orders = await prismaApp.order.findMany({
-      where: { user_id: customer.id },
+      where: { user_id: customer!.id },
       include: { order_items: true },
       orderBy: { created_at: "desc" },
       take: 50,
@@ -489,9 +581,17 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
 
     // Issue a signed profile token so the customer can access /customer-profile
     // without a full user account / JWT session.
-    const profileToken = signProfileToken(phone);
+    const profileToken = signProfileToken(normalizedPhone);
 
-    return res.send({ customer, orders, profileToken });
+    res.setCookie("profileToken", profileToken, {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    });
+
+    return res.send({ customer, orders });
   } catch (error: any) {
     logger.error(`Error in getOrdersByPhone: ${error.message}`);
     return res.status(400).send({ error: error.message });
@@ -499,18 +599,27 @@ export const getOrdersByPhone = async (req: FastifyRequest, res: FastifyReply) =
 };
 
 // ─── GET /data/customer-profile ─────────────────────────────────────────────
-// Query params: phone, token
+// Query params: phone
+// Cookies: profileToken
 export const getCustomerProfile = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const { phone, token } = req.query as { phone?: string; token?: string };
-    if (!phone || !token)
-      return res.status(400).send({ error: "phone and token are required" });
+    const { phone } = req.query as { phone?: string };
+    const token = req.cookies.profileToken;
+    
+    if (!phone)
+      return res.status(400).send({ error: "phone is required" });
+    if (!token)
+      return res.status(401).send({ error: "Profile token missing. Please verify phone again." });
 
+    const normalizedPhone = normalizePhone(phone);
     const payload = verifyProfileToken(token);
-    if (payload.phone !== phone)
+    if (payload.phone !== normalizedPhone)
       return res.status(401).send({ error: "Token does not match phone" });
 
-    const customer = await prismaApp.user.findUnique({ where: { phone } });
+    const customer = await prismaApp.user.findUnique({
+      where: { phone: normalizedPhone },
+      select: customerPublicSelect,
+    });
     if (!customer)
       return res.status(404).send({ error: "No profile found for this number" });
 
@@ -529,18 +638,25 @@ export const getCustomerProfile = async (req: FastifyRequest, res: FastifyReply)
 };
 
 // ─── PATCH /data/customer-profile ───────────────────────────────────────────
-// Body: { phone, token, name?, birthday?, saved_address? }
+// Body: { phone, name?, birthday?, saved_address? }
 export const updateCustomerProfile = async (req: FastifyRequest, res: FastifyReply) => {
   try {
-    const { phone, token, name, birthday, saved_address } = req.body as any;
-    if (!phone || !token)
-      return res.status(400).send({ error: "phone and token are required" });
+    const { phone, name, birthday, saved_address } = req.body as any;
+    const token = req.cookies.profileToken;
+    
+    if (!phone)
+      return res.status(400).send({ error: "phone is required" });
+    if (!token)
+      return res.status(401).send({ error: "Profile token missing. Please verify phone again." });
 
     const payload = verifyProfileToken(token);
     if (payload.phone !== phone)
       return res.status(401).send({ error: "Token does not match phone" });
 
-    const customer = await prismaApp.user.findUnique({ where: { phone } });
+    const customer = await prismaApp.user.findUnique({
+      where: { phone },
+      select: customerPublicSelect,
+    });
     if (!customer)
       return res.status(404).send({ error: "No profile found for this number" });
 
@@ -553,6 +669,7 @@ export const updateCustomerProfile = async (req: FastifyRequest, res: FastifyRep
           saved_address: String(saved_address).trim().slice(0, 200) || null,
         }),
       },
+      select: customerPublicSelect,
     });
 
     return res.send({ customer: updated });
@@ -571,11 +688,13 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
         .send({ error: "orderId, menuItemId, phone, and stars are required" });
     }
 
+    const normalizedPhone = normalizePhone(phone);
+
     // Verify order belongs to phone and contains the product
     const order = await prismaApp.order.findFirst({
       where: {
         id: orderId,
-        customer_phone: phone,
+        customer_phone: normalizedPhone,
         order_items: { some: { product_id: menuItemId } },
       },
     });
@@ -583,35 +702,36 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
     if (!order)
       return res.status(404).send({ error: "Order or item not found for this user" });
 
-    // Check if already rated
-    const existing = await prismaApp.rating.findFirst({
-      where: { orderId, menuItemId, phone },
-    });
-    if (existing)
-      return res
-        .status(400)
-        .send({ error: "You already rated this item for this order" });
+    let rating;
+    try {
+      rating = await prismaApp.rating.create({
+        data: {
+          orderId,
+          menuItemId,
+          phone: normalizedPhone,
+          stars: Number(stars),
+          comment: comment || null,
+        },
+      });
+    } catch (err: any) {
+      if (err.code === "P2002") {
+        return res.status(400).send({ error: "You already rated this item for this order" });
+      }
+      throw err;
+    }
 
-    const rating = await prismaApp.rating.create({
-      data: {
-        orderId,
-        menuItemId,
-        phone,
-        stars: Number(stars),
-        comment: comment || null,
-      },
+    // Update product rating aggregate using database-level aggregation
+    const agg = await prismaApp.rating.aggregate({
+      where: { menuItemId },
+      _avg: { stars: true },
+      _count: { _all: true },
     });
-
-    // Update product rating aggregate
-    const allRatings = await prismaApp.rating.findMany({ where: { menuItemId } });
-    const avg =
-      allRatings.reduce((acc: number, r: any) => acc + r.stars, 0) / allRatings.length;
 
     await prismaApp.product.update({
       where: { id: menuItemId },
       data: {
-        rating: avg,
-        review_count: allRatings.length,
+        rating: agg._avg.stars ?? 0,
+        review_count: agg._count._all,
       },
     });
 

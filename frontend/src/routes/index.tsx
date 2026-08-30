@@ -62,20 +62,41 @@ function Home() {
       <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pt-20">
         <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
           <div className="animate-rise space-y-7">
-            {tableNumber ? (
-              <Badge variant="gold" className="gap-1.5 px-3 py-1 text-xs">
-                <QrCode className="size-3.5" aria-hidden="true" /> You're seated at table{" "}
-                {tableNumber}
-              </Badge>
-            ) : (
-              <Badge
-                variant="glass"
-                className="gap-1.5 px-3 py-1 text-xs backdrop-blur-md"
-              >
-                <Sparkles className="size-3.5 text-accent" aria-hidden="true" /> Scan the
-                QR on your table to start
-              </Badge>
-            )}
+            <Link
+              to="/scanner"
+              role="button"
+              aria-label="Scan QR code to place your order"
+              className="group relative flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden rounded-3xl border border-primary/30 bg-primary/5 px-6 py-6 backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] hover:border-primary/60 hover:bg-primary/10 hover:shadow-[0_0_40px_rgba(var(--primary-rgb,124,58,237),0.20)] w-full"
+            >
+              <div
+                className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-primary/10 blur-[80px]"
+                aria-hidden="true"
+              />
+              <div className="flex items-center gap-5">
+                <div className="relative grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary shadow-inner transition-transform duration-300 group-hover:scale-105">
+                  <QrCode className="size-6" aria-hidden="true" />
+                  <span
+                    className="absolute inset-0 rounded-2xl ring-2 ring-primary/40 animate-ping opacity-50"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div>
+                  <p className="font-display text-lg font-bold text-foreground">
+                    Scan the QR at your table
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 max-w-[200px] sm:max-w-none">
+                    Point your camera, place your order
+                  </p>
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition-colors duration-200 group-hover:bg-primary/20">
+                Open scanner{" "}
+                <ArrowRight
+                  className="size-3 transition-transform duration-200 group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </div>
+            </Link>
             <h1 className="font-display text-5xl font-bold leading-[1.1] sm:text-7xl gradient-text">
               {settings?.name ?? "Maa Tara Sweets"}
             </h1>
@@ -107,8 +128,7 @@ function Home() {
             </div>
             <div className="flex flex-wrap gap-6 pt-4 text-sm font-medium text-muted-foreground">
               <span className="flex items-center gap-2">
-                <Star className="size-4 text-accent" aria-hidden="true" /> 4.8 average
-                rating
+                <Star className="size-4 text-accent" aria-hidden="true" /> {loadRatings() ? "4.8 average rating" : "No ratings yet"}
               </span>
             </div>
           </div>
@@ -298,48 +318,7 @@ function Home() {
         </Section>
       ) : null}
 
-      {/* #19 QR Scan CTA — always visible */}
-      <section className="px-4 py-10 sm:px-6 scroll-reveal">
-        <div className="mx-auto max-w-7xl">
-          <Link
-            to="/scanner"
-            role="button"
-            aria-label="Scan QR code to place your order"
-            className="group relative flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden rounded-3xl border border-primary/30 bg-primary/5 px-8 py-8 backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] hover:border-primary/60 hover:bg-primary/10 hover:shadow-[0_0_40px_rgba(var(--primary-rgb,124,58,237),0.20)]"
-          >
-            {/* Glow blob */}
-            <div
-              className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-primary/10 blur-[80px]"
-              aria-hidden="true"
-            />
-            <div className="flex items-center gap-5">
-              <div className="relative grid size-16 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary shadow-inner transition-transform duration-300 group-hover:scale-105">
-                <QrCode className="size-8" aria-hidden="true" />
-                {/* Pulse ring */}
-                <span
-                  className="absolute inset-0 rounded-2xl ring-2 ring-primary/40 animate-ping opacity-50"
-                  aria-hidden="true"
-                />
-              </div>
-              <div>
-                <p className="font-display text-xl font-bold text-foreground">
-                  Scan the QR at your table
-                </p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Point your camera, place your order — no app needed
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors duration-200 group-hover:bg-primary/20">
-              Open scanner{" "}
-              <ArrowRight
-                className="size-4 transition-transform duration-200 group-hover:translate-x-1"
-                aria-hidden="true"
-              />
-            </div>
-          </Link>
-        </div>
-      </section>
+
 
       <SiteFooter />
     </main>

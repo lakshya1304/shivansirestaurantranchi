@@ -90,9 +90,9 @@ model RestaurantSettings {
   opening_time    String?
   closing_time    String?
   upi_id          String?
-  tax_percent     Float   @default(5)
-  packing_charge  Float   @default(0)
-  delivery_charge Float   @default(0)
+  tax_percent     Decimal   @default(5)
+  packing_charge  Decimal   @default(0)
+  delivery_charge Decimal   @default(0)
   currency        String  @default("INR")
   theme           String  @default("default")
   is_suspended    Boolean @default(false)

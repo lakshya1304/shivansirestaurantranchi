@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar,
   Gift,
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { useIsAdmin } from "@/lib/auth";
@@ -119,9 +120,10 @@ function CustomerProfile({
   // Fetch full customer data from backend
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["customer-profile", session.phone],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const res = await fetchAPI<any>(
-        `/customer-profile?phone=${encodeURIComponent(session.phone)}&token=${encodeURIComponent(session.profileToken)}`,
+        `/customer-profile?phone=${encodeURIComponent(session.phone)}`,
+        { signal }
       );
       return res as { customer: any; orders: Order[] };
     },
@@ -147,16 +149,17 @@ function CustomerProfile({
 
   const saveProfile = useMutation({
     mutationFn: async () => {
+      const payload = {
+        phone: session.phone,
+        name: form.name.trim() || undefined,
+        birthday: form.birthday || undefined,
+        saved_address: form.saved_address.trim() || undefined,
+      };
+
       const res = await fetchAPI<any>("/customer-profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: session.phone,
-          token: session.profileToken,
-          name: form.name || undefined,
-          birthday: form.birthday || undefined,
-          saved_address: form.saved_address || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       return res;
     },
@@ -477,21 +480,7 @@ function AdminProfile({
         </div>
 
         {/* Security */}
-        <div className="glass rounded-3xl p-6 space-y-3">
-          <h2 className="flex items-center gap-2 font-display text-base font-bold">
-            🔐 Security
-          </h2>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Two-factor (TOTP)</span>
-            {hasMfaEnrolled ? (
-              <span className="flex items-center gap-1 text-green-400">✅ Enabled</span>
-            ) : (
-              <Link to="/auth" className="text-accent hover:underline">
-                Set up →
-              </Link>
-            )}
-          </div>
-        </div>
+        <TotpSetup hasMfaEnrolled={hasMfaEnrolled} />
 
         {/* Quick links */}
         <div className="glass rounded-3xl p-6 space-y-3">
@@ -569,6 +558,154 @@ function DetailRow({
         <dt className="text-xs text-muted-foreground">{label}</dt>
         <dd className="text-foreground">{value ?? "—"}</dd>
       </div>
+    </div>
+  );
+}
+
+function TotpSetup({ hasMfaEnrolled }: { hasMfaEnrolled: boolean }) {
+  const [enabled, setEnabled] = useState(hasMfaEnrolled);
+  const [setupData, setSetupData] = useState<{ qrCode: string; secret: string } | null>(null);
+  const [token, setToken] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPasswordInput, setShowPasswordInput] = useState<"enable" | "disable" | null>(null);
+  const qc = useQueryClient();
+
+  const enableMfa = async () => {
+    if (!password) {
+      toast.error("Password is required");
+      return;
+    }
+    try {
+      const res = await fetchAPI<any>("/auth/totp/enable", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      setSetupData(res);
+      setShowPasswordInput(null);
+      setPassword("");
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const verifyMfa = async () => {
+    try {
+      await fetchAPI("/auth/totp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      toast.success("Two-factor authentication enabled!");
+      setSetupData(null);
+      setEnabled(true);
+      qc.invalidateQueries({ queryKey: ["auth_me"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const disableMfa = async () => {
+    if (!password) {
+      toast.error("Password is required");
+      return;
+    }
+    try {
+      await fetchAPI("/auth/totp/disable", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ password }) 
+      });
+      toast.success("Two-factor authentication disabled.");
+      setEnabled(false);
+      setSetupData(null);
+      setShowPasswordInput(null);
+      setPassword("");
+      qc.invalidateQueries({ queryKey: ["auth_me"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  return (
+    <div className="glass rounded-3xl p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="flex items-center gap-2 font-display text-base font-bold">
+          Security
+        </h2>
+        <Switch 
+          checked={enabled || !!setupData || !!showPasswordInput} 
+          onCheckedChange={(v) => {
+            if (v) setShowPasswordInput("enable");
+            else setShowPasswordInput("disable");
+          }} 
+        />
+      </div>
+      <div className="text-sm text-muted-foreground">
+        Two-factor authentication (TOTP)
+      </div>
+
+      {showPasswordInput && (
+        <div className="mt-4 p-4 border border-border/50 rounded-xl space-y-3 bg-background/50">
+          <p className="text-sm">Please enter your password to {showPasswordInput} TOTP:</p>
+          <div className="flex gap-2">
+            <Input 
+              type="password" 
+              placeholder="Your password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+            />
+            <Button 
+              variant="hero" 
+              onClick={() => {
+                if (showPasswordInput === "enable") enableMfa();
+                else disableMfa();
+              }}
+            >
+              Confirm
+            </Button>
+            <Button 
+              variant="glass" 
+              onClick={() => {
+                setShowPasswordInput(null);
+                setPassword("");
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {setupData && !enabled && (
+        <div className="mt-4 p-4 border border-border/50 rounded-xl space-y-4 bg-background/50">
+          <p className="text-sm text-foreground">Scan this QR code with your authenticator app, or enter the setup key manually.</p>
+          <div className="flex justify-center bg-white p-2 rounded-xl w-max mx-auto">
+            <img src={setupData.qrCode} alt="TOTP QR Code" className="w-40 h-40" />
+          </div>
+          <div className="text-center font-mono text-xs bg-muted p-2 rounded break-all">
+            {setupData.secret}
+          </div>
+          <div className="flex gap-2">
+            <Input 
+              placeholder="Enter 6-digit code" 
+              value={token} 
+              onChange={(e) => setToken(e.target.value)} 
+              maxLength={6}
+            />
+            <Button variant="hero" onClick={verifyMfa}>Verify</Button>
+            <Button 
+              variant="glass" 
+              onClick={() => {
+                setSetupData(null);
+                setPassword("");
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

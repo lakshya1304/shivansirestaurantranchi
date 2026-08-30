@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Download } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import { ordersQuery, productsQuery, settingsQuery } from "@/lib/db";
 import { isToday, money } from "@/lib/format";
 
@@ -35,13 +37,34 @@ function Reports() {
   }
   const top = [...counts.values()].sort((a, b) => b.qty - a.qty).slice(0, 10);
 
+  const downloadReport = () => {
+    import("xlsx").then((XLSX) => {
+      const rows = valid.map((o) => ({
+        "Order ID": o.id,
+        "Date": new Date(o.created_at).toLocaleString(),
+        "Status": o.status,
+        "Total": o.total,
+        "Customer Phone": o.customer_phone || "",
+      }));
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
+      XLSX.writeFile(workbook, `reports-${new Date().toISOString().split('T')[0]}.xlsx`);
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="font-display text-xl font-bold">Reports</h2>
-        <p className="text-sm text-muted-foreground">
-          Sales performance and best sellers.
-        </p>
+      <header className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-xl font-bold">Reports</h2>
+          <p className="text-sm text-muted-foreground">
+            Sales performance and best sellers.
+          </p>
+        </div>
+        <Button variant="hero" className="rounded-full" onClick={downloadReport}>
+          <Download className="mr-2 size-4" /> Download Report
+        </Button>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

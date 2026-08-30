@@ -20,17 +20,41 @@ export function useSaveRow(table: TableName, queryKey: string, successMessage = 
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (row: Record<string, unknown>) => {
-      await fetchAPI(`/crud/${table}`, {
+      return await fetchAPI(`/crud/${table}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(row),
       });
     },
-    onSuccess: () => {
-      toast.success(successMessage);
+    onMutate: async (newRow: Record<string, any>) => {
+      await qc.cancelQueries({ queryKey: [queryKey] });
+      const previousData = qc.getQueryData([queryKey]);
+      qc.setQueryData([queryKey], (old: any) => {
+        if (!old) return old;
+        const index = old.findIndex((item: any) => item.id === newRow["id"]);
+        if (index !== -1) {
+          const updated = [...old];
+          updated[index] = { ...updated[index], ...newRow };
+          return updated;
+        } else if (newRow["id"]) {
+          return [...old, newRow];
+        }
+        return old;
+      });
+      return { previousData };
+    },
+    onError: (error: Error, _, context) => {
+      if (context?.previousData) {
+        qc.setQueryData([queryKey], context.previousData);
+      }
+      toast.error(error.message);
+    },
+    onSettled: () => {
       void qc.invalidateQueries({ queryKey: [queryKey] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onSuccess: () => {
+      toast.success(successMessage);
+    },
   });
 }
 
@@ -42,10 +66,26 @@ export function useDeleteRow(table: TableName, queryKey: string) {
         method: "DELETE",
       });
     },
-    onSuccess: () => {
-      toast.success("Deleted");
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: [queryKey] });
+      const previousData = qc.getQueryData([queryKey]);
+      qc.setQueryData([queryKey], (old: any) => {
+        if (!old) return old;
+        return old.filter((item: any) => item.id !== id);
+      });
+      return { previousData };
+    },
+    onError: (error: Error, _, context) => {
+      if (context?.previousData) {
+        qc.setQueryData([queryKey], context.previousData);
+      }
+      toast.error(error.message);
+    },
+    onSettled: () => {
       void qc.invalidateQueries({ queryKey: [queryKey] });
     },
-    onError: (error: Error) => toast.error(error.message),
+    onSuccess: () => {
+      toast.success("Deleted");
+    },
   });
 }

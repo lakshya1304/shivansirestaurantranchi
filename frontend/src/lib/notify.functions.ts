@@ -4,13 +4,13 @@ import { fetchAPI } from "@/lib/db";
 const statusSchema = z.object({
   orderId: z.string().uuid(),
   status: z.enum([
-    "pending",
-    "accepted",
-    "preparing",
-    "ready",
-    "served",
-    "completed",
-    "rejected",
+    "PENDING",
+    "CONFIRMED",
+    "PREPARING",
+    "PREPARED",
+    "SERVED",
+    "COMPLETED",
+    "CANCELLED",
   ]),
 });
 

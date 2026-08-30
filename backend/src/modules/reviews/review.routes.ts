@@ -1,10 +1,34 @@
 import { FastifyInstance } from "fastify";
 import * as reviewController from "./review.controller";
+import { authenticate } from "../../core/middlewares/authMiddleware";
+import { requireAdmin } from "../../core/middlewares/requireRole";
 
 export default async function reviewRoutes(app: FastifyInstance) {
   app.get("/", reviewController.getReviews);
   app.get("/google", reviewController.getGoogleRatings);
-  app.patch("/:id/publish", reviewController.updateReviewPublished);
-  app.post("/upload-image", reviewController.uploadProductImage);
-  app.delete("/upload-image", reviewController.deleteProductImage);
+  app.get("/admin", { preHandler: [authenticate as any, requireAdmin as any] }, reviewController.getAdminReviews);
+  
+  app.patch(
+    "/:id/publish",
+    { preHandler: [authenticate as any, requireAdmin as any] },
+    reviewController.updateReviewPublished
+  );
+
+  app.delete(
+    "/:id",
+    { preHandler: [authenticate as any, requireAdmin as any] },
+    reviewController.deleteReview
+  );
+  
+  app.post(
+    "/upload-image",
+    { preHandler: [authenticate as any, requireAdmin as any] },
+    reviewController.uploadProductImage
+  );
+  
+  app.delete(
+    "/upload-image",
+    { preHandler: [authenticate as any, requireAdmin as any] },
+    reviewController.deleteProductImage
+  );
 }

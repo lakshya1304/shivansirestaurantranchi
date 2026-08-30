@@ -151,6 +151,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       localStorage.removeItem("maatara-cart-v1");
     };
 
+    const reload = () => window.location.reload();
+
     if ("caches" in window) {
       void caches
         .keys()
@@ -162,11 +164,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         })
         .then(() => {
           clearStorage();
-          window.location.reload();
+          reload();
         });
     } else {
       clearStorage();
-      window.location.reload();
+      reload();
     }
   }
 

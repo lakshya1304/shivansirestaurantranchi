@@ -12,8 +12,7 @@
     "db:push:app": "bun ./node_modules/prisma/build/index.js db push --config=prisma.app.config.ts",
     "build": "tsc",
     "db:push": "bun run db:push:app & bun run db:push:admin",
-    "db:seed": "bun scripts/seedData.ts",
-    "git": "git add . && git commit -m \"kuch toh kiya hu \"&& git push -f origin main"
+    "db:seed": "bun scripts/seedData.ts"
   },
   "keywords": [],
   "author": "nishur31",

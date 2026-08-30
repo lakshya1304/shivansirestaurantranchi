@@ -62,7 +62,7 @@ export function useCart(): CartStateObj {
     remove: (key) => dispatch(remove(key)),
     setInstructions: (key, instructions) =>
       dispatch(setInstructions({ key, instructions })),
-    setTableNumber: (table, source) => dispatch(setTableNumber({ table, source })),
+    setTableNumber: (table, source) => dispatch(setTableNumber(source === undefined ? { table } : { table, source })),
     clear: () => dispatch(clear()),
   };
 }

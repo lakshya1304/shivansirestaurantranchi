@@ -146,7 +146,6 @@ export const register = asyncHandler(
 
     sendSuccess(res, "Registration successful", STATUS_CODES.CREATED, {
       user: result.user,
-      accessToken: result.tokens.accessToken,
     });
   },
 );
@@ -168,7 +167,6 @@ export const login = asyncHandler(async (req: LoginRequest, res: FastifyReply) =
 
   sendSuccess(res, "Login successful", STATUS_CODES.OK, {
     user: result.user,
-    accessToken: result.tokens.accessToken,
   });
 });
 
@@ -197,9 +195,7 @@ export const refreshToken = asyncHandler(
     res.setCookie("refreshToken", tokens.refreshToken, cookieOption("refresh"));
     res.setCookie("accessToken", tokens.accessToken, cookieOption("access"));
 
-    sendSuccess(res, "Token refreshed", STATUS_CODES.OK, {
-      accessToken: tokens.accessToken,
-    });
+    sendSuccess(res, "Token refreshed", STATUS_CODES.OK, null);
   },
 );
 
@@ -298,7 +294,6 @@ export const verifyWebAuthnAuthentication = asyncHandler(
 
     sendSuccess(res, "Passkey login successful", STATUS_CODES.OK, {
       user: result.user,
-      accessToken: result.tokens.accessToken,
     });
   },
 );

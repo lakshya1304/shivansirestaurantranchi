@@ -286,24 +286,17 @@ const rateLimit = new Proxy({} as Redis, {
 
     if (typeof value === "function") {
       return (...args: any[]) => {
+        if (useMock) {
+          throw new Error("Redis rate limiter is unavailable (fail closed)");
+        }
         try {
           return value.apply(activeClient, args);
         } catch (error) {
-          if (!useMock) {
-            redisRateFatalError = true;
-
-            console.warn(
-              "[Redis Rate Limit] Error during execution, falling back to MockRedis:",
-              error,
-            );
-
-            const fallback = (mockRedis as any)[prop];
-
-            if (typeof fallback === "function") {
-              return fallback.apply(mockRedis, args);
-            }
-          }
-
+          redisRateFatalError = true;
+          console.error(
+            "[Redis Rate Limit] Error during execution, FAILING CLOSED:",
+            error,
+          );
           throw error;
         }
       };

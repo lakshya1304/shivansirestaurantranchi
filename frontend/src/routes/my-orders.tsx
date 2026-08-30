@@ -59,10 +59,11 @@ function MyOrders() {
 
   const { data: result, isLoading } = useQuery({
     queryKey: ["customer-profile", customerSession?.phone],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!customerSession) return null;
       const res = await fetchAPI<any>(
-        `/customer-profile?phone=${encodeURIComponent(customerSession.phone)}&token=${encodeURIComponent(customerSession.profileToken)}`,
+        `/customer-profile?phone=${encodeURIComponent(customerSession.phone)}`,
+        { signal }
       );
       return res as { customer: any; orders: Order[] };
     },

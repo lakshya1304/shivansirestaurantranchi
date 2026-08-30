@@ -50,7 +50,14 @@ apiClient.interceptors.response.use(
   },
 );
 
-export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
+export interface ApiRequestOptions {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+  signal?: AbortSignal;
+}
+
+export async function fetchAPI<T>(endpoint: string, options?: ApiRequestOptions): Promise<T> {
   const isPost = options?.method && options.method !== "GET";
   // Auth endpoints live at /api/v1/auth/*, not under /data.
   // All other endpoints (categories, products, etc.) live under /api/v1/data/*.
@@ -64,6 +71,7 @@ export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
       method: options?.method || "GET",
       headers: options?.headers,
       data: isPost && options?.body ? JSON.parse(options.body) : undefined,
+      signal: options?.signal,
     });
     return response.data;
   } catch (error: any) {
@@ -90,8 +98,8 @@ export async function fetchAPI<T>(endpoint: string, options?: any): Promise<T> {
 
 export const settingsQuery = queryOptions({
   queryKey: ["settings"],
-  queryFn: async () => {
-    const settings = await fetchAPI<RestaurantSettings | null>("/settings");
+  queryFn: async ({ signal }) => {
+    const settings = await fetchAPI<RestaurantSettings | null>("/settings", { signal });
     return settings;
   },
   staleTime: 30_000,
@@ -99,64 +107,64 @@ export const settingsQuery = queryOptions({
 
 export const categoriesQuery = queryOptions({
   queryKey: ["categories"],
-  queryFn: () => fetchAPI<Category[]>("/categories"),
+  queryFn: ({ signal }) => fetchAPI<Category[]>("/categories", { signal }),
 });
 
 export const productsQuery = queryOptions({
   queryKey: ["products"],
-  queryFn: () => fetchAPI<Product[]>("/products"),
+  queryFn: ({ signal }) => fetchAPI<Product[]>("/products", { signal }),
 });
 
 export const offersQuery = queryOptions({
   queryKey: ["offers"],
-  queryFn: () => fetchAPI<Offer[]>("/offers"),
+  queryFn: ({ signal }) => fetchAPI<Offer[]>("/offers", { signal }),
 });
 
 export const discountsQuery = queryOptions({
   queryKey: ["discounts"],
-  queryFn: () => fetchAPI<Discount[]>("/discounts"),
+  queryFn: ({ signal }) => fetchAPI<Discount[]>("/discounts", { signal }),
 });
 
 export const loyaltyQuery = queryOptions({
   queryKey: ["loyalty"],
-  queryFn: () => fetchAPI<LoyaltyRule[]>("/loyalty"),
+  queryFn: ({ signal }) => fetchAPI<LoyaltyRule[]>("/loyalty", { signal }),
 });
 
 export const tablesQuery = queryOptions({
   queryKey: ["tables"],
-  queryFn: () => fetchAPI<RestaurantTable[]>("/tables"),
+  queryFn: ({ signal }) => fetchAPI<RestaurantTable[]>("/tables", { signal }),
 });
 
 export const reviewsQuery = queryOptions({
   queryKey: ["reviews", "published"],
-  queryFn: () => fetchAPI<Review[]>("/reviews?published=true&limit=6"),
+  queryFn: ({ signal }) => fetchAPI<Review[]>("/reviews?limit=6", { signal }),
   staleTime: 30_000,
 });
 
 export const allReviewsQuery = queryOptions({
   queryKey: ["reviews", "all"],
-  queryFn: () => fetchAPI<Review[]>("/reviews?published=false&limit=50"),
+  queryFn: ({ signal }) => fetchAPI<Review[]>("/reviews/admin?limit=50", { signal }),
   staleTime: 15_000,
 });
 
 export const inventoryQuery = queryOptions({
   queryKey: ["inventory"],
-  queryFn: () => fetchAPI<InventoryItem[]>("/inventory"),
+  queryFn: ({ signal }) => fetchAPI<InventoryItem[]>("/inventory", { signal }),
 });
 
 export const customersQuery = queryOptions({
   queryKey: ["customers"],
-  queryFn: () => fetchAPI<Customer[]>("/customers"),
+  queryFn: ({ signal }) => fetchAPI<Customer[]>("/customers", { signal }),
 });
 
 export const ordersQuery = queryOptions({
   queryKey: ["orders"],
-  queryFn: () => fetchAPI<Order[]>("/orders"),
+  queryFn: ({ signal }) => fetchAPI<Order[]>("/orders", { signal }),
 });
 
 export const notificationsQuery = queryOptions({
   queryKey: ["notifications"],
-  queryFn: () => fetchAPI<AppNotification[]>("/notifications"),
+  queryFn: ({ signal }) => fetchAPI<AppNotification[]>("/notifications", { signal }),
 });
 
 export function activeOffers(offers: Offer[]) {
@@ -171,10 +179,10 @@ export function activeOffers(offers: Offer[]) {
 
 export const staffQuery = queryOptions({
   queryKey: ["staff"],
-  queryFn: async () => {
+  queryFn: async ({ signal }) => {
     // getAllUsers uses reply.send({success, users}) — no sendSuccess wrapper
     // so response.data is {success: true, users: []}. Access .users directly.
-    const data = await fetchAPI<any>("/users");
+    const data = await fetchAPI<any>("/users", { signal });
     // Defensively handle both flat {users:[]} and wrapped {data:{users:[]}} shapes.
     return (data?.users ?? data?.data?.users ?? []) as StaffUser[];
   },
