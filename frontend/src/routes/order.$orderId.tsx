@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { getPublicOrder } from "@/lib/orders.functions";
 import { ORDER_FLOW, STATUS_LABEL, type Order } from "@/lib/types";
 import { formatTime } from "@/lib/format";
+import { POLL_INTERVAL } from "@/lib/db";
 
 export const Route = createFileRoute("/order/$orderId")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -38,7 +39,7 @@ function OrderTracking() {
     queryKey: ["public-order", orderId, t],
     queryFn: ({ signal }) => getPublicOrder({ id: orderId, token: t }, { signal }),
     enabled: Boolean(orderId && t),
-    refetchInterval: 15000,
+    refetchInterval: POLL_INTERVAL,
   });
 
   // 15 s polling via refetchInterval above handles live updates.
