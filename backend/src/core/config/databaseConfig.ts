@@ -13,7 +13,7 @@ const adapterAdmin = new PrismaPg({
   max: 10,
   min: 2,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
+  connectionTimeoutMillis: 30_000,
 });
 const basePrismaAdmin = new PrismaAdminClient({ adapter: adapterAdmin });
 
@@ -22,7 +22,7 @@ const adapterApp = new PrismaPg({
   max: 20,
   min: 2,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
+  connectionTimeoutMillis: 30_000,
 });
 const basePrismaApp = new PrismaAppClient({ adapter: adapterApp });
 
