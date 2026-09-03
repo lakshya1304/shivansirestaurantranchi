@@ -26,7 +26,7 @@ import {
   clearCustomerSession,
   LoginForm,
 } from "./login";
-import { fetchAPI } from "@/lib/db";
+import { fetchAPI, POLL_INTERVAL } from "@/lib/db";
 import { useIsAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/my-orders")({
@@ -72,6 +72,7 @@ function MyOrders() {
     },
     enabled: !!effectiveIdentifier && !checking,
     retry: false,
+    refetchInterval: POLL_INTERVAL,
   });
 
   function handleLoginSuccess({
@@ -90,7 +91,7 @@ function MyOrders() {
 
   function handleSignOut() {
     clearCustomerSession();
-    fetchAPI("/auth/logout", { method: "POST" }).catch(() => {});
+    fetchAPI("/auth/logout", { method: "POST" }).catch(() => { });
     queryClient.invalidateQueries({ queryKey: ["auth_me"] });
     navigate({ to: "/login", replace: true });
     toast.success("Signed out");
@@ -112,7 +113,7 @@ function MyOrders() {
           {effectiveIdentifier && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                 {effectiveIdentifier}
+                {effectiveIdentifier}
               </span>
               <Button
                 variant="glass"

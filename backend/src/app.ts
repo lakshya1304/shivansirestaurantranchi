@@ -15,7 +15,10 @@ const app = fastifyApp;
 // calling sendError() on it throws "fulfilled is not a function" which kills
 // the Bun process and causes a 502 crash loop on Render.
 
+import { healthRoutes } from "./modules/system/health";
+
 app.register(moduleRoutes, { prefix: "/api/v1" });
+app.register(healthRoutes); // Expose /health at root for infrastructure checks
 
 app.setNotFoundHandler((req: FastifyRequest, res: FastifyReply) => {
   return sendError(res, "Route not found", STATUS_CODES.NOT_FOUND);

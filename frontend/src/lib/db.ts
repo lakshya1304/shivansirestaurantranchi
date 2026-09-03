@@ -17,6 +17,7 @@ import type {
 } from "./types";
 
 export const API_BASE_URL = import.meta.env["VITE_API_BASE_URL"] || "/api/v1";
+export const POLL_INTERVAL = 10000;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -181,11 +182,13 @@ export const customersQuery = queryOptions({
 export const ordersQuery = queryOptions({
   queryKey: ["orders"],
   queryFn: ({ signal }) => fetchAPI<Order[]>("/orders", { signal }),
+  refetchInterval: POLL_INTERVAL,
 });
 
 export const notificationsQuery = queryOptions({
   queryKey: ["notifications"],
   queryFn: ({ signal }) => fetchAPI<AppNotification[]>("/notifications", { signal }),
+  refetchInterval: POLL_INTERVAL,
 });
 
 export function activeOffers(offers: Offer[]) {

@@ -25,7 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { Invoice } from "@/components/invoice";
 import { SiteFooter } from "@/components/site-footer";
 import { useIsAdmin } from "@/lib/auth";
-import { fetchAPI, apiClient } from "@/lib/db";
+import { fetchAPI, apiClient, POLL_INTERVAL } from "@/lib/db";
 import { STATUS_LABEL, type Order } from "@/lib/types";
 import { startRegistration } from "@simplewebauthn/browser";
 import { formatDateTime, money } from "@/lib/format";
@@ -130,6 +130,7 @@ function CustomerProfile({
       return res as { customer: any; orders: Order[] };
     },
     retry: false,
+    refetchInterval: POLL_INTERVAL,
   });
 
   const customer = data?.customer;
@@ -519,11 +520,10 @@ function AdminProfile({
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-xl font-bold">{displayName}</h1>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    isSuperAdmin
+                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isSuperAdmin
                       ? "bg-[image:var(--gradient-primary)] text-primary-foreground"
                       : "border border-amber-500/30 bg-amber-500/10 text-amber-400"
-                  }`}
+                    }`}
                 >
                   {roleLabel}
                 </span>
@@ -535,7 +535,7 @@ function AdminProfile({
 
         {/* Security */}
         <TotpSetup hasMfaEnrolled={hasMfaEnrolled} />
-        
+
         {/* Passkeys */}
         <PasskeySetup />
 
@@ -545,14 +545,14 @@ function AdminProfile({
             Quick access
           </h2>
           <nav className="flex flex-col gap-2 text-sm">
-            {(user.role==="ADMIN" || user.role==="SUPERADMIN") && <Link
+            {(user.role === "ADMIN" || user.role === "SUPERADMIN") && <Link
               to="/admin"
               className="flex items-center gap-2 rounded-xl p-2 hover:bg-background/40 transition-colors text-muted-foreground hover:text-foreground"
             >
               <Home className="size-4" /> Admin dashboard
             </Link>}
 
-            {(user.role==="ADMIN" || user.role==="SUPERADMIN") && <Link
+            {(user.role === "ADMIN" || user.role === "SUPERADMIN") && <Link
               to="/admin/staff"
               className="flex items-center gap-2 rounded-xl p-2 hover:bg-background/40 transition-colors text-muted-foreground hover:text-foreground"
             >
@@ -576,8 +576,8 @@ function AdminProfile({
           </Button>
           <Button variant="glass" className="w-full sm:w-1/2 rounded-full h-12 p-0" asChild>
             <Link to="/" className="w-full h-full flex items-center justify-center gap-2 rounded-full">
-            <ArrowLeft className="size-4" />
-            Back to Home
+              <ArrowLeft className="size-4" />
+              Back to Home
             </Link>
           </Button>
         </div>
@@ -746,10 +746,10 @@ function PasskeySetup() {
     try {
       // 1. Get options from server
       const { data: res } = await apiClient.post("/auth/webauthn/register/generate", {});
-      
+
       // 2. Pass options to browser to create a passkey
       const attResp = await startRegistration(res.data);
-      
+
       // 3. Send response back to server to verify
       await apiClient.post("/auth/webauthn/register/verify", attResp);
 
@@ -806,4 +806,3 @@ function PasskeySetup() {
     </div>
   );
 }
-
