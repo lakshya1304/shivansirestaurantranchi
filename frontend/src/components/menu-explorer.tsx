@@ -1,5 +1,5 @@
-import { useMemo, useState, useDeferredValue } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Suspense, useMemo, useState, useDeferredValue } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,10 +14,18 @@ interface MenuExplorerProps {
   onCategoryChange?: (slug: string) => void;
 }
 
-export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorerProps) {
-  const { data: categories = [] } = useQuery(categoriesQuery);
-  const { data: products, isPending } = useQuery(productsQuery);
-  const { data: settings } = useQuery(settingsQuery);
+export function MenuExplorer(props: MenuExplorerProps) {
+  return (
+    <Suspense fallback={<MenuExplorerSkeleton />}>
+      <MenuExplorerContent {...props} />
+    </Suspense>
+  );
+}
+
+function MenuExplorerContent({ initialCategory, onCategoryChange }: MenuExplorerProps) {
+  const { data: categories } = useSuspenseQuery(categoriesQuery);
+  const { data: products } = useSuspenseQuery(productsQuery);
+  const { data: settings } = useSuspenseQuery(settingsQuery);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState(initialCategory ?? "all");
   const [diet, setDiet] = useState<DietFilter>("all");
@@ -111,13 +119,7 @@ export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorer
           ))}
       </div>
 
-      {isPending ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-80 rounded-3xl shimmer" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="glass rounded-3xl p-10 text-center text-sm text-muted-foreground">
           Nothing matches that search yet. Try another dish or category.
         </p>
@@ -133,6 +135,31 @@ export function MenuExplorer({ initialCategory, onCategoryChange }: MenuExplorer
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+export function MenuExplorerSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <Skeleton className="h-11 rounded-full shimmer" />
+        <div className="flex gap-1.5">
+          <Skeleton className="h-9 w-16 rounded-full shimmer" />
+          <Skeleton className="h-9 w-16 rounded-full shimmer" />
+          <Skeleton className="h-9 w-16 rounded-full shimmer" />
+        </div>
+      </div>
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-9 w-24 shrink-0 rounded-full shimmer" />
+        ))}
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-80 rounded-3xl shimmer" />
+        ))}
+      </div>
     </div>
   );
 }
