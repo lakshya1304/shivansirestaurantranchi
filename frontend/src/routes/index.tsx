@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { ArrowRight, QrCode, Sparkles, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -42,10 +42,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { data: products = [] } = useQuery(productsQuery);
-  const { data: categories = [] } = useQuery(categoriesQuery);
-  const { data: offers = [] } = useQuery(offersQuery);
-  const { data: settings } = useQuery(settingsQuery);
+  const { data: products } = useSuspenseQuery(productsQuery);
+  const { data: categories } = useSuspenseQuery(categoriesQuery);
+  const { data: offers } = useSuspenseQuery(offersQuery);
+  const { data: settings } = useSuspenseQuery(settingsQuery);
   const { tableNumber } = useCart();
 
   const currency = settings?.currency ?? "₹";

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Check, ChefHat, Loader2, Printer, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,23 +35,32 @@ export const Route = createFileRoute("/order/$orderId")({
 function OrderTracking() {
   const { orderId } = Route.useParams();
   const { t } = Route.useSearch();
-  const query = useQuery({
+  if (!orderId || !t) {
+    return (
+      <main className="grid min-h-[60vh] place-items-center px-4">
+        <div className="glass rounded-3xl p-10 text-center">
+          <h1 className="font-display text-2xl font-bold">Order not found</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            This tracking link is invalid or has expired.
+          </p>
+          <Button asChild variant="hero" className="mt-6 rounded-full">
+            <Link to="/menu" search={{ category: undefined }}>
+              Back to the menu
+            </Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
+  const query = useSuspenseQuery({
     queryKey: ["public-order", orderId, t],
     queryFn: ({ signal }) => getPublicOrder({ id: orderId, token: t }, { signal }),
-    enabled: Boolean(orderId && t),
     refetchInterval: POLL_INTERVAL,
   });
 
   // 15 s polling via refetchInterval above handles live updates.
   // Supabase realtime has been removed.
-
-  if (query.isLoading) {
-    return (
-      <main className="grid min-h-[60vh] place-items-center">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
-      </main>
-    );
-  }
 
   const payload = query.data;
   if (!payload) {

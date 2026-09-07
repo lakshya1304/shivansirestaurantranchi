@@ -12,7 +12,8 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: PageLoader,
-    defaultPendingMs: 300, // only show loader if navigation takes > 300ms (avoids flash)
+    defaultPendingMs: 0,
+    defaultPendingMinMs: 0,
   });
 
   return router;
