@@ -116,6 +116,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
       return {
         product_id: product.id,
+        category_id: product.category_id,
         name: product.name,
         unit_price: unitPrice,
         quantity: line.quantity,
@@ -155,6 +156,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
       let discount = 0;
       let discountLabel: string | null = null;
+      let appliedDiscountId: string | null = null;
 
       // 4. Coupon/Campaign discounts
       const eligible = discounts.filter((d) => {
@@ -173,12 +175,31 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       });
 
       for (const d of eligible) {
-        const raw =
-          d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
-        const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+        let eligibleSubtotal = subtotal;
+        
+        if ((d.category_ids && d.category_ids.length > 0) || (d.product_ids && d.product_ids.length > 0)) {
+          eligibleSubtotal = items.reduce((s: number, i: any) => {
+            const matchesCategory = d.category_ids?.includes(i.category_id);
+            const matchesProduct = d.product_ids?.includes(i.product_id);
+            if (matchesCategory || matchesProduct) {
+              return s + i.line_total;
+            }
+            return s;
+          }, 0);
+        }
+
+        if (eligibleSubtotal === 0 && ((d.category_ids && d.category_ids.length > 0) || (d.product_ids && d.product_ids.length > 0))) {
+          continue;
+        }
+
+        const raw = d.type === "flat" ? Number(d.value) : (eligibleSubtotal * Number(d.value)) / 100;
+        let capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+        capped = Math.min(capped, eligibleSubtotal);
+
         if (capped > discount) {
           discount = capped;
           discountLabel = d.name;
+          appliedDiscountId = d.id;
         }
       }
 
@@ -275,19 +296,31 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
           delivery_charge: delivery,
           total,
           notes: data.notes,
-          order_items: {
-            create: items.map((i: any) => ({
-              product_id: i.product_id,
-              name: i.name,
-              unit_price: i.unit_price,
-              quantity: i.quantity,
-              weight_label: i.weight_label,
-              instructions: i.instructions,
-              line_total: i.line_total,
-            })),
-          },
         },
       });
+
+      const orderItemData = items.map((i: any) => ({
+        product_id: i.product_id,
+        name: i.name,
+        unit_price: i.unit_price,
+        quantity: i.quantity,
+        weight_label: i.weight_label,
+        instructions: i.instructions,
+        line_total: i.line_total,
+      }));
+      await tx.orderItem.createMany({
+        data: orderItemData.map((item: any) => ({
+          order_id: newOrder.id,
+          ...item,
+        })),
+      });
+
+      if (appliedDiscountId) {
+        await tx.discount.update({
+          where: { id: appliedDiscountId },
+          data: { usage_count: { increment: 1 } },
+        });
+      }
 
       if (discountLabel) {
         await tx.appNotification.create({
@@ -310,9 +343,10 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
         },
       });
 
-      broadcastOrderEvent("order_created", newOrder);
       return { newOrder, total };
     });
+
+    broadcastOrderEvent("order_created", order);
 
     const serveAt = data.tableNumber
       ? `Serve at table ${data.tableNumber}`
