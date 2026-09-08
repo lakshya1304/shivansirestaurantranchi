@@ -34,8 +34,9 @@
     "@types/multer": "^2.2.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
+    "crypto": "^1.0.1",
     "dotenv": "^17.3.1",
-    "fastify": "^5.8.4",
+    "fastify": "^5.12.3",
     "googleapis": "^176.0.0",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
@@ -48,7 +49,7 @@
     "qrcode": "^1.5.4",
     "sharp": "^0.35.4",
     "speakeasy": "^2.0.0",
-    "zod": "^3",
+    "zod": "^4.5.4",
     "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {

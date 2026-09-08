@@ -37,6 +37,7 @@ import type {
   AuthenticationResponseJSON,
 } from "@simplewebauthn/server";
 import logger from "../../core/config/loggerConfig";
+import { normalizePhone } from "../../core/utils/phone";
 import { hash } from "../../core/utils/helpers/hash";
 import { prismaApp, prismaAdmin } from "../../core/config/databaseConfig";
 import { sendError, sendSuccess } from "../../core/utils/common/response";
@@ -183,7 +184,7 @@ export default class AuthService {
       name: data.name,
       email: data.email,
       password: data.password,
-      phone: data.phone,
+      phone: data.phone ? normalizePhone(data.phone) : undefined,
       role,
     });
 
