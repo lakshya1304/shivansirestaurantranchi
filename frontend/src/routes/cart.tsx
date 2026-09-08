@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { useCart } from "@/lib/cart";
 import { money } from "@/lib/format";
 import { productImage } from "@/lib/images";
-import { settingsQuery, tablesQuery, discountsQuery } from "@/lib/db";
+import { settingsQuery, tablesQuery, discountsQuery, offersQuery } from "@/lib/db";
 import { placeOrder } from "@/lib/orders.functions";
 import { PAYMENT_METHODS } from "@/lib/types";
 
@@ -52,6 +52,7 @@ function CartPage() {
   const { data: settings } = useQuery(settingsQuery);
   const { data: tables = [] } = useQuery(tablesQuery);
   const { data: discounts = [] } = useQuery(discountsQuery);
+  const { data: offers = [] } = useQuery(offersQuery);
   const navigate = useNavigate();
   const submitOrder = placeOrder;
 
@@ -78,8 +79,25 @@ function CartPage() {
   
   const today = new Date().toISOString().slice(0, 10);
   const hour = new Date().getHours();
+  const allDiscounts = [
+    ...discounts,
+    ...offers.map(o => ({
+      name: o.title,
+      type: "percent",
+      value: o.discount_percent,
+      min_order_amount: 0,
+      max_discount: null,
+      starts_at: o.starts_at,
+      ends_at: o.ends_at,
+      start_hour: null,
+      end_hour: null,
+      coupon_code: o.coupon_code,
+      is_active: o.is_active,
+    }))
+  ];
+
   // Always evaluate discounts to support auto-applied discounts without a code
-  const eligible = discounts.filter((d) => {
+  const eligible = allDiscounts.filter((d) => {
     if (!d.is_active) return false;
     if (d.starts_at && d.starts_at.slice(0, 10) > today) return false;
     if (d.ends_at && d.ends_at.slice(0, 10) < today) return false;

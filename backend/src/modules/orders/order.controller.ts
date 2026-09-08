@@ -92,6 +92,22 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
     });
     const settings = await prismaAdmin.restaurantSettings.findFirst();
     const discounts = await prismaApp.discount.findMany({ where: { is_active: true } });
+    const offers = await prismaApp.offer.findMany({ where: { is_active: true } });
+    const allDiscounts = [
+      ...discounts,
+      ...offers.map((o) => ({
+        name: o.title,
+        type: "percent",
+        value: o.discount_percent,
+        min_order_amount: 0,
+        max_discount: null,
+        starts_at: o.starts_at,
+        ends_at: o.ends_at,
+        start_hour: null,
+        end_hour: null,
+        coupon_code: o.coupon_code,
+      })),
+    ];
     const loyaltyRules = await prismaApp.loyaltyRule.findMany({
       where: { is_active: true },
     });
@@ -151,7 +167,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       let discountLabel: string | null = null;
 
       // 4. Coupon/Campaign discounts
-      const eligible = discounts.filter((d) => {
+      const eligible = allDiscounts.filter((d) => {
         if (d.starts_at && d.starts_at.toISOString().slice(0, 10) > today) return false;
         if (d.ends_at && d.ends_at.toISOString().slice(0, 10) < today) return false;
         if (subtotal < Number(d.min_order_amount)) return false;
