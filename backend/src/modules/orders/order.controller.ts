@@ -185,13 +185,31 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       });
 
       for (const d of eligible) {
-        const raw =
-          d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
-        const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+        let eligibleSubtotal = subtotal;
+        
+        if ((d as any).category_ids?.length > 0 || (d as any).product_ids?.length > 0) {
+          eligibleSubtotal = items.reduce((s: number, i: any) => {
+            const matchesCategory = (d as any).category_ids?.includes(i.category_id);
+            const matchesProduct = (d as any).product_ids?.includes(i.product_id);
+            if (matchesCategory || matchesProduct) {
+              return s + i.line_total;
+            }
+            return s;
+          }, 0);
+        }
+
+        if (eligibleSubtotal === 0 && ((d as any).category_ids?.length > 0 || (d as any).product_ids?.length > 0)) {
+          continue;
+        }
+
+        const raw = d.type === "flat" ? Number(d.value) : (eligibleSubtotal * Number(d.value)) / 100;
+        let capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+        capped = Math.min(capped, eligibleSubtotal);
+
         if (capped > discount) {
           discount = capped;
           discountLabel = d.name;
-          appliedDiscountId = d.id;
+          appliedDiscountId = (d as any).id ?? null;
         }
       }
 
