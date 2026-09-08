@@ -97,10 +97,12 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       ...discounts,
       ...offers.map((o) => ({
         name: o.title,
-        type: "percent",
+        type: "percent" as const,
         value: o.discount_percent,
         min_order_amount: 0,
         max_discount: null,
+        category_ids: o.category_ids ?? [],
+        product_ids: o.product_ids ?? [],
         starts_at: o.starts_at,
         ends_at: o.ends_at,
         start_hour: null,

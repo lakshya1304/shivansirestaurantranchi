@@ -10,7 +10,7 @@ import {
 
 const startServer = async () => {
   try {
-    Promise.all([connectRedisCache(), connectRedisRateLimit()]);
+    await Promise.all([connectRedisCache(), connectRedisRateLimit()]);
     const address = await app.listen({ port: API_PORT, host: "0.0.0.0" });
   } catch (err: any) {
     logger.error(err?.message || err);
@@ -26,7 +26,7 @@ async function gracefulShutdown(signal: string) {
     logger.info("HTTP server closed.");
 
     try {
-      Promise.all([cache.disconnect(), rateLimit.disconnect()]);
+      await Promise.all([cache.disconnect(), rateLimit.disconnect()]);
     } catch (err) {
       logger.error({ error: err }, "Error dismounting RAM");
     }

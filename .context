@@ -1,41 +1,60 @@
 {
   "__meta__": {
     "project": "Maa Tara Sweets / Shivansi Restaurant Ranchi",
-    "type": "FullStack Restaurant Management App"
+    "type": "FullStack Restaurant Management App",
+    "updated": "2026-09-08"
   },
   "stack": {
     "frontend": ["React", "Vite", "TailwindCSS", "Tanstack Router", "React Query", "Shadcn UI"],
-    "backend": ["Node.js", "Fastify", "Prisma"],
-    "db": ["PostgreSQL", "Split schema: app.schema.prisma (Public) / admin.schema.prisma (Internal)"]
+    "backend": ["Bun", "Fastify", "Prisma"],
+    "db": ["PostgreSQL", "Split schema: app.schema.prisma (Public) / admin.schema.prisma (Internal)"],
+    "cache": ["Redis (dual: cache + rate-limit)"]
   },
   "auth": {
     "methods": ["WebAuthn / Passkeys", "Google OAuth (UI built, flow pending)", "Email OTP / Password"],
     "roles": ["USER", "ADMIN", "SUPERADMIN"],
-    "middlewares": ["requireRole (Backend)", "auth-middleware.ts (Frontend)"]
+    "middlewares": ["requireRole (Backend)", "auth-middleware.ts (Frontend)"],
+    "customer_auth": "Phone verification via WhatsApp OTP → 7-day signed profile token cookie"
   },
   "routes": {
     "frontend": {
-      "public": ["/", "/menu", "/cart", "/login", "/signup", "/scanner", "/table/$tableNumber"],
-      "customer_auth": ["/profile", "/my-orders"],
+      "public": ["/", "/menu", "/cart", "/login", "/signup", "/scanner", "/table/$tableNumber", "/owner"],
+      "customer_auth": ["/profile", "/my-orders", "/order/$orderId", "/settings"],
       "admin": [
         "/auth (Admin login only)",
         "/admin (Live Orders Board)",
         "/admin/reports (Revenue & Analytics)",
+        "/admin/offers (Festival offers, Coupons, Loyalty rules)",
         "/admin/governance (Superadmin Actions: Create/Delete Admins)",
-        "/admin/menu", "/admin/inventory", "/admin/customers", "/admin/staff", "/admin/settings"
+        "/admin/menu", "/admin/inventory", "/admin/customers", "/admin/staff",
+        "/admin/settings", "/admin/tables", "/admin/reviews"
       ]
     },
     "backend": {
       "prefix": "/api/v1",
       "modules": {
-        "/auth": "Authentication (login, register, webauthn, totp)",
-        "/data/orders": "Order lifecycle (place, status, payment, history)",
-        "/data/catalog": "Products, Categories",
+        "/auth": "Authentication (login, register, webauthn, totp, passkeys)",
+        "/data/orders": "Order lifecycle (place, status, payment, history, public view, rating)",
+        "/data/catalog": "Products, Categories, Offers, Discounts, Loyalty, Tables, Inventory, Customers, Notifications",
+        "/data/reviews": "Reviews CRUD, Google ratings, product image upload",
         "/data/governance": "AdminActionRequest, Votes, Superadmin creation/deletion",
         "/data/settings": "Restaurant metadata, global toggles",
-        "/data/users": "User management"
+        "/data/users": "User management",
+        "/customer-profile": "GET/PATCH customer profile (phone-token or JWT auth)"
       }
     }
+  },
+  "order_flow": {
+    "statuses": ["PENDING", "CONFIRMED", "PREPARING", "PREPARED", "SERVED", "COMPLETED", "CANCELLED"],
+    "payment_methods": ["Cash", "UPI", "Google Pay", "PhonePe", "Paytm", "Card"],
+    "payment_note": "No integrated payment gateway. UPI/Card orders placed as 'Pending Payment' with restaurant UPI ID shown on confirmation page.",
+    "discount_system": {
+      "types": ["Discounts (flat/percent with coupon code, min order, time-of-day, category/product filtering)", "Festival Offers (percent-based, coupon code, date range)", "Loyalty Rules (milestone visit-based)"],
+      "evaluation": "Best single discount wins (highest value). Applied server-side in atomic transaction. Frontend shows estimate.",
+      "tracking": "appliedDiscountId increments usage_count on the winning discount record"
+    },
+    "idempotency": "Idempotency-Key header required. Duplicate keys return existing order.",
+    "notifications": "WhatsApp messages sent to customer and admin on order creation and status changes"
   },
   "accomplishments": [
     {
@@ -44,33 +63,38 @@
     },
     {
       "feature": "Admin Auth UI",
-      "action": "Added Passkey and Google login integration to the restricted admin `/auth` route."
+      "action": "Added Passkey and Google login integration to the restricted admin /auth route."
     },
     {
       "feature": "Dashboard Re-organization",
-      "action": "Moved Revenue Analytics out of admin.index.tsx (Live Kitchen) and into admin.reports.tsx (Revenue & Reports). Removed 'Revenue today' KPI from Live dashboard to fix UI mixup where order cards showed in revenue views."
+      "action": "Moved Revenue Analytics out of admin.index.tsx (Live Kitchen) and into admin.reports.tsx (Revenue & Reports)."
     },
     {
       "feature": "Build & UI Fixes",
       "action": "Fixed missing format.ts exports (isThisMonth, isThisYear, isSameDay) causing black screens. Fixed missing IndianRupee lucide-react import."
+    },
+    {
+      "feature": "Address Map Dialog",
+      "action": "Added clickable address in /owner with embedded Google Maps iframe dialog. Address vertically centered."
+    },
+    {
+      "feature": "Coupon & Offer Creation Fix",
+      "action": "Fixed Prisma creation errors for discounts/offers by defaulting category_ids and product_ids to empty arrays in system.controller.ts saveRow."
+    },
+    {
+      "feature": "Festival Offers Applied to Checkout",
+      "action": "Merged offers table into discount evaluation on both frontend (cart.tsx) and backend (order.controller.ts). Festival offer coupon codes now properly reduce base price."
+    },
+    {
+      "feature": "Category/Product-Aware Discounts",
+      "action": "Merged main's advanced discount logic: discounts can target specific categories/products. Eligible subtotal is calculated only from matching items."
+    },
+    {
+      "feature": "Redis Startup Fix",
+      "action": "Added missing await to Promise.all for Redis connections in index.ts to prevent silent connection failures."
     }
   ],
   "active_bugs_and_tasks": [
-    {
-      "issue": "Live Dashboard State Update Failure",
-      "description": "Clicking state change buttons ('Mark ready to serve') in `admin.index.tsx` does not update the order state or UI.",
-      "flow": "admin.index.tsx (setStatus) -> notify.functions.ts (updateOrderStatus) -> PATCH /data/orders/:id/status -> order.routes.ts -> order.controller.ts (updateOrderStatus)",
-      "hypotheses": [
-        "WhatsApp API (`sendWhatsAppMessage` in `order.controller.ts`) is throwing an unhandled exception which crashes the API request before 200 OK is sent.",
-        "Prisma throws a P2025 error due to state mismatch.",
-        "React Query `qc.invalidateQueries(['orders'])` is failing to re-fetch or WebSockets are not pushing updates correctly."
-      ],
-      "next_steps": [
-        "Check Fastify backend logs immediately after clicking a state change button in the dashboard.",
-        "Wrap `sendWhatsAppMessage` inside `order.controller.ts` in a try/catch block to prevent it from failing the state update transaction.",
-        "Verify `broadcastOrderEvent` successfully emits the event to connected clients."
-      ]
-    },
     {
       "issue": "WhatsApp / Email Integrations",
       "status": "Pending full implementation. Brevo and WhatsApp API configurations exist but need verification."
@@ -78,6 +102,10 @@
     {
       "issue": "Google OAuth Backend",
       "status": "UI added, backend logic needs to be connected for restricted Admin/Superadmin Google logins."
+    },
+    {
+      "issue": "Large Vendor Chunk Warning",
+      "status": "vendor-misc bundle is 684KB. Consider code-splitting with dynamic imports for chart library."
     }
   ]
 }
