@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChefHat, Clock, MapPin, Phone, Star, Heart } from "lucide-react";
 import { settingsQuery } from "@/lib/db";
 import { SiteFooter } from "@/components/site-footer";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 const PLACEHOLDER = {
   name: "Maa Tara Sweets",
   tagline: "Freshly made sweets & Indian classics, served right at your seat.",
@@ -137,17 +137,43 @@ function OwnerPage() {
         <section className="glass rounded-3xl p-8 space-y-5">
           <h2 className="font-display text-2xl font-bold">Visit Us</h2>
           <div className="grid gap-4 sm:grid-cols-3 text-sm">
-            <a
-              href="https://maps.app.goo.gl/Wc3uMz7K1z4XcoHL8"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-start gap-3 text-muted-foreground hover:text-foreground transition-colors group"
-            >
-              <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl bg-accent/10 group-hover:bg-accent/20 transition-colors">
-                <MapPin className="size-4 text-accent" aria-hidden="true" />
-              </span>
-              <span className="leading-relaxed">{s.address}</span>
-            </a>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="text-left flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors group">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-accent/10 group-hover:bg-accent/20 transition-colors">
+                    <MapPin className="size-4 text-accent" aria-hidden="true" />
+                  </span>
+                  <span className="leading-relaxed">{s.address}</span>
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>Our Location</DialogTitle>
+                </DialogHeader>
+                <div className="aspect-video w-full overflow-hidden rounded-xl border border-border">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    style={{ border: 0 }} 
+                    loading="lazy" 
+                    allowFullScreen 
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(s.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                  />
+                </div>
+                <div className="flex justify-end pt-2">
+                  <a
+                    href="https://maps.app.goo.gl/Wc3uMz7K1z4XcoHL8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-105"
+                    style={{ background: "var(--gradient-primary)" }}
+                  >
+                    <MapPin className="size-4" />
+                    Open in Google Maps
+                  </a>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <a
               href={`tel:${s.phone}`}

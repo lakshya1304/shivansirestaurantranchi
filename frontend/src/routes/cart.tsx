@@ -13,7 +13,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { useCart } from "@/lib/cart";
 import { money } from "@/lib/format";
 import { productImage } from "@/lib/images";
-import { settingsQuery, tablesQuery, discountsQuery } from "@/lib/db";
+import { settingsQuery, tablesQuery, discountsQuery, offersQuery } from "@/lib/db";
 import { placeOrder } from "@/lib/orders.functions";
 import { PAYMENT_METHODS } from "@/lib/types";
 
@@ -52,6 +52,7 @@ function CartPage() {
   const { data: settings } = useQuery(settingsQuery);
   const { data: tables = [] } = useQuery(tablesQuery);
   const { data: discounts = [] } = useQuery(discountsQuery);
+  const { data: offers = [] } = useQuery(offersQuery);
   const navigate = useNavigate();
   const submitOrder = placeOrder;
 
@@ -75,29 +76,51 @@ function CartPage() {
   // Calculate local coupon discount
   let discountAmount = 0;
   let discountLabel = null;
-  if (coupon.trim()) {
-    const today = new Date().toISOString().slice(0, 10);
-    const hour = new Date().getHours();
-    const eligible = discounts.filter((d) => {
-      if (!d.is_active) return false;
-      if (d.starts_at && d.starts_at > today) return false;
-      if (d.ends_at && d.ends_at < today) return false;
-      if (subtotal < Number(d.min_order_amount)) return false;
-      if (d.start_hour != null && d.end_hour != null && (hour < d.start_hour || hour >= d.end_hour)) return false;
-      if (d.coupon_code) return coupon.trim().toUpperCase() === d.coupon_code.toUpperCase();
-      return false;
-    });
+  
+  const today = new Date().toISOString().slice(0, 10);
+  const hour = new Date().getHours();
+  const allDiscounts = [
+    ...discounts,
+    ...offers.map(o => ({
+      name: o.title,
+      type: "percent",
+      value: o.discount_percent,
+      min_order_amount: 0,
+      max_discount: null,
+      starts_at: o.starts_at,
+      ends_at: o.ends_at,
+      start_hour: null,
+      end_hour: null,
+      coupon_code: o.coupon_code,
+      is_active: o.is_active,
+    }))
+  ];
 
-    for (const d of eligible) {
-      const raw = d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
-      const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
-      if (capped > discountAmount) {
-        discountAmount = capped;
-        discountLabel = d.name;
-      }
+  // Always evaluate discounts to support auto-applied discounts without a code
+  const eligible = allDiscounts.filter((d) => {
+    if (!d.is_active) return false;
+    if (d.starts_at && d.starts_at.slice(0, 10) > today) return false;
+    if (d.ends_at && d.ends_at.slice(0, 10) < today) return false;
+    if (subtotal < Number(d.min_order_amount)) return false;
+    if (d.start_hour != null && d.end_hour != null && (hour < d.start_hour || hour >= d.end_hour)) return false;
+    if (d.coupon_code) {
+      if (!coupon.trim()) return false;
+      return coupon.trim().toUpperCase() === d.coupon_code.toUpperCase();
     }
-    discountAmount = Math.max(0, Math.round(Math.min(discountAmount, subtotal) * 100) / 100);
+    return true;
+  });
+
+  for (const d of eligible) {
+    const raw = d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
+    const maxLimit = d.max_discount != null ? Number(d.max_discount) : null;
+    const capped = (maxLimit != null && maxLimit > 0) ? Math.min(raw, maxLimit) : raw;
+    
+    if (capped > discountAmount) {
+      discountAmount = capped;
+      discountLabel = d.name;
+    }
   }
+  discountAmount = Math.max(0, Math.round(Math.min(discountAmount, subtotal) * 100) / 100);
 
   const taxable = Math.max(0, subtotal - discountAmount);
   const packing = takeaway ? Number(settings?.packing_charge ?? 0) : 0;

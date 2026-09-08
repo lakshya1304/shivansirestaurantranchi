@@ -140,7 +140,8 @@ function LiveOrders() {
           </p>
         ) : null}
         {displayedOrders.map((order) => {
-          const next = NEXT[order.status];
+          const isTakeaway = order.table_number == null;
+          const next = isTakeaway && order.status === "PREPARED" ? "COMPLETED" : NEXT[order.status];
           return (
             <article key={order.id} className="glass animate-rise rounded-3xl p-5">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">

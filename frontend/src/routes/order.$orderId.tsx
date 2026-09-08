@@ -85,7 +85,10 @@ function OrderTracking() {
   const takeaway = order.table_number == null;
   const status = order.status;
   const cancelled = status === "CANCELLED";
-  const activeIndex = ORDER_FLOW.indexOf(status);
+  
+  // Exclude SERVED for takeaway orders
+  const flow = takeaway ? ORDER_FLOW.filter(s => s !== "SERVED") : ORDER_FLOW;
+  const activeIndex = flow.indexOf(status);
 
   return (
     <main className="px-4 py-10 sm:px-6">
@@ -109,7 +112,7 @@ function OrderTracking() {
         {!cancelled ? (
           <ol className="relative space-y-6 pl-10">
             <span className="absolute left-[15px] top-2 h-[calc(100%-1rem)] w-px bg-border" />
-            {ORDER_FLOW.map((step, index) => {
+            {flow.map((step, index) => {
               const done = index <= activeIndex;
               const current = index === activeIndex;
               return (
@@ -125,10 +128,10 @@ function OrderTracking() {
                       <Check className="size-4" />
                     ) : index === 1 ? (
                       <ChefHat className="size-4" />
-                    ) : index === 2 ? (
-                      <Utensils className="size-4" />
-                    ) : (
+                    ) : step === "COMPLETED" ? (
                       <Check className="size-4" />
+                    ) : (
+                      <Utensils className="size-4" />
                     )}
                   </span>
                   <p
