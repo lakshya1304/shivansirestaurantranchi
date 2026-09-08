@@ -94,7 +94,9 @@ function CartPage() {
 
   for (const d of eligible) {
     const raw = d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
-    const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
+    const maxLimit = d.max_discount != null ? Number(d.max_discount) : null;
+    const capped = (maxLimit != null && maxLimit > 0) ? Math.min(raw, maxLimit) : raw;
+    
     if (capped > discountAmount) {
       discountAmount = capped;
       discountLabel = d.name;
