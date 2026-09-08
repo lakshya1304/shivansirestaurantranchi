@@ -124,14 +124,15 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
       const unitPrice = product.sold_by_weight
         ? Math.round(
-            ((Number(product.price_per_kg) || 0) * (line.weightGrams || 250)) / 1000,
-          )
+          ((Number(product.price_per_kg) || 0) * (line.weightGrams || 250)) / 1000,
+        )
         : Number(product.offer_price) > 0
           ? Number(product.offer_price)
           : Number(product.price);
 
       return {
         product_id: product.id,
+        category_id: product.category_id,
         name: product.name,
         unit_price: unitPrice,
         quantity: line.quantity,
@@ -165,6 +166,7 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
 
       let discount = 0;
       let discountLabel: string | null = null;
+      let appliedDiscountId: string | null = null;
 
       // 4. Coupon/Campaign discounts
       const eligible = allDiscounts.filter((d) => {
@@ -185,12 +187,11 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
       for (const d of eligible) {
         const raw =
           d.type === "flat" ? Number(d.value) : (subtotal * Number(d.value)) / 100;
-        const maxLimit = d.max_discount != null ? Number(d.max_discount) : null;
-        const capped = (maxLimit != null && maxLimit > 0) ? Math.min(raw, maxLimit) : raw;
-        
+        const capped = d.max_discount != null ? Math.min(raw, Number(d.max_discount)) : raw;
         if (capped > discount) {
           discount = capped;
           discountLabel = d.name;
+          appliedDiscountId = d.id;
         }
       }
 
@@ -286,19 +287,31 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
           delivery_charge: delivery,
           total,
           notes: data.notes,
-          order_items: {
-            create: items.map((i: any) => ({
-              product_id: i.product_id,
-              name: i.name,
-              unit_price: i.unit_price,
-              quantity: i.quantity,
-              weight_label: i.weight_label,
-              instructions: i.instructions,
-              line_total: i.line_total,
-            })),
-          },
         },
       });
+
+      const orderItemData = items.map((i: any) => ({
+        product_id: i.product_id,
+        name: i.name,
+        unit_price: i.unit_price,
+        quantity: i.quantity,
+        weight_label: i.weight_label,
+        instructions: i.instructions,
+        line_total: i.line_total,
+      }));
+      await tx.orderItem.createMany({
+        data: orderItemData.map((item: any) => ({
+          order_id: newOrder.id,
+          ...item,
+        })),
+      });
+
+      if (appliedDiscountId) {
+        await tx.discount.update({
+          where: { id: appliedDiscountId },
+          data: { usage_count: { increment: 1 } },
+        });
+      }
 
       if (discountLabel) {
         await tx.appNotification.create({
@@ -321,9 +334,10 @@ export const placeOrder = async (req: FastifyRequest, res: FastifyReply) => {
         },
       });
 
-      broadcastOrderEvent("order_created", newOrder);
       return { newOrder, total };
     });
+
+    broadcastOrderEvent("order_created", order);
 
     const serveAt = data.tableNumber
       ? `Serve at table ${data.tableNumber}`
@@ -473,7 +487,7 @@ export const updatePaymentStatus = async (req: FastifyRequest, res: FastifyReply
 export const getPublicOrder = async (req: FastifyRequest, res: FastifyReply) => {
   try {
     const { id, token } = req.query as any;
-    
+
     const order = await prismaApp.order.findFirst({
       where: { id, session_token: token },
       include: { order_items: true },
@@ -631,14 +645,14 @@ export const getCustomerProfile = async (req: FastifyRequest, res: FastifyReply)
   try {
     const { phone } = req.query as { phone?: string };
     const token = req.cookies.profileToken;
-    
+
     if (!phone)
       return res.status(400).send({ error: "phone is required" });
 
     const normalizedPhone = normalizePhone(phone);
-    
+
     let isAuthorized = false;
-    
+
     // Try JWT first
     try {
       await (req as any).jwtVerify();
@@ -690,7 +704,7 @@ export const updateCustomerProfile = async (req: FastifyRequest, res: FastifyRep
   try {
     const { phone, name, birthday, saved_address } = req.body as any;
     const token = req.cookies.profileToken;
-    
+
     if (!phone)
       return res.status(400).send({ error: "phone is required" });
     if (!token)
@@ -770,7 +784,7 @@ export const submitRating = async (req: FastifyRequest, res: FastifyReply) => {
     // Update product rating aggregate using database-level aggregation (Weekly)
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const agg = await prismaApp.rating.aggregate({
-      where: { 
+      where: {
         menuItemId,
         createdAt: { gte: oneWeekAgo }
       },

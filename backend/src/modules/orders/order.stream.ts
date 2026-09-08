@@ -25,6 +25,11 @@ export const handleOrderStream = (req: FastifyRequest, res: FastifyReply) => {
   return new Promise(() => {});
 };
 
+// Send a heartbeat ping every 15 seconds to keep connections alive
+setInterval(() => {
+  broadcastOrderEvent("ping", { time: Date.now() });
+}, 15000);
+
 export const broadcastOrderEvent = (event: string, data: any = {}) => {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   for (const client of activeClients) {
